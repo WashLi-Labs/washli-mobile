@@ -10,6 +10,8 @@ class PrimaryButton extends StatelessWidget {
   final IconData? icon;
   final double? width;
   final double height;
+  final Color? backgroundColor;
+  final double? borderRadius;
 
   const PrimaryButton({
     super.key,
@@ -20,6 +22,8 @@ class PrimaryButton extends StatelessWidget {
     this.icon,
     this.width,
     this.height = 56,
+    this.backgroundColor,
+    this.borderRadius,
   });
 
   @override
@@ -50,10 +54,10 @@ class PrimaryButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.buttonPrimary,
+          backgroundColor: backgroundColor ?? AppColors.buttonPrimary,
           foregroundColor: AppColors.buttonText,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(borderRadius ?? 30),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 0),
           elevation: 0,

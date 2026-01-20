@@ -21,7 +21,10 @@ class AppColors {
   
   // Button Colors
   static const Color buttonPrimary = Color(0xFF000000);
-  static const Color buttonText = Color(0xFFFFFFFF);
+  static const Color loginButton = Color(0xFF1256DB);
+  static const Color buttonText = Color(0xFFFFFFFF); 
+
+  
   
   // Status Colors
   static const Color success = Color(0xFF4CAF50);
