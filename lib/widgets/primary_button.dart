@@ -9,7 +9,7 @@ class PrimaryButton extends StatelessWidget {
   final bool isOutlined;
   final IconData? icon;
   final double? width;
-  final double? height;
+  final double height;
 
   const PrimaryButton({
     super.key,
@@ -19,7 +19,7 @@ class PrimaryButton extends StatelessWidget {
     this.isOutlined = false,
     this.icon,
     this.width,
-    this.height,
+    this.height = 56,
   });
 
   @override
@@ -27,7 +27,7 @@ class PrimaryButton extends StatelessWidget {
     if (isOutlined) {
       return SizedBox(
         width: width,
-        height: height ?? 56,
+        height: height,
         child: OutlinedButton(
           onPressed: isLoading ? null : onPressed,
           style: OutlinedButton.styleFrom(
@@ -35,7 +35,9 @@ class PrimaryButton extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(30),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 0),
+            minimumSize: Size(0, height),
+            maximumSize: Size(width ?? double.infinity, height),
           ),
           child: _buildChild(),
         ),
@@ -44,7 +46,7 @@ class PrimaryButton extends StatelessWidget {
 
     return SizedBox(
       width: width,
-      height: height ?? 56,
+      height: height,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
@@ -53,8 +55,10 @@ class PrimaryButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 0),
           elevation: 0,
+          minimumSize: Size(0, height),
+          maximumSize: Size(width ?? double.infinity, height),
         ),
         child: _buildChild(),
       ),

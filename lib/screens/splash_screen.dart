@@ -18,8 +18,8 @@ class SplashScreen extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColors.splashBackground,
-              Color(0xFF90CAF9),
+              Color(0xFFB3E5FC),
+              Color(0xFF7DB2DD),
             ],
           ),
         ),
@@ -30,10 +30,12 @@ class SplashScreen extends StatelessWidget {
               
               // Main Content
               Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppConstants.paddingXLarge,
+                padding: const EdgeInsets.only(
+                  left: AppConstants.paddingMedium,
+                  right: AppConstants.paddingXLarge,
                 ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Title
                     Text(
@@ -41,7 +43,7 @@ class SplashScreen extends StatelessWidget {
                       textAlign: TextAlign.left,
                       style: AppTextStyles.displayLarge.copyWith(
                         fontSize: 36,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w900,
                         color: AppColors.textPrimary,
                         height: 1.2,
                       ),
@@ -52,7 +54,7 @@ class SplashScreen extends StatelessWidget {
                     // Subtitle
                     Text(
                       'Effortless Care And Sparking Results!',
-                      textAlign: TextAlign.center,
+                      textAlign: TextAlign.left,
                       style: AppTextStyles.bodyLarge.copyWith(
                         fontSize: 16,
                         color: AppColors.textPrimary.withOpacity(0.8),
@@ -66,7 +68,6 @@ class SplashScreen extends StatelessWidget {
                     PrimaryButton(
                       text: 'Get Started',
                       icon: Icons.arrow_forward,
-                      width: double.infinity,
                       onPressed: () {
                         // TODO: Navigate to next screen
                         // Navigator.pushReplacement(
@@ -83,7 +84,7 @@ class SplashScreen extends StatelessWidget {
               
               // Image Section
               Expanded(
-                flex: 3,
+                flex: 4,
                 child: Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
@@ -91,6 +92,21 @@ class SplashScreen extends StatelessWidget {
                       image: AssetImage(AppConstants.splashBackground),
                       fit: BoxFit.cover,
                     ),
+                  ),
+                ),
+              ),
+              
+              // Copyright/Version Text
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppConstants.paddingSmall,
+                ),
+                child: Text(
+                  '© 2026 Washli • Version 1.0.0',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    fontSize: 12,
+                    color: AppColors.textPrimary.withOpacity(0.6),
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
               ),
