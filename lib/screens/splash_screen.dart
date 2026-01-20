@@ -3,6 +3,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/primary_button.dart';
 import '../constants/app_constants.dart';
+import 'logins/login_screen.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -69,11 +70,11 @@ class SplashScreen extends StatelessWidget {
                       text: 'Get Started',
                       icon: Icons.arrow_forward,
                       onPressed: () {
-                        // TODO: Navigate to next screen
-                        // Navigator.pushReplacement(
-                        //   context,
-                        //   MaterialPageRoute(builder: (context) => NextScreen()),
-                        // );
+                        // Navigate to LoginScreen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const LoginScreen()),
+                        );
                       },
                     ),
                   ],
