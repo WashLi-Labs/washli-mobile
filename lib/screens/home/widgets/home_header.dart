@@ -71,7 +71,7 @@ class HomeHeader extends StatelessWidget {
                   ],
                 ),
                 
-                const SizedBox(height: 30),
+                const SizedBox(height: 100),
                 
                 // Greeting and Washing Machine
                 Row(
@@ -107,7 +107,7 @@ class HomeHeader extends StatelessWidget {
           
           // Washing Machine Image (3D Isometric)
           Positioned(
-            right: -20,
+            right: -0,
             bottom: 40, 
             child: Image.asset(
               'assets/images/splash_bg.png',
