@@ -13,7 +13,6 @@ class EmailInput extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade300),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: TextField(
         controller: controller,
         keyboardType: TextInputType.emailAddress,
@@ -24,7 +23,6 @@ class EmailInput extends StatelessWidget {
             color: Colors.grey,
             fontSize: 14,
           ),
-          contentPadding: EdgeInsets.symmetric(vertical: 14),
         ),
         style: const TextStyle(
           fontSize: 16,
