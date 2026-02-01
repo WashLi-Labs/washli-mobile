@@ -1,0 +1,191 @@
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
+import '../../widgets/buttons/create_account_button.dart';
+import '../data/email.dart';
+import '../data/f_name.dart';
+import '../data/l_name.dart';
+import 'login.dart';
+
+class UserAccountDetailsScreen extends StatefulWidget {
+  const UserAccountDetailsScreen({super.key});
+
+  @override
+  State<UserAccountDetailsScreen> createState() => _UserAccountDetailsScreenState();
+}
+
+class _UserAccountDetailsScreenState extends State<UserAccountDetailsScreen> {
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, size: 20),
+          color: Colors.black,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 10),
+                const Text(
+                  'Sign Up',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2D2D3A),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Fill in the details to create your account',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                
+                const SizedBox(height: 30),
+                
+                // Name Row
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'First Name',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF2D2D3A),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          FirstNameInput(controller: _firstNameController),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Last Name',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF2D2D3A),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          LastNameInput(controller: _lastNameController),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 20),
+                
+                // Email
+                const Text(
+                  'Email',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF2D2D3A),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                EmailInput(controller: _emailController),
+                
+                const SizedBox(height: 40),
+                
+                CreateAccountButton(
+                  onPressed: () {
+                    // TODO: Implement Create Account logic
+                    print("Create Account clicked");
+                  },
+                ),
+                
+                const SizedBox(height: 20),
+                
+                // Terms text
+                RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    text: 'By Signing up, You agree to the ',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    children: [
+                      TextSpan(
+                        text: 'Term of Service',
+                        style: const TextStyle(color: Color(0xFF0062FF)),
+                        recognizer: TapGestureRecognizer()..onTap = () {},
+                      ),
+                      const TextSpan(text: ' and '),
+                      TextSpan(
+                        text: 'Privacy Policy.',
+                        style: const TextStyle(color: Color(0xFF0062FF)),
+                         recognizer: TapGestureRecognizer()..onTap = () {},
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 100), // Spacer
+
+                // Footer
+                // Align(
+                //   alignment: Alignment.bottomCenter,
+                //    child: RichText(
+                //     text: TextSpan(
+                //       text: 'Already Have an account? ',
+                //       style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                //       children: [
+                //         TextSpan(
+                //           text: 'Sign in',
+                //           style: const TextStyle(
+                //             color: Color(0xFF0062FF),
+                //             fontWeight: FontWeight.w600,
+                //           ),
+                //           recognizer: TapGestureRecognizer()..onTap = () {
+                //             Navigator.of(context).push(
+                //               MaterialPageRoute(builder: (context) => const LoginScreen()),
+                //             );
+                //           },
+                //         ),
+                //       ],
+                //     ),
+                //   ),
+                // ),
+                // const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
