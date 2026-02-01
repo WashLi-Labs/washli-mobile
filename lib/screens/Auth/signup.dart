@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../data/mobile_number.dart';
+import '../../widgets/input_fields/mobile_number.dart';
 import '../../widgets/buttons/send_otp_button.dart';
 import 'verify_otp.dart';
 

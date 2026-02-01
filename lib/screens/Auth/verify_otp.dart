@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/buttons/otp_verify_button.dart';
-import '../data/otp_pinput.dart';
+import '../../widgets/input_fields/otp_pinput.dart';
 import 'user_account_details.dart';
 
 class VerifyOtpScreen extends StatefulWidget {

@@ -1,9 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../../widgets/buttons/create_account_button.dart';
-import '../data/email.dart';
-import '../data/f_name.dart';
-import '../data/l_name.dart';
+import '../../widgets/input_fields/email.dart';
+import '../../widgets/input_fields/f_name.dart';
+import '../../widgets/input_fields/l_name.dart';
 import 'login.dart';
 
 class UserAccountDetailsScreen extends StatefulWidget {
