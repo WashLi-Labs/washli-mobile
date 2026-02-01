@@ -4,6 +4,7 @@ import '../../widgets/buttons/create_account_button.dart';
 import '../../widgets/input_fields/email.dart';
 import '../../widgets/input_fields/f_name.dart';
 import '../../widgets/input_fields/l_name.dart';
+import '../../screens/home/home_screen.dart';
 import 'login.dart';
 
 class UserAccountDetailsScreen extends StatefulWidget {
@@ -125,8 +126,16 @@ class _UserAccountDetailsScreenState extends State<UserAccountDetailsScreen> {
                 
                 CreateAccountButton(
                   onPressed: () {
-                    // TODO: Implement Create Account logic
-                    print("Create Account clicked");
+                    // Navigate to Home Screen with the entered name
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => HomeScreen(
+                          userName: _firstNameController.text.isNotEmpty 
+                              ? _firstNameController.text 
+                              : "James", 
+                        ),
+                      ),
+                    );
                   },
                 ),
                 
