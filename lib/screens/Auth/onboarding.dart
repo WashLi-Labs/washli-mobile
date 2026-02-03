@@ -65,9 +65,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             Expanded(
               child: SizedBox(
                 width: double.infinity,
-                child: Image.asset(
-                  'assets/images/splash_bg.png',
-                  fit: BoxFit.cover,
+                child: Padding(
+                  padding: const EdgeInsets.all(30.0),
+                  child: Image.asset(
+                    'assets/images/splash_bg.png',
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
             ),
