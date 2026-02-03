@@ -81,11 +81,11 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem("assets/icons/Home Page-1.png", "Home", 0),
-            _buildNavItem("assets/icons/Search-1.png", "Search", 1),
-            _buildNavItem("assets/icons/explore-1.png", "Explore", 2),
-            _buildNavItem("assets/icons/Shopping Cart-1.png", "Cart", 3),
-             _buildNavItem("assets/icons/Account.png", "Account", 4),
+            _buildNavItem("assets/home-icons/Home Angle.png", "Home", 0),
+            _buildNavItem("assets/home-icons/Magnifer.png", "Search", 1),
+            _buildNavItem("assets/home-icons/Global.png", "Explore", 2),
+            _buildNavItem("assets/home-icons/Bag 2.png", "Cart", 3),
+             _buildNavItem("assets/home-icons/Account.png", "Account", 4),
           ],
         ),
       ),
