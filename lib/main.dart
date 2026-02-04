@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/Auth/onboarding.dart';
-import 'theme/app_theme.dart';
+import 'package:washli_mobile/theme/app_theme.dart';
 
 void main() {
   runApp(const MyApp());

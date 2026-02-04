@@ -1,14 +1,40 @@
 import 'package:flutter/material.dart';
 
-class HomeHeader extends StatelessWidget {
+import 'home_top_bar.dart';
+import '../../../get_location/location_service.dart';
+
+class HomeHeader extends StatefulWidget {
   final String userName;
-  final String location;
 
   const HomeHeader({
     super.key,
     required this.userName,
-    this.location = "Nugegoda, Sri Lanka",
   });
+
+  @override
+  State<HomeHeader> createState() => _HomeHeaderState();
+}
+
+class _HomeHeaderState extends State<HomeHeader> {
+  String _location = "Nugegoda, Sri Lanka"; // Default location
+  final LocationService _locationService = LocationService();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLocation();
+  }
+
+  Future<void> _fetchLocation() async {
+    String? location = await _locationService.getCurrentLocation();
+    if (location != null) {
+      if (mounted) {
+        setState(() {
+          _location = location;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,41 +60,12 @@ class HomeHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Top Row: Location and Icons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Location Dropdown (Mock)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withOpacity(0.3)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.location_on, color: Colors.white, size: 16),
-                          const SizedBox(width: 8),
-                          Text(
-                            location,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 16),
-                        ],
-                      ),
-                    ),
-                    
-                    // Notification Icon
-                    IconButton(
-                      icon: const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 28),
-                      onPressed: () {},
-                    ),
-                  ],
+                HomeTopBar(
+                  location: _location,
+                  onLocationTap: () {
+                    // TODO: Handle location tap (e.g., refresh or open picker)
+                    _fetchLocation();
+                  },
                 ),
                 
                 const SizedBox(height: 100),
@@ -82,14 +79,14 @@ class HomeHeader extends StatelessWidget {
                         Text(
                           'Hello,',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                             fontSize: 32,
                             fontWeight: FontWeight.w300,
                             height: 1.1,
                           ),
                         ),
                         Text(
-                          '$userName!',
+                          '${widget.userName}!',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 36,
@@ -105,7 +102,7 @@ class HomeHeader extends StatelessWidget {
             ),
           ),
           
-          // Washing Machine Image (3D Isometric)
+          // Washing Machine Image
           Positioned(
             right: -0,
             bottom: 40, 
