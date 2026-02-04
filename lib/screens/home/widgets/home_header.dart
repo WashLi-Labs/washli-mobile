@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../get_location/location_service.dart';
 
 class HomeHeader extends StatefulWidget {
@@ -122,8 +122,8 @@ class _HomeHeaderState extends State<HomeHeader> {
                             },
                             child: Padding(
                               padding: const EdgeInsets.all(4.0),
-                              child: Image.asset(
-                                'assets/home-icons/Bell.png',
+                              child: SvgPicture.asset(
+                                'assets/home-icons/Bell.svg',
                                 width: 24,
                                 height: 24,
                               ),
@@ -140,8 +140,8 @@ class _HomeHeaderState extends State<HomeHeader> {
                             },
                             child: Padding(
                               padding: const EdgeInsets.all(4.0),
-                              child: Image.asset(
-                                'assets/home-icons/Unorder list.png',
+                              child: SvgPicture.asset(
+                                'assets/home-icons/Unorder list.svg',
                                 width: 24,
                                 height: 24,
                               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'widgets/action_card.dart';
 import 'widgets/category_list.dart';
 import 'widgets/home_header.dart';
@@ -81,11 +82,11 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem("assets/home-icons/Home Angle.png", "Home", 0),
-            _buildNavItem("assets/home-icons/Magnifer.png", "Search", 1),
-            _buildNavItem("assets/home-icons/Global.png", "Explore", 2),
-            _buildNavItem("assets/home-icons/Bag 2.png", "Cart", 3),
-             _buildNavItem("assets/home-icons/Account.png", "Account", 4),
+            _buildNavItem("assets/home-icons/Home Angle.svg", "Home", 0),
+            _buildNavItem("assets/home-icons/Magnifer.svg", "Search", 1),
+            _buildNavItem("assets/home-icons/Global.svg", "Explore", 2),
+            _buildNavItem("assets/home-icons/Bag 2.svg", "Cart", 3),
+             _buildNavItem("assets/home-icons/Account.svg", "Account", 4),
           ],
         ),
       ),
@@ -100,11 +101,14 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Image.asset(
+          SvgPicture.asset(
             assetPath,
             width: 24,
             height: 24,
-            color: isActive ? Colors.black : Colors.grey,
+            colorFilter: ColorFilter.mode(
+              isActive ? Colors.black : Colors.grey,
+              BlendMode.srcIn,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
