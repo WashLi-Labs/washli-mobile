@@ -3,7 +3,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../home/widgets/home_top_bar.dart';
 import '../home/widgets/nav_bar.dart';
 import '../../widgets/input_fields/custom_search_bar.dart';
+import '../../widgets/buttons/back_button.dart';
 import '../../get_location/location_service.dart';
+import '../explore/explore_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -119,8 +121,12 @@ class _SearchScreenState extends State<SearchScreen> {
   void _onItemTapped(int index) {
     if (index == 0) {
       Navigator.pop(context); // Go back to Home
+    } else if (index == 2) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const ExploreScreen()),
+      );
     }
-    // Add other navigation logic here based on your app's routing
   }
 
   @override
@@ -136,6 +142,19 @@ class _SearchScreenState extends State<SearchScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            // Back Button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: CustomBackButton(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
+            ),
+            
             // Top Bar
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),

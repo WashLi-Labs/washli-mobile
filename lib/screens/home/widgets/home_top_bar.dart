@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../../../../widgets/buttons/notification_button.dart';
+import '../../../../widgets/buttons/activity_button.dart';
 
 class HomeTopBar extends StatelessWidget {
   final String location;
@@ -65,42 +67,18 @@ class HomeTopBar extends StatelessWidget {
         // Notification and Menu Icons
         Row(
           children: [
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(50),
-                onTap: () {
-                  // TODO: Handle notification tap
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: SvgPicture.asset(
-                    'assets/home-icons/Bell.svg',
-                    width: 24,
-                    height: 24,
-                    colorFilter: ColorFilter.mode(contentColor, BlendMode.srcIn),
-                  ),
-                ),
-              ),
+            NotificationButton(
+              onTap: () {
+                // TODO: Handle notification tap
+              },
+              iconColor: contentColor,
             ),
             const SizedBox(width: 8), 
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(50),
-                onTap: () {
-                  // TODO: Handle menu tap
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: SvgPicture.asset(
-                    'assets/home-icons/Unorder list.svg',
-                    width: 24,
-                    height: 24,
-                    colorFilter: ColorFilter.mode(contentColor, BlendMode.srcIn),
-                  ),
-                ),
-              ),
+            ActivityButton(
+              onTap: () {
+                // TODO: Handle menu tap
+              },
+              iconColor: contentColor,
             ),
           ],
         ),
