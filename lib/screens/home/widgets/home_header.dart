@@ -1,14 +1,39 @@
 import 'package:flutter/material.dart';
 
-class HomeHeader extends StatelessWidget {
+import '../../../get_location/location_service.dart';
+
+class HomeHeader extends StatefulWidget {
   final String userName;
-  final String location;
 
   const HomeHeader({
     super.key,
     required this.userName,
-    this.location = "Nugegoda, Sri Lanka",
   });
+
+  @override
+  State<HomeHeader> createState() => _HomeHeaderState();
+}
+
+class _HomeHeaderState extends State<HomeHeader> {
+  String _location = "Nugegoda, Sri Lanka"; // Default location
+  final LocationService _locationService = LocationService();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLocation();
+  }
+
+  Future<void> _fetchLocation() async {
+    String? location = await _locationService.getCurrentLocation();
+    if (location != null) {
+      if (mounted) {
+        setState(() {
+          _location = location;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,35 +63,92 @@ class HomeHeader extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     // Location Dropdown (Mock)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withOpacity(0.3)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.location_on, color: Colors.white, size: 16),
-                          const SizedBox(width: 8),
-                          Text(
-                            location,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
+                    // Location Dropdown (Mock)
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(30),
+                        onTap: () {
+                          // TODO: Handle location tap (e.g., refresh or open picker)
+                          _fetchLocation();
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 22,
+                                height: 22,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.location_on_outlined,
+                                  color: Colors.black,
+                                  size: 14,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: 160),
+                                child: Text(
+                                  _location,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 20),
+                            ],
                           ),
-                          const SizedBox(width: 4),
-                          const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 16),
-                        ],
+                        ),
                       ),
                     ),
                     
-                    // Notification Icon
-                    IconButton(
-                      icon: const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 28),
-                      onPressed: () {},
+                    // Notification and Menu Icons
+                    Row(
+                      children: [
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(50),
+                            onTap: () {
+                              // TODO: Handle notification tap
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Image.asset(
+                                'assets/home-icons/Bell.png',
+                                width: 24,
+                                height: 24,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8), // Adjusted spacing for padding
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(50),
+                            onTap: () {
+                              // TODO: Handle menu tap
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Image.asset(
+                                'assets/home-icons/Unorder list.png',
+                                width: 24,
+                                height: 24,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -89,7 +171,7 @@ class HomeHeader extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '$userName!',
+                          '${widget.userName}!',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 36,
@@ -105,7 +187,7 @@ class HomeHeader extends StatelessWidget {
             ),
           ),
           
-          // Washing Machine Image (3D Isometric)
+          // Washing Machine Image
           Positioned(
             right: -0,
             bottom: 40, 
