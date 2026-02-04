@@ -4,6 +4,7 @@ import 'widgets/category_list.dart';
 import 'widgets/home_header.dart';
 import 'widgets/nav_bar.dart';
 import 'widgets/nearby_laundry_card.dart';
+import '../search/search_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String userName;
@@ -21,9 +22,22 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    if (index == 1) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const SearchScreen()),
+      ).then((_) {
+        // Reset index when returning if needed, or keep it. 
+        // Typically we might want to stay on 0 if we popped back.
+        setState(() {
+          _selectedIndex = 0;
+        });
+      });
+    } else {
+        setState(() {
+            _selectedIndex = index;
+        });
+    }
   }
 
   @override

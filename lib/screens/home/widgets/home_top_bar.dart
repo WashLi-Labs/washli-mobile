@@ -4,11 +4,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 class HomeTopBar extends StatelessWidget {
   final String location;
   final VoidCallback onLocationTap;
+  final Color contentColor; 
 
   const HomeTopBar({
     super.key,
     required this.location,
     required this.onLocationTap,
+    this.contentColor = Colors.white, 
   });
 
   @override
@@ -29,13 +31,13 @@ class HomeTopBar extends StatelessWidget {
                   Container(
                     width: 22,
                     height: 22,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
+                    decoration: BoxDecoration(
+                      color: contentColor, // Use content color for the icon background
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.location_on_outlined,
-                      color: Colors.black,
+                      color: contentColor == Colors.white ? Colors.black : Colors.white, // Invert for contrast
                       size: 14,
                     ),
                   ),
@@ -45,15 +47,15 @@ class HomeTopBar extends StatelessWidget {
                     child: Text(
                       location,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: contentColor, 
                         fontWeight: FontWeight.w400,
                         fontSize: 12,
                       ),
                     ),
                   ),
                   const SizedBox(width: 4),
-                  const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 20),
+                  Icon(Icons.keyboard_arrow_down, color: contentColor, size: 20),
                 ],
               ),
             ),
@@ -76,11 +78,12 @@ class HomeTopBar extends StatelessWidget {
                     'assets/home-icons/Bell.svg',
                     width: 24,
                     height: 24,
+                    colorFilter: ColorFilter.mode(contentColor, BlendMode.srcIn),
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 8), // Adjusted spacing for padding
+            const SizedBox(width: 8), 
             Material(
               color: Colors.transparent,
               child: InkWell(
@@ -94,6 +97,7 @@ class HomeTopBar extends StatelessWidget {
                     'assets/home-icons/Unorder list.svg',
                     width: 24,
                     height: 24,
+                    colorFilter: ColorFilter.mode(contentColor, BlendMode.srcIn),
                   ),
                 ),
               ),
