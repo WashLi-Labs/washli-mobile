@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+
+import 'home_top_bar.dart';
 import '../../../get_location/location_service.dart';
 
 class HomeHeader extends StatefulWidget {
@@ -59,98 +60,12 @@ class _HomeHeaderState extends State<HomeHeader> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Top Row: Location and Icons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Location Dropdown (Mock)
-                    // Location Dropdown (Mock)
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(30),
-                        onTap: () {
-                          // TODO: Handle location tap (e.g., refresh or open picker)
-                          _fetchLocation();
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 22,
-                                height: 22,
-                                decoration: const BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.location_on_outlined,
-                                  color: Colors.black,
-                                  size: 14,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              ConstrainedBox(
-                                constraints: const BoxConstraints(maxWidth: 160),
-                                child: Text(
-                                  _location,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 20),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    
-                    // Notification and Menu Icons
-                    Row(
-                      children: [
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(50),
-                            onTap: () {
-                              // TODO: Handle notification tap
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(4.0),
-                              child: SvgPicture.asset(
-                                'assets/home-icons/Bell.svg',
-                                width: 24,
-                                height: 24,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8), // Adjusted spacing for padding
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(50),
-                            onTap: () {
-                              // TODO: Handle menu tap
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(4.0),
-                              child: SvgPicture.asset(
-                                'assets/home-icons/Unorder list.svg',
-                                width: 24,
-                                height: 24,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                HomeTopBar(
+                  location: _location,
+                  onLocationTap: () {
+                    // TODO: Handle location tap (e.g., refresh or open picker)
+                    _fetchLocation();
+                  },
                 ),
                 
                 const SizedBox(height: 100),
@@ -164,7 +79,7 @@ class _HomeHeaderState extends State<HomeHeader> {
                         Text(
                           'Hello,',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                             fontSize: 32,
                             fontWeight: FontWeight.w300,
                             height: 1.1,
