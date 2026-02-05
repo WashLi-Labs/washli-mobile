@@ -7,6 +7,7 @@ import '../../widgets/buttons/favorite_button.dart';
 import '../home/widgets/nav_bar.dart';
 import '../search/search_screen.dart';
 import '../../get_location/location_service.dart';
+import 'shop/shop_details_screen.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
@@ -136,14 +137,23 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   final laundry = laundries[index];
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 20.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ShopDetailsScreen(laundry: laundry),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                           Stack(
                             children: [
                               ClipRRect(
@@ -257,7 +267,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                         ],
                       ),
                     ),
-                  );
+                  ),
+                );
                 },
               ),
             ),
