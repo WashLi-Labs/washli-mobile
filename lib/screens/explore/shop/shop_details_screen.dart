@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../widgets/buttons/back_button.dart';
 import '../../../widgets/input_fields/custom_search_bar.dart';
+import 'widgets/service_card.dart';
+import 'widgets/shop_header.dart';
 
 class ShopDetailsScreen extends StatelessWidget {
   final Map<String, dynamic> laundry;
@@ -12,124 +14,33 @@ class ShopDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Column(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Image and Back Button
-            Stack(
-              children: [
-                Image.asset(
-                  laundry['image'] ?? 'assets/images/laundry shop.png',
-                  width: double.infinity,
-                  height: 250,
-                  fit: BoxFit.cover,
+            // Header with Back Button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: CustomBackButton(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
                 ),
-                Positioned(
-                  top: 40,
-                  left: 20,
-                  child: CustomBackButton(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                ),
-                Positioned(
-                  bottom: 16,
-                  right: 16,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0066FF),
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: const Text(
-                      'More Info',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
+
+            // Shop Header (Image + Details)
+            ShopHeader(laundry: laundry),
             
             Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Status
-                  if (laundry['status'] != null)
-                  Text(
-                    laundry['status'] ?? "Open", // Default to Open if null, or handle logic
-                     style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF2D2D3A),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  
-                  // Title
-                  Text(
-                    laundry['name'],
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2D2D3A),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Delivery & Fee Row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          _buildIconText(Icons.local_shipping_outlined, "Delivery"),
-                          const SizedBox(width: 16),
-                          _buildIconText(Icons.directions_walk, "Self Pickup"),
-                        ],
-                      ),
-                      Text(
-                        'Fee : ${laundry['fee']}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2D2D3A),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Est Time Chip
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.access_time, size: 16, color: Colors.grey),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Est : 50 mins', // Could be dynamic
-                           style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[700],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  // Search Bar
                   
                   const SizedBox(height: 24),
                   
@@ -153,136 +64,36 @@ class ShopDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   
                   // Services List
-                  _buildServiceItem(
-                    "Just Wash It", 
-                    "LKR 400.00", 
-                    "Fragrant wash, but not ironed", 
-                    "assets/images/laundry 1.png"
-                  ),
-                  _buildServiceItem(
-                    "wash and Iron", 
-                    "LKR 400.00", 
-                    "Fragrant wash, and ironed", 
-                    "assets/images/laundry 1.png"
-                  ),
-                  _buildServiceItem(
-                    "Carpet", 
-                    "LKR 400.00", 
-                    "Let it be comfortable take it easy", 
-                    "assets/images/laundry shop.png"
-                  ),
-                   _buildServiceItem(
-                    "Dry Cleaning", 
-                    "LKR 400.00", 
-                    "Suits, Dresses and kinda clean!", 
-                    "assets/images/laundry 1.png"
-                  ),
-                   _buildServiceItem(
-                    "Carpet", 
-                    "LKR 400.00", 
-                    "Let it be comfortable take it easy", 
-                    "assets/images/laundry shop.png"
-                  ),
+                  if (laundry['services'] != null)
+                    ...(laundry['services'] as List).map((service) {
+                      return ServiceCard(
+                        title: service['title'] ?? '',
+                        price: service['price'] ?? '',
+                        description: service['description'] ?? '',
+                        imagePath: service['image'] ?? 'assets/images/laundry 1.png',
+                      );
+                    }).toList()
+                  else
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: Center(
+                        child: Text(
+                          "No services available\n(Please Hot Restart the App to load new data)",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
           ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildIconText(IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: Colors.grey),
-        const SizedBox(width: 4),
-        Text(
-          text,
-          style: const TextStyle(
-            fontSize: 12,
-            color: Colors.grey,
-          ),
-        ),
-      ],
-    );
-  }
 
-  Widget _buildServiceItem(String title, String price, String description, String imagePath) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.asset(
-              imagePath,
-              width: 80,
-              height: 80,
-              fit: BoxFit.cover,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF2D2D3A),
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0066FF), // Blue color
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        minimumSize: const Size(60, 30),
-                      ),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.add_circle_outline, size: 16, color: Colors.white),
-                          SizedBox(width: 4),
-                          Text(
-                            "Add",
-                            style: TextStyle(fontSize: 12, color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                Text(
-                  "Fee : $price",
-                   style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                     color: Color(0xFF2D2D3A),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  description,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 }

@@ -39,20 +39,23 @@ class CustomSearchBar extends StatelessWidget {
         onTap: onTap,
         readOnly: readOnly,
         decoration: InputDecoration(
+          isDense: true,
           hintText: hintText,
           hintStyle: TextStyle(
             color: Colors.grey[400],
-            fontSize: 14,
+            fontSize: 13,
           ),
           suffixIcon: Padding(
-            padding: const EdgeInsets.all(12.0),
+            padding: const EdgeInsets.all(10.0),
             child: SvgPicture.asset(
               'assets/home-icons/Magnifer.svg',
+              width: 18,
+              height: 18,
               colorFilter: ColorFilter.mode(Colors.grey[400]!, BlendMode.srcIn),
             ),
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         ),
       ),
     );
