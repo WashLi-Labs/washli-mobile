@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:washli_mobile/widgets/buttons/more_info.dart';
 
 class ShopHeader extends StatelessWidget {
   final Map<String, dynamic> laundry;
@@ -12,6 +13,7 @@ class ShopHeader extends StatelessWidget {
       children: [
         // Banner Image
         Stack(
+          clipBehavior: Clip.none,
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(0),
@@ -23,23 +25,13 @@ class ShopHeader extends StatelessWidget {
               ),
             ),
             Positioned(
-              bottom: 16,
+              bottom: -15,
               right: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0066FF),
-                  borderRadius: BorderRadius.circular(30),
+              child: MoreInfoButton(
+                  onTap: () {
+                    // unexpected behavior
+                  },
                 ),
-                child: const Text(
-                  'More Info',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
             ),
           ],
         ),
