@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../explore/explore_screen.dart';
 
 class NearbyLaundryCard extends StatelessWidget {
   const NearbyLaundryCard({super.key});
@@ -48,7 +49,12 @@ class NearbyLaundryCard extends StatelessWidget {
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ExploreScreen()),
+                  );
+                },
                 child: const Text('See all'),
               ),
             ],
