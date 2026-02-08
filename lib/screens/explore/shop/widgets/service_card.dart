@@ -1,4 +1,7 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:washli_mobile/screens/explore/shop/widgets/service_popup.dart';
+import 'package:washli_mobile/widgets/buttons/add_button.dart';
 
 class ServiceCard extends StatelessWidget {
   final String title;
@@ -48,26 +51,41 @@ class ServiceCard extends StatelessWidget {
                         color: Color(0xFF2D2D3A),
                       ),
                     ),
-                    ElevatedButton(
-                      onPressed: onAdd ?? () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0066FF), // Blue color
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        minimumSize: const Size(60, 30),
-                      ),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.add_circle_outline, size: 16, color: Colors.white),
-                          SizedBox(width: 4),
-                          Text(
-                            "Add",
-                            style: TextStyle(fontSize: 12, color: Colors.white),
+                    AddButton(
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          barrierColor: Colors.transparent,
+                          builder: (context) => SizedBox(
+                            height: MediaQuery.of(context).size.height,
+                            child: Stack(
+                              children: [
+                                Positioned.fill(
+                                  child: GestureDetector(
+                                    onTap: () => Navigator.pop(context),
+                                    child: BackdropFilter(
+                                      filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                                      child: Container(
+                                        color: Colors.black.withOpacity(0.3),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Align(
+                                  alignment: Alignment.bottomCenter,
+                                  child: ServicePopup(
+                                    title: title,
+                                    price: price,
+                                    description: description,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
                   ],
                 ),
