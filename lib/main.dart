@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/Auth/onboarding.dart';
+import 'screens/splash_screen.dart';
 import 'package:washli_mobile/theme/app_theme.dart';
 
 void main() {
@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Washli',
       debugShowCheckedModeBanner: false,
-      home: const OnboardingScreen(),
+      home: const SplashScreen(),
       theme: AppTheme.lightTheme,
     );
   }
