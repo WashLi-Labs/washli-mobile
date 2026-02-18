@@ -7,12 +7,8 @@ import 'widgets/profile_card.dart';
 import 'widgets/section_header.dart';
 import '../search/search_screen.dart';
 import '../explore/explore_screen.dart';
-<<<<<<< HEAD
 import '../payment/payment_screen.dart';
-=======
 import 'edit_profile/edit_profile_screen.dart';
-
->>>>>>> 86d0471360519de56eb3e200137e62a751a7e1cf
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
