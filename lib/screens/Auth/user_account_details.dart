@@ -6,7 +6,6 @@ import '../../widgets/input_fields/email.dart';
 import '../../widgets/input_fields/f_name.dart';
 import '../../widgets/input_fields/l_name.dart';
 import '../../screens/home/home_screen.dart';
-import 'login.dart';
 
 class UserAccountDetailsScreen extends StatefulWidget {
   const UserAccountDetailsScreen({super.key});

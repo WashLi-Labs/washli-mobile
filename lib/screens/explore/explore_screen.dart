@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../../data/laundry_data.dart';
 import 'widgets/shop_card.dart';
 import '../home/widgets/home_top_bar.dart';
