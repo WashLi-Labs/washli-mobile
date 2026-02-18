@@ -7,6 +7,8 @@ import 'widgets/profile_card.dart';
 import 'widgets/section_header.dart';
 import '../search/search_screen.dart';
 import '../explore/explore_screen.dart';
+import 'edit_profile/edit_profile_screen.dart';
+
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -100,7 +102,12 @@ class _AccountScreenState extends State<AccountScreen> {
                       AccountMenuItem(
                         iconPath: "assets/icons/profile_blue.svg",
                         title: "Profile",
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+                          );
+                        },
                       ),
                       AccountMenuItem(
                         iconPath: "assets/icons/settings_blue.svg",
