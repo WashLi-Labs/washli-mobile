@@ -7,6 +7,7 @@ import '../../widgets/input_fields/custom_search_bar.dart';
 import '../../widgets/buttons/back_button.dart';
 import '../home/widgets/nav_bar.dart';
 import '../search/search_screen.dart';
+import '../account/account_screen.dart';
 import '../../get_location/location_service.dart';
 
 class ExploreScreen extends StatefulWidget {
@@ -114,6 +115,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const SearchScreen()),
+            );
+          } else if (index == 4) { // Add Account navigation
+             Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AccountScreen()),
             );
           }
         },
