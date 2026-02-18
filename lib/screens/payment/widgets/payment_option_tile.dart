@@ -8,6 +8,7 @@ class PaymentOptionTile extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
   final bool isIconSvg;
+  final Widget? trailing;
 
   const PaymentOptionTile({
     super.key,
@@ -17,6 +18,7 @@ class PaymentOptionTile extends StatelessWidget {
     this.isSelected = false,
     required this.onTap,
     this.isIconSvg = true,
+    this.trailing,
   });
 
   @override
@@ -97,8 +99,8 @@ class PaymentOptionTile extends StatelessWidget {
               ),
             ),
             
-            // Trailing Arrow
-            const Icon(
+            // Trailing
+            trailing ?? const Icon(
               Icons.arrow_forward_ios,
               size: 16,
               color: Color(0xFF9E9E9E),

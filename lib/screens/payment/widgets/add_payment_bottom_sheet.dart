@@ -36,8 +36,7 @@ class AddPaymentBottomSheet extends StatelessWidget {
             icon: Image.asset("assets/icons/card_payment_icon.png", width: 32, height: 32), // Using card_payment_icon.png
             title: "Add Card",
             onTap: () {
-              Navigator.pop(context);
-              // Handle Add Card
+              Navigator.pop(context, "add_card");
             },
           ),
           
@@ -49,8 +48,7 @@ class AddPaymentBottomSheet extends StatelessWidget {
             icon: Image.asset("assets/icons/touch_payment.png", width: 32, height: 32),
             title: "Touch",
             onTap: () {
-              Navigator.pop(context);
-              // Handle Touch
+               Navigator.pop(context, "touch");
             },
           ),
           const SizedBox(height: 20),
