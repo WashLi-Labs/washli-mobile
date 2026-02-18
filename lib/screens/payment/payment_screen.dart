@@ -41,7 +41,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     'Payment',
                     style: TextStyle(
                       color: Colors.black,
-                      fontFamily: 'Outfit',
+                      
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
@@ -107,7 +107,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         child: Text(
                           "Saved Cards",
                           style: TextStyle(
-                            fontFamily: 'Outfit',
+                            
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: Colors.black,
@@ -211,7 +211,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             const Text(
                               "Add Payment Method",
                               style: TextStyle(
-                                fontFamily: 'Outfit',
+                                
                                 fontSize: 16,
                                 color: Color(0xFF0057E6),
                                 fontWeight: FontWeight.normal,

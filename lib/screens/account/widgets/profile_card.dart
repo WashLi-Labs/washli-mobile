@@ -40,7 +40,7 @@ class ProfileCard extends StatelessWidget {
               Text(
                 name,
                 style: const TextStyle(
-                  fontFamily: 'Outfit',
+                  
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
@@ -49,7 +49,7 @@ class ProfileCard extends StatelessWidget {
               Text(
                 email,
                 style: const TextStyle(
-                  fontFamily: 'Outfit',
+                  
                   fontSize: 14,
                   color: Color(0xFF2D2D3A),
                 ),
