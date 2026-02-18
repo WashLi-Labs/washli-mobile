@@ -14,11 +14,24 @@ class VerifyOtpScreen extends StatefulWidget {
 
 class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
   final TextEditingController _otpController = TextEditingController();
+  bool _isButtonEnabled = false;
 
   @override
   void dispose() {
     _otpController.dispose();
     super.dispose();
+  }
+
+  void _checkOtp(String value) {
+    setState(() {
+      _isButtonEnabled = value.length == 4;
+    });
+  }
+
+  void _onVerify() {
+     Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const UserAccountDetailsScreen()),
+    );
   }
 
   @override
@@ -85,7 +98,13 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                       
                       const SizedBox(height: 40),
                       
-                      Center(child: OtpPinput(controller: _otpController)),
+                      Center(
+                        child: OtpPinput(
+                          controller: _otpController,
+                          onChanged: _checkOtp,
+                          onCompleted: _checkOtp,
+                        ),
+                      ),
                       
                       const SizedBox(height: 20),
                       
@@ -118,11 +137,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                       const SizedBox(height: 30),
                       
                       OtpVerifyButton(
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(builder: (context) => const UserAccountDetailsScreen()),
-                          );
-                        },
+                        onPressed: _isButtonEnabled ? _onVerify : null,
                       ),
                       const SizedBox(height: 20),
                     ],

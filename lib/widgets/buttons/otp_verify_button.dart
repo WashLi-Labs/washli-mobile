@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class OtpVerifyButton extends StatelessWidget {
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   const OtpVerifyButton({super.key, required this.onPressed});
 
@@ -14,6 +14,7 @@ class OtpVerifyButton extends StatelessWidget {
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF0062FF),
+          disabledBackgroundColor: Colors.grey.shade300,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

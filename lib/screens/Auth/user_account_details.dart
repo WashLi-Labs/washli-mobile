@@ -19,6 +19,8 @@ class _UserAccountDetailsScreenState extends State<UserAccountDetailsScreen> {
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
 
+  final _formKey = GlobalKey<FormState>();
+
   @override
   void dispose() {
     _firstNameController.dispose();
@@ -51,100 +53,104 @@ class _UserAccountDetailsScreenState extends State<UserAccountDetailsScreen> {
               child: SingleChildScrollView(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 10),
-                      const Text(
-                        'Sign Up',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2D2D3A),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Fill in the details to create your account',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                      
-                      const SizedBox(height: 30),
-                      
-                      // Name Row
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'First Name',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF2D2D3A),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                FirstNameInput(controller: _firstNameController),
-                              ],
-                            ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 10),
+                        const Text(
+                          'Sign Up',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2D2D3A),
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Last Name',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF2D2D3A),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                LastNameInput(controller: _lastNameController),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      
-                      const SizedBox(height: 20),
-                      
-                      // Email
-                      const Text(
-                        'Email',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF2D2D3A),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      EmailInput(controller: _emailController),
-                      
-                      const SizedBox(height: 40),
-                      
-                      CreateAccountButton(
-                        onPressed: () {
-                          // Navigate to Home Screen with the entered name
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => HomeScreen(
-                                userName: _firstNameController.text.isNotEmpty 
-                                    ? _firstNameController.text 
-                                    : "James", 
+                        const SizedBox(height: 8),
+                        Text(
+                          'Fill in the details to create your account',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 30),
+                        
+                        // Name Row
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'First Name',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF2D2D3A),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  FirstNameInput(controller: _firstNameController),
+                                ],
                               ),
                             ),
-                          );
-                        },
-                      ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Last Name',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF2D2D3A),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  LastNameInput(controller: _lastNameController),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        
+                        const SizedBox(height: 20),
+                        
+                        // Email
+                        const Text(
+                          'Email',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF2D2D3A),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        EmailInput(controller: _emailController),
+                        
+                        const SizedBox(height: 40),
+                        
+                        CreateAccountButton(
+                          onPressed: () {
+                            if (_formKey.currentState!.validate()) {
+                              // Navigate to Home Screen with the entered name
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => HomeScreen(
+                                    userName: _firstNameController.text.isNotEmpty 
+                                        ? _firstNameController.text 
+                                        : "James", 
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                        ),
                       
                       const SizedBox(height: 20),
                       
@@ -175,6 +181,7 @@ class _UserAccountDetailsScreenState extends State<UserAccountDetailsScreen> {
                   ),
                 ),
               ),
+            ),
             ),
           ],
         ),
