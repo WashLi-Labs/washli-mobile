@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../widgets/buttons/back_button.dart';
 import 'widgets/payment_option_tile.dart';
+import 'widgets/add_payment_bottom_sheet.dart';
 
 class PaymentScreen extends StatefulWidget {
   const PaymentScreen({super.key});
@@ -102,7 +103,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 24.0),
                       child: InkWell(
                         onTap: () {
-                          // Handle add payment method
+                          showModalBottomSheet(
+                            context: context,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => const AddPaymentBottomSheet(),
+                          );
                         },
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
