@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../home/widgets/home_top_bar.dart';
 import '../home/widgets/nav_bar.dart';
 import '../../widgets/input_fields/custom_search_bar.dart';

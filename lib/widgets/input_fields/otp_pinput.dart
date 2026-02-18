@@ -3,11 +3,19 @@ import 'package:pinput/pinput.dart';
 
 class OtpPinput extends StatelessWidget {
   final TextEditingController controller;
+  final Function(String)? onCompleted;
+  final Function(String)? onChanged;
 
-  const OtpPinput({super.key, required this.controller});
+  const OtpPinput({
+    super.key, 
+    required this.controller,
+    this.onCompleted,
+    this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
+    // ... theme definitions ...
     final defaultPinTheme = PinTheme(
       width: 56,
       height: 56,
@@ -40,7 +48,8 @@ class OtpPinput extends StatelessWidget {
       focusedPinTheme: focusedPinTheme,
       submittedPinTheme: submittedPinTheme,
       showCursor: true,
-      onCompleted: (pin) => print(pin),
+      onCompleted: onCompleted,
+      onChanged: onChanged,
     );
   }
 }
