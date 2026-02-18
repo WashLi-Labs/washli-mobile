@@ -76,7 +76,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   'Account',
                   style: TextStyle(
                     color: Colors.black,
-                    fontFamily: 'Outfit',
+                    
                     fontSize: 24, // Increased size for prominence
                     fontWeight: FontWeight.bold,
                   ),
@@ -169,7 +169,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   child: const Text(
                     "Logout",
                     style: TextStyle(
-                      fontFamily: 'Outfit',
+                      
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,

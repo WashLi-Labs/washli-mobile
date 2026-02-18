@@ -15,7 +15,7 @@ class SectionHeader extends StatelessWidget {
       child: Text(
         title,
         style: const TextStyle(
-          fontFamily: 'Outfit',
+          
           fontSize: 18,
           fontWeight: FontWeight.bold,
           color: Colors.black,

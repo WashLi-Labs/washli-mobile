@@ -77,7 +77,7 @@ class PaymentOptionTile extends StatelessWidget {
                   Text(
                     title,
                     style: const TextStyle(
-                      fontFamily: 'Outfit',
+                      
                       fontSize: 16,
                       color: Colors.black,
                       fontWeight: FontWeight.normal,
@@ -88,7 +88,7 @@ class PaymentOptionTile extends StatelessWidget {
                     Text(
                       subtitle!,
                       style: const TextStyle(
-                        fontFamily: 'Outfit',
+                        
                         fontSize: 16,
                         color: Colors.black,
                         fontWeight: FontWeight.normal,
