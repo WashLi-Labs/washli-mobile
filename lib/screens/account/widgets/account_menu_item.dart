@@ -39,7 +39,7 @@ class AccountMenuItem extends StatelessWidget {
       title: Text(
         title,
         style: TextStyle(
-          fontFamily: 'Outfit',
+          
           fontSize: 16,
           fontWeight: FontWeight.w500,
           color: isDestructive ? Colors.red : const Color(0xFF2D2D3A),

@@ -63,7 +63,7 @@ class AddPaymentBottomSheet extends StatelessWidget {
       title: Text(
         title,
         style: const TextStyle(
-          fontFamily: 'Outfit',
+          
           fontSize: 16,
           fontWeight: FontWeight.normal,
           color: Colors.black,

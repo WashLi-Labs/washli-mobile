@@ -39,7 +39,7 @@ class _AddCardScreenState extends State<AddCardScreen> {
                 const Text(
                   'Add Card',
                   style: TextStyle(
-                    fontFamily: 'Outfit',
+                    
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
@@ -190,7 +190,7 @@ class _AddCardScreenState extends State<AddCardScreen> {
                     child: const Text(
                       "Add Card",
                       style: TextStyle(
-                        fontFamily: 'Outfit',
+                        
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
@@ -210,7 +210,7 @@ class _AddCardScreenState extends State<AddCardScreen> {
     return Text(
       text,
       style: const TextStyle(
-        fontFamily: 'Outfit',
+        
         fontSize: 14,
         fontWeight: FontWeight.w500,
         color: Colors.black,
@@ -243,12 +243,12 @@ class _AddCardScreenState extends State<AddCardScreen> {
           hintText: hintText,
           hintStyle: TextStyle(
             color: Colors.grey.shade400,
-            fontFamily: 'Outfit',
+            
             fontSize: 14,
           ),
         ),
         style: const TextStyle(
-          fontFamily: 'Outfit',
+          
           fontSize: 16,
           color: Colors.black,
         ),
