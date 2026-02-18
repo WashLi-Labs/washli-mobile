@@ -8,6 +8,7 @@ import '../home/widgets/nav_bar.dart';
 import '../search/search_screen.dart';
 import '../account/account_screen.dart';
 import '../payment/payment_screen.dart';
+import '../cart/cart_screen.dart';
 import '../../get_location/location_service.dart';
 
 class ExploreScreen extends StatefulWidget {
@@ -121,7 +122,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           } else if (index == 3) {
              Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const PaymentScreen()),
+              MaterialPageRoute(builder: (context) => const CartScreen()),
             );
           } else if (index == 4) { // Add Account navigation
              Navigator.push(

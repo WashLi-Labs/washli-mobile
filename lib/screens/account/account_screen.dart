@@ -9,6 +9,7 @@ import '../search/search_screen.dart';
 import '../explore/explore_screen.dart';
 import '../payment/payment_screen.dart';
 import 'edit_profile/edit_profile_screen.dart';
+import '../cart/cart_screen.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -36,7 +37,7 @@ class _AccountScreenState extends State<AccountScreen> {
       } else if (index == 3) {
          Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const PaymentScreen()),
+          MaterialPageRoute(builder: (context) => const CartScreen()),
         );
       } else if (index == 4) {
           // Already on Account
@@ -76,7 +77,6 @@ class _AccountScreenState extends State<AccountScreen> {
                   'Account',
                   style: TextStyle(
                     color: Colors.black,
-                    fontFamily: 'Outfit',
                     fontSize: 24, // Increased size for prominence
                     fontWeight: FontWeight.bold,
                   ),
@@ -169,7 +169,6 @@ class _AccountScreenState extends State<AccountScreen> {
                   child: const Text(
                     "Logout",
                     style: TextStyle(
-                      fontFamily: 'Outfit',
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,

@@ -11,13 +11,13 @@ final List<Map<String, dynamic>> laundryData = const [
     'statusColor': Colors.red,
     'services': [
        {
-        'title': 'Just Wash It',
+        'title': 'Shirt',
         'price': 'LKR 400.00',
         'description': 'Fragrant wash, but not ironed',
         'image': 'assets/images/laundry 1.png',
       },
       {
-        'title': 'wash and Iron',
+        'title': 'Trousers',
         'price': 'LKR 400.00',
         'description': 'Fragrant wash, and ironed',
         'image': 'assets/images/laundry 1.png',
@@ -29,7 +29,7 @@ final List<Map<String, dynamic>> laundryData = const [
         'image': 'assets/images/laundry shop.png',
       },
       {
-        'title': 'Dry Cleaning',
+        'title': 'Uniforms',
         'price': 'LKR 400.00',
         'description': 'Suits, Dresses and kinda clean!',
         'image': 'assets/images/laundry 1.png',
@@ -51,13 +51,13 @@ final List<Map<String, dynamic>> laundryData = const [
     'status': null,
     'services': [
        {
-        'title': 'Just Wash It',
+        'title': 'Shirts',
         'price': 'LKR 400.00',
         'description': 'Fragrant wash, but not ironed',
         'image': 'assets/images/laundry 1.png',
       },
       {
-        'title': 'wash and Iron',
+        'title': 'Trousers',
         'price': 'LKR 400.00',
         'description': 'Fragrant wash, and ironed',
         'image': 'assets/images/laundry 1.png',
@@ -69,13 +69,13 @@ final List<Map<String, dynamic>> laundryData = const [
         'image': 'assets/images/laundry shop.png',
       },
       {
-        'title': 'Dry Cleaning',
+        'title': 'Uniforms',
         'price': 'LKR 400.00',
         'description': 'Suits, Dresses and kinda clean!',
         'image': 'assets/images/laundry 1.png',
       },
       {
-        'title': 'Carpet',
+        'title': 'Bed Sheets',
         'price': 'LKR 400.00',
         'description': 'Let it be comfortable take it easy',
         'image': 'assets/images/laundry shop.png',
@@ -92,13 +92,13 @@ final List<Map<String, dynamic>> laundryData = const [
     'statusColor': Colors.blue,
     'services': [
        {
-        'title': 'Just Wash It',
+        'title': 'Shirts',
         'price': 'LKR 400.00',
         'description': 'Fragrant wash, but not ironed',
         'image': 'assets/images/laundry 1.png',
       },
       {
-        'title': 'wash and Iron',
+        'title': 'Trousers',
         'price': 'LKR 400.00',
         'description': 'Fragrant wash, and ironed',
         'image': 'assets/images/laundry 1.png',
@@ -110,13 +110,13 @@ final List<Map<String, dynamic>> laundryData = const [
         'image': 'assets/images/laundry shop.png',
       },
       {
-        'title': 'Dry Cleaning',
+        'title': 'Uniforms',
         'price': 'LKR 400.00',
         'description': 'Suits, Dresses and kinda clean!',
         'image': 'assets/images/laundry 1.png',
       },
       {
-        'title': 'Carpet',
+        'title': 'Bed Sheets',
         'price': 'LKR 400.00',
         'description': 'Let it be comfortable take it easy',
         'image': 'assets/images/laundry shop.png',
@@ -132,13 +132,13 @@ final List<Map<String, dynamic>> laundryData = const [
     'status': null,
     'services': [
        {
-        'title': 'Just Wash It',
+        'title': 'Shirts',
         'price': 'LKR 400.00',
         'description': 'Fragrant wash, but not ironed',
         'image': 'assets/images/laundry 1.png',
       },
       {
-        'title': 'wash and Iron',
+        'title': 'Trousers',
         'price': 'LKR 400.00',
         'description': 'Fragrant wash, and ironed',
         'image': 'assets/images/laundry 1.png',
@@ -150,13 +150,13 @@ final List<Map<String, dynamic>> laundryData = const [
         'image': 'assets/images/laundry shop.png',
       },
       {
-        'title': 'Dry Cleaning',
+        'title': 'Uniforms',
         'price': 'LKR 400.00',
         'description': 'Suits, Dresses and kinda clean!',
         'image': 'assets/images/laundry 1.png',
       },
       {
-        'title': 'Carpet',
+        'title': 'Bed Sheets',
         'price': 'LKR 400.00',
         'description': 'Let it be comfortable take it easy',
         'image': 'assets/images/laundry shop.png',
