@@ -7,6 +7,7 @@ import 'widgets/nearby_laundry_card.dart';
 import '../search/search_screen.dart';
 import '../explore/explore_screen.dart';
 import '../account/account_screen.dart';
+import '../payment/payment_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String userName;
@@ -37,6 +38,15 @@ class _HomeScreenState extends State<HomeScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const ExploreScreen()),
+      ).then((_) {
+        setState(() {
+          _selectedIndex = 0;
+        });
+      });
+    } else if (index == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const PaymentScreen()),
       ).then((_) {
         setState(() {
           _selectedIndex = 0;
