@@ -6,6 +6,7 @@ import 'widgets/nav_bar.dart';
 import 'widgets/nearby_laundry_card.dart';
 import '../search/search_screen.dart';
 import '../explore/explore_screen.dart';
+import '../account/account_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String userName;
@@ -36,6 +37,15 @@ class _HomeScreenState extends State<HomeScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const ExploreScreen()),
+      ).then((_) {
+        setState(() {
+          _selectedIndex = 0;
+        });
+      });
+    } else if (index == 4) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const AccountScreen()),
       ).then((_) {
         setState(() {
           _selectedIndex = 0;
