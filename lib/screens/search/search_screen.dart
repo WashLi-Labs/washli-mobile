@@ -5,6 +5,8 @@ import '../../widgets/input_fields/custom_search_bar.dart';
 import '../../widgets/buttons/back_button.dart';
 import '../../get_location/location_service.dart';
 import '../explore/explore_screen.dart';
+import '../account/account_screen.dart';
+import '../payment/payment_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -121,9 +123,19 @@ class _SearchScreenState extends State<SearchScreen> {
     if (index == 0) {
       Navigator.pop(context); // Go back to Home
     } else if (index == 2) {
-      Navigator.pushReplacement(
+      Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const ExploreScreen()),
+      );
+    } else if (index == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const PaymentScreen()),
+      );
+    } else if (index == 4) {
+       Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const AccountScreen()),
       );
     }
   }
