@@ -7,6 +7,7 @@ import '../../get_location/location_service.dart';
 import '../explore/explore_screen.dart';
 import '../account/account_screen.dart';
 import '../payment/payment_screen.dart';
+import '../cart/cart_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -130,7 +131,7 @@ class _SearchScreenState extends State<SearchScreen> {
     } else if (index == 3) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const PaymentScreen()),
+        MaterialPageRoute(builder: (context) => const CartScreen()),
       );
     } else if (index == 4) {
        Navigator.push(

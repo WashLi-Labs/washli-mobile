@@ -8,6 +8,7 @@ import '../search/search_screen.dart';
 import '../explore/explore_screen.dart';
 import '../account/account_screen.dart';
 import '../payment/payment_screen.dart';
+import '../cart/cart_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String userName;
@@ -46,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
     } else if (index == 3) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const PaymentScreen()),
+        MaterialPageRoute(builder: (context) => const CartScreen()),
       ).then((_) {
         setState(() {
           _selectedIndex = 0;
