@@ -121,7 +121,7 @@ class NearbyLaundryCard extends StatelessWidget {
                 ],
               ),
             ),
-          )).toList(),
+          )),
         ],
       ),
     );

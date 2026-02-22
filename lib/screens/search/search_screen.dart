@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../home/widgets/home_top_bar.dart';
 import '../home/widgets/nav_bar.dart';
 import '../../widgets/input_fields/custom_search_bar.dart';
@@ -7,6 +6,8 @@ import '../../widgets/buttons/back_button.dart';
 import '../../get_location/location_service.dart';
 import '../explore/explore_screen.dart';
 import '../account/account_screen.dart';
+import '../payment/payment_screen.dart';
+import '../cart/cart_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -123,9 +124,14 @@ class _SearchScreenState extends State<SearchScreen> {
     if (index == 0) {
       Navigator.pop(context); // Go back to Home
     } else if (index == 2) {
-      Navigator.pushReplacement(
+      Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const ExploreScreen()),
+      );
+    } else if (index == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const CartScreen()),
       );
     } else if (index == 4) {
        Navigator.push(

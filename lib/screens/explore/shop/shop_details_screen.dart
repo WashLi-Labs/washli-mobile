@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../../../widgets/buttons/back_button.dart';
 import '../../../widgets/input_fields/custom_search_bar.dart';
 import 'widgets/service_card.dart';
@@ -75,7 +74,7 @@ class ShopDetailsScreen extends StatelessWidget {
                                 description: service['description'] ?? '',
                                 imagePath: service['image'] ?? 'assets/images/laundry 1.png',
                               );
-                            }).toList()
+                            })
                           else
                             const Padding(
                               padding: EdgeInsets.symmetric(vertical: 20),

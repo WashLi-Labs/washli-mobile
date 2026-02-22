@@ -34,7 +34,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Text(
-                  'Elevate Your\nLaundry Routine',
+                  'Making Your\nLaundry Smart',
                   textAlign: TextAlign.left,
                   style: const TextStyle(
                     fontFamily: 'Outfit',

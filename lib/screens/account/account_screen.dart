@@ -7,6 +7,9 @@ import 'widgets/profile_card.dart';
 import 'widgets/section_header.dart';
 import '../search/search_screen.dart';
 import '../explore/explore_screen.dart';
+import '../payment/payment_screen.dart';
+import 'edit_profile/edit_profile_screen.dart';
+import '../cart/cart_screen.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -30,6 +33,11 @@ class _AccountScreenState extends State<AccountScreen> {
          Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const ExploreScreen()),
+        );
+      } else if (index == 3) {
+         Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CartScreen()),
         );
       } else if (index == 4) {
           // Already on Account
@@ -69,7 +77,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   'Account',
                   style: TextStyle(
                     color: Colors.black,
-                    fontFamily: 'Outfit',
+                    
                     fontSize: 24, // Increased size for prominence
                     fontWeight: FontWeight.bold,
                   ),
@@ -100,7 +108,12 @@ class _AccountScreenState extends State<AccountScreen> {
                       AccountMenuItem(
                         iconPath: "assets/icons/profile_blue.svg",
                         title: "Profile",
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+                          );
+                        },
                       ),
                       AccountMenuItem(
                         iconPath: "assets/icons/settings_blue.svg",
@@ -157,7 +170,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   child: const Text(
                     "Logout",
                     style: TextStyle(
-                      fontFamily: 'Outfit',
+                      
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,

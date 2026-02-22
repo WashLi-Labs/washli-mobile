@@ -1,31 +1,31 @@
 import 'package:flutter/material.dart';
 
-class OtpVerifyButton extends StatelessWidget {
-  final VoidCallback? onPressed;
+class SaveChangesButton extends StatelessWidget {
+  final VoidCallback onTap;
 
-  const OtpVerifyButton({super.key, required this.onPressed});
+  const SaveChangesButton({super.key, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
+      height: 50,
       width: double.infinity,
-      height: 56,
       child: ElevatedButton(
-        onPressed: onPressed,
+        onPressed: onTap,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF0062FF),
-          disabledBackgroundColor: Colors.grey.shade300,
+          backgroundColor: const Color(0xFF0057E6), // Blue background
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           elevation: 0,
         ),
         child: const Text(
-          'Verify',
+          "Save Changes",
           style: TextStyle(
             color: Colors.white,
+            fontFamily: 'Outfit',
             fontSize: 16,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
