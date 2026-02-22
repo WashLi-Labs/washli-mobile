@@ -39,6 +39,7 @@ class LocationSelector extends StatelessWidget {
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                    Text(
                     address,
@@ -48,14 +49,16 @@ class LocationSelector extends StatelessWidget {
                       color: Color(0xFF2D2D3A),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subAddress,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
+                  if (subAddress.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      subAddress,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
