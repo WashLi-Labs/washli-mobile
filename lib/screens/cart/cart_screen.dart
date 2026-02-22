@@ -106,7 +106,9 @@ class _CartScreenState extends State<CartScreen> {
                       // Alternative Contact - Present in both modes based on design image
                       const AlternativeContact(),
                       
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
+                      const Divider(color: Color(0xFFE5E7EB), thickness: 1, height: 1),
+                      const SizedBox(height: 24),
 
                       // Cart Items
                       const CartItemCard(
@@ -118,14 +120,18 @@ class _CartScreenState extends State<CartScreen> {
                       ),
                       // Add more items if needed, just one for now as per design
                       
-                      const SizedBox(height: 16),
+                      // const SizedBox(height: 24),
+                      // const Divider(color: Color(0xFFE5E7EB), thickness: 1, height: 1),
+                      // const SizedBox(height: 24),
                       
                       // Split Bill
                        SplitMyBillSection(onTap: () {
                          // Split logic
                        }),
                        
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 24),
+                      const Divider(color: Color(0xFFE5E7EB), thickness: 1, height: 1),
+                      const SizedBox(height: 24),
                       
                       // Bill Summary
                       const BillSummary(
@@ -133,12 +139,16 @@ class _CartScreenState extends State<CartScreen> {
                         deliveryFee: 150.00,
                       ),
                       
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
+                      const Divider(color: Color(0xFFE5E7EB), thickness: 1, height: 1),
+                      const SizedBox(height: 24),
                       
                       // Payment Method
                       const PaymentMethodSelector(),
                       
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 24),
+                      const Divider(color: Color(0xFFE5E7EB), thickness: 1, height: 1),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
