@@ -9,6 +9,7 @@ import '../explore/explore_screen.dart';
 import '../account/account_screen.dart';
 import '../payment/payment_screen.dart';
 import '../cart/cart_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   final String userName;
@@ -24,6 +25,20 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  String? _firstName;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+  }
+
+  Future<void> _loadUserName() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _firstName = prefs.getString('firstName');
+    });
+  }
 
   void _onItemTapped(int index) {
     if (index == 1) {
@@ -61,6 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           _selectedIndex = 0;
         });
+        _loadUserName();
       });
     } else {
         setState(() {
@@ -79,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Column(
               children: [
                 // Header
-                HomeHeader(userName: widget.userName),
+                HomeHeader(userName: _firstName ?? widget.userName),
                 
                 // Spacing for Action Card intersection
                 const SizedBox(height: 60), 

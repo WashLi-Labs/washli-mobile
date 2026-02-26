@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 
 class MobileNumberInput extends StatelessWidget {
   final TextEditingController controller;
+  final bool readOnly;
 
-  const MobileNumberInput({super.key, required this.controller});
+  const MobileNumberInput({super.key, required this.controller, this.readOnly = false});
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      readOnly: readOnly,
       controller: controller,
       keyboardType: TextInputType.phone,
       maxLength: 9,

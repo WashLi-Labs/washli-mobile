@@ -11,6 +11,8 @@ import '../../home/widgets/nav_bar.dart';
 import '../../search/search_screen.dart';
 import '../../explore/explore_screen.dart';
 import '../account_screen.dart';
+import '../account_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class EditProfileScreenChanges extends StatefulWidget {
   const EditProfileScreenChanges({super.key});
@@ -20,13 +22,30 @@ class EditProfileScreenChanges extends StatefulWidget {
 }
 
 class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
-  final TextEditingController _firstNameController = TextEditingController(text: " Ranjith");
-  final TextEditingController _lastNameController = TextEditingController(text: " Perera"); // Assuming Last Name Controller exists, if not I'll just use First Name style or Generic
-  final TextEditingController _phoneController = TextEditingController(text: " +9476756990");
-  final TextEditingController _emailController = TextEditingController(text: " ranjithperera@gmail.com");
-  final TextEditingController _addressController = TextEditingController(text: "No 07,High Level Road,Nugegoda");
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController(); 
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController(text: "");
 
-  int _selectedIndex = 4; // Account tab
+  int _selectedIndex = 4; 
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadUserDetails();
+  }
+
+  Future<void> _loadUserDetails() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _firstNameController.text = prefs.getString('firstName') ?? "";
+      _lastNameController.text = prefs.getString('lastName') ?? "";
+      _phoneController.text = (prefs.getString('mobileNumber') ?? "").replaceFirst('+94', '');
+      _emailController.text = prefs.getString('email') ?? "";
+      _addressController.text = prefs.getString('address') ?? "";
+    });
+  } 
 
   void _onItemTapped(int index) {
       if (index == 0) {
@@ -232,9 +251,22 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
                         const SizedBox(width: 16),
                         Expanded(
                           child: SaveChangesButton(
-                            onTap: () {
-                              // Implement save logic here
-                              Navigator.pop(context);
+                            onTap: () async {
+                              final prefs = await SharedPreferences.getInstance();
+                              await prefs.setString('firstName', _firstNameController.text.trim());
+                              await prefs.setString('lastName', _lastNameController.text.trim());
+                              // Re-add +94 prefix for mobile number if not present
+                              String phone = _phoneController.text.trim();
+                              if (!phone.startsWith('+94')) {
+                                phone = '+94$phone';
+                              }
+                              await prefs.setString('mobileNumber', phone);
+                              await prefs.setString('email', _emailController.text.trim());
+                              await prefs.setString('address', _addressController.text.trim());
+                              
+                              if (context.mounted) {
+                                Navigator.pop(context, true); // Pass true to signal a refresh
+                              }
                             },
                           ),
                         ),
