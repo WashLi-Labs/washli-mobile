@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 
 class EmailInput extends StatelessWidget {
   final TextEditingController controller;
+  final bool readOnly;
 
-  const EmailInput({super.key, required this.controller});
+  const EmailInput({super.key, required this.controller, this.readOnly = false});
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      readOnly: readOnly,
       controller: controller,
       keyboardType: TextInputType.emailAddress,
       decoration: InputDecoration(

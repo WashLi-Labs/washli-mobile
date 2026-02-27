@@ -3,7 +3,7 @@ import '../../widgets/buttons/back_button.dart';
 import '../../widgets/input_fields/mobile_number.dart';
 import '../../widgets/buttons/send_otp_button.dart';
 import 'verify_otp.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
 
@@ -83,12 +83,18 @@ class _SignupScreenState extends State<SignupScreen> {
                         const SizedBox(height: 30),
                         
                         SendOtpButton(
-                          onPressed: () {
+                          onPressed: () async {
                             if (_formKey.currentState!.validate()) {
+                              final mobileNum = "+94${_mobileController.text}";
+                              
+                              // Save to SharedPreferences
+                              final prefs = await SharedPreferences.getInstance();
+                              await prefs.setString('mobileNumber', mobileNum);
+
                               Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (context) => VerifyOtpScreen(
-                                    mobileNumber: "+94${_mobileController.text}",
+                                    mobileNumber: mobileNum,
                                   ),
                                 ),
                               );

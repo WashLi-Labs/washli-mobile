@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 class AddressInput extends StatelessWidget {
   final TextEditingController controller;
+  final bool readOnly;
 
-  const AddressInput({super.key, required this.controller});
+  const AddressInput({super.key, required this.controller, this.readOnly = false});
 
   @override
   Widget build(BuildContext context) {
@@ -14,6 +15,7 @@ class AddressInput extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade300),
       ),
       child: TextField(
+        readOnly: readOnly,
         controller: controller,
         decoration: const InputDecoration(
           border: InputBorder.none,

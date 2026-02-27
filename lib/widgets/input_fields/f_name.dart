@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 
 class FirstNameInput extends StatelessWidget {
   final TextEditingController controller;
+  final bool readOnly;
 
-  const FirstNameInput({super.key, required this.controller});
+  const FirstNameInput({super.key, required this.controller, this.readOnly = false});
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      readOnly: readOnly,
       controller: controller,
       textCapitalization: TextCapitalization.words,
       decoration: InputDecoration(

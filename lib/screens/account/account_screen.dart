@@ -10,6 +10,7 @@ import '../explore/explore_screen.dart';
 import '../payment/payment_screen.dart';
 import 'edit_profile/edit_profile_screen.dart';
 import '../cart/cart_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -20,6 +21,24 @@ class AccountScreen extends StatefulWidget {
 
 class _AccountScreenState extends State<AccountScreen> {
   int _selectedIndex = 4;
+  String _firstName = "Sam";
+  String _lastName = "William";
+  String _email = "sam@email.com";
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadUserDetails();
+  }
+
+  Future<void> _loadUserDetails() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _firstName = prefs.getString('firstName') ?? "Sam";
+      _lastName = prefs.getString('lastName') ?? "William";
+      _email = prefs.getString('email') ?? "sam@email.com";
+    });
+  }
 
   void _onItemTapped(int index) {
       if (index == 0) {
@@ -93,9 +112,9 @@ class _AccountScreenState extends State<AccountScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 10),
-                      const ProfileCard(
-                        name: "Sam William",
-                        email: "sam@email.com",
+                      ProfileCard(
+                        name: "$_firstName $_lastName",
+                        email: _email,
                         imagePath: "assets/images/shop1.jpg", 
                       ),
                       const SizedBox(height: 20),
@@ -108,11 +127,14 @@ class _AccountScreenState extends State<AccountScreen> {
                       AccountMenuItem(
                         iconPath: "assets/icons/profile_blue.svg",
                         title: "Profile",
-                        onTap: () {
-                          Navigator.push(
+                        onTap: () async {
+                          // Wait for result from Edit Profile Flow
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => const EditProfileScreen()),
                           );
+                          // Always reload after returning to ensure data is updated
+                          _loadUserDetails();
                         },
                       ),
                       AccountMenuItem(
