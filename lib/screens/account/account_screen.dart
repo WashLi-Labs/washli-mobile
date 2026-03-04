@@ -74,33 +74,27 @@ class _AccountScreenState extends State<AccountScreen> {
       body: SafeArea(
         child: Column(
           children: [
-             // Back Button
+            // Header with Back Button and Title
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: CustomBackButton(
-                  onTap: () {
-                     Navigator.pop(context);
-                  },
-                ),
-              ),
-            ),
-            
-            // Title
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 10),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Account',
-                  style: TextStyle(
-                    color: Colors.black,
-                    
-                    fontSize: 24, // Increased size for prominence
-                    fontWeight: FontWeight.bold,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  CustomBackButton(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
                   ),
-                ),
+                  const SizedBox(width: 16),
+                  const Text(
+                    'Account',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 24, // Increased size for prominence
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ),
 
