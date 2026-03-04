@@ -126,22 +126,30 @@ class _CartItemCardState extends State<CartItemCard> {
           GestureDetector(
             onTap: _showNoteDialog,
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SvgPicture.asset(
-                  'assets/icons/note.svg',
-                  width: 16,
-                  height: 16,
-                   colorFilter: ColorFilter.mode(
-                    _note != null && _note!.isNotEmpty ? const Color(0xFF0062FF) : Colors.grey,
-                    BlendMode.srcIn,
+                Padding(
+                  padding: const EdgeInsets.only(top: 2.0),
+                  child: SvgPicture.asset(
+                    'assets/icons/note.svg',
+                    width: 16,
+                    height: 16,
+                     colorFilter: ColorFilter.mode(
+                      _note != null && _note!.isNotEmpty ? const Color(0xFF0062FF) : Colors.grey,
+                      BlendMode.srcIn,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  _note != null && _note!.isNotEmpty ? _note! : 'Add Note',
-                   style: TextStyle(
-                    fontSize: 12,
-                    color: _note != null && _note!.isNotEmpty ? const Color(0xFF0062FF) : Colors.grey[600],
+                Expanded(
+                  child: Text(
+                    _note != null && _note!.isNotEmpty ? _note! : 'Add Note',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                     style: TextStyle(
+                      fontSize: 12,
+                      color: _note != null && _note!.isNotEmpty ? const Color(0xFF0062FF) : Colors.grey[600],
+                    ),
                   ),
                 ),
               ],
@@ -161,17 +169,29 @@ class _CartItemCardState extends State<CartItemCard> {
         title: const Text('Add Note', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         content: TextField(
           controller: noteController,
-          maxLength: 20,
-          decoration: const InputDecoration(
-            hintText: 'Enter note (max 20 chars)',
-            border: OutlineInputBorder(),
-             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          maxLength: 100,
+          maxLines: 3,
+          decoration: InputDecoration(
+            hintText: 'Enter note (max 100 chars)',
+            hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
+            border: const OutlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF2688EA)),
+            ),
+            enabledBorder: const OutlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF2688EA)),
+            ),
+            focusedBorder: const OutlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF2688EA)),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
           ),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            onPressed: () {
+              noteController.clear();
+            },
+            child: const Text('Clear', style: TextStyle(color: Colors.grey)),
           ),
           TextButton(
             onPressed: () {

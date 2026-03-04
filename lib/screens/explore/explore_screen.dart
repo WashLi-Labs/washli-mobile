@@ -10,6 +10,7 @@ import '../account/account_screen.dart';
 import '../payment/payment_screen.dart';
 import '../cart/cart_screen.dart';
 import '../../get_location/location_service.dart';
+import '../home/home_screen.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
@@ -111,7 +112,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
         selectedIndex: 2,
         onItemTapped: (index) {
           if (index == 0) {
-            Navigator.pop(context);
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+              (route) => false,
+            );
           } else if (index == 1) {
             Navigator.pushReplacement(
               context,
