@@ -11,6 +11,8 @@ import '../payment/payment_screen.dart';
 import 'edit_profile/edit_profile_screen.dart';
 import '../cart/cart_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
+import '../home/home_screen.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -24,6 +26,7 @@ class _AccountScreenState extends State<AccountScreen> {
   String _firstName = "Sam";
   String _lastName = "William";
   String _email = "sam@email.com";
+  File? _profileImage;
   
   @override
   void initState() {
@@ -37,12 +40,21 @@ class _AccountScreenState extends State<AccountScreen> {
       _firstName = prefs.getString('firstName') ?? "Sam";
       _lastName = prefs.getString('lastName') ?? "William";
       _email = prefs.getString('email') ?? "sam@email.com";
+      
+      String? imagePath = prefs.getString('profileImagePath');
+      if (imagePath != null && imagePath.isNotEmpty) {
+        _profileImage = File(imagePath);
+      }
     });
   }
 
   void _onItemTapped(int index) {
       if (index == 0) {
-        Navigator.popUntil(context, (route) => route.isFirst);
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          (route) => false,
+        );
       } else if (index == 1) {
         Navigator.pushReplacement(
           context,
@@ -109,7 +121,9 @@ class _AccountScreenState extends State<AccountScreen> {
                       ProfileCard(
                         name: "$_firstName $_lastName",
                         email: _email,
-                        imagePath: "assets/images/shop1.jpg", 
+                        imageProvider: _profileImage != null
+                            ? FileImage(_profileImage!) as ImageProvider
+                            : const AssetImage("assets/images/profile1.png"),
                       ),
                       const SizedBox(height: 20),
                       const CustomSearchBar(

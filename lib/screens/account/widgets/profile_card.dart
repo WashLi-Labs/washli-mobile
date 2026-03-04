@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 class ProfileCard extends StatelessWidget {
   final String name;
   final String email;
-  final String imagePath;
+  final ImageProvider imageProvider;
 
   const ProfileCard({
     super.key,
     required this.name,
     required this.email,
-    required this.imagePath,
+    required this.imageProvider,
   });
 
   @override
@@ -30,7 +30,7 @@ class ProfileCard extends StatelessWidget {
             ),
             child: CircleAvatar(
               radius: 30,
-              backgroundImage: AssetImage(imagePath),
+              backgroundImage: imageProvider,
             ),
           ),
           const SizedBox(width: 16),

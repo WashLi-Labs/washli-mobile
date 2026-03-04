@@ -8,6 +8,7 @@ import '../explore/explore_screen.dart';
 import '../account/account_screen.dart';
 import '../payment/payment_screen.dart';
 import '../cart/cart_screen.dart';
+import '../home/home_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -122,7 +123,11 @@ class _SearchScreenState extends State<SearchScreen> {
 
   void _onItemTapped(int index) {
     if (index == 0) {
-      Navigator.pop(context); // Go back to Home
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        (route) => false,
+      );
     } else if (index == 2) {
       Navigator.push(
         context,

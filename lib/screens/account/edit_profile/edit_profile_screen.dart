@@ -14,6 +14,7 @@ import '../../explore/explore_screen.dart';
 import '../account_screen.dart';
 import 'edit_profile_screen_changes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
 
 
 class EditProfileScreen extends StatefulWidget {
@@ -31,6 +32,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController _addressController = TextEditingController(text: "");
 
   int _selectedIndex = 4; // Account tab
+  File? _profileImage;
   
   @override
   void initState() {
@@ -46,6 +48,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _phoneController.text = (prefs.getString('mobileNumber') ?? "").replaceFirst('+94', '');
       _emailController.text = prefs.getString('email') ?? "";
       _addressController.text = prefs.getString('address') ?? "";
+      
+      String? imagePath = prefs.getString('profileImagePath');
+      if (imagePath != null && imagePath.isNotEmpty) {
+        _profileImage = File(imagePath);
+      }
     });
   }
 
@@ -132,38 +139,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 20),
-                    // Profile Image with Camera Icon
-                    Stack(
-                      children: [
-                        Container(
-                          width: 120,
-                          height: 120,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            image: DecorationImage(
-                              image: AssetImage("assets/images/profile1.png"), // Using existing asset
-                              fit: BoxFit.cover,
-                            ),
-                          ),
+                    // Profile Image
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                          image: _profileImage != null
+                              ? FileImage(_profileImage!) as ImageProvider
+                              : const AssetImage("assets/images/profile1.png"), 
+                          fit: BoxFit.cover,
                         ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE8F1FF), // Light blue
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                            ),
-                            child: const Icon(
-                              Icons.camera_alt_outlined,
-                              color: Color(0xFF0057FF),
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                     const SizedBox(height: 30),
 

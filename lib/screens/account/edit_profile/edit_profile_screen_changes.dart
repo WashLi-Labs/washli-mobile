@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import '../../../widgets/buttons/back_button.dart';
 import '../../../widgets/buttons/cancel_button.dart';
 import '../../../widgets/buttons/save_changes_button.dart';
@@ -13,6 +14,8 @@ import '../../explore/explore_screen.dart';
 import '../account_screen.dart';
 import '../account_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class EditProfileScreenChanges extends StatefulWidget {
   const EditProfileScreenChanges({super.key});
@@ -28,7 +31,9 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _addressController = TextEditingController(text: "");
 
-  int _selectedIndex = 4; 
+  int _selectedIndex = 4;
+  File? _profileImage;
+  final ImagePicker _picker = ImagePicker();
   
   @override
   void initState() {
@@ -44,8 +49,102 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
       _phoneController.text = (prefs.getString('mobileNumber') ?? "").replaceFirst('+94', '');
       _emailController.text = prefs.getString('email') ?? "";
       _addressController.text = prefs.getString('address') ?? "";
+      
+      String? imagePath = prefs.getString('profileImagePath');
+      if (imagePath != null && imagePath.isNotEmpty) {
+        _profileImage = File(imagePath);
+      }
     });
-  } 
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(source: source);
+      if (pickedFile != null) {
+        setState(() {
+          _profileImage = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+    }
+  }
+
+  void _showImagePickerOptions() {
+    if (Theme.of(context).platform == TargetPlatform.iOS) {
+      showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) => CupertinoActionSheet(
+          title: const Text('Change Profile Picture'),
+          actions: [
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.camera);
+              },
+              child: const Text('Take a Photo'),
+            ),
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.gallery);
+              },
+              child: const Text('Choose from Gallery'),
+            ),
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            isDestructiveAction: true,
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Cancel'),
+          ),
+        ),
+      );
+    } else {
+      showModalBottomSheet(
+        context: context,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (BuildContext context) {
+          return SafeArea(
+            child: Wrap(
+              children: [
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Text(
+                    'Profile photo',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.camera_alt),
+                  title: const Text('Camera'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickImage(ImageSource.camera);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.photo_library),
+                  title: const Text('Gallery'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickImage(ImageSource.gallery);
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          );
+        },
+      );
+    }
+  }
 
   void _onItemTapped(int index) {
       if (index == 0) {
@@ -134,10 +233,12 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
                         Container(
                           width: 120,
                           height: 120,
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             image: DecorationImage(
-                              image: AssetImage("assets/images/profile1.png"), 
+                              image: _profileImage != null
+                                  ? FileImage(_profileImage!) as ImageProvider
+                                  : const AssetImage("assets/images/profile1.png"), 
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -145,17 +246,20 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
                         Positioned(
                           bottom: 0,
                           right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE8F1FF), // Light blue
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                            ),
-                            child: const Icon(
-                              Icons.camera_alt_outlined,
-                              color: Color(0xFF0057FF),
-                              size: 20,
+                          child: GestureDetector(
+                            onTap: _showImagePickerOptions,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE8F1FF), // Light blue
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 2),
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt_outlined,
+                                color: Color(0xFF0057FF),
+                                size: 20,
+                              ),
                             ),
                           ),
                         ),
@@ -263,6 +367,10 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
                               await prefs.setString('mobileNumber', phone);
                               await prefs.setString('email', _emailController.text.trim());
                               await prefs.setString('address', _addressController.text.trim());
+                              
+                              if (_profileImage != null) {
+                                await prefs.setString('profileImagePath', _profileImage!.path);
+                              }
                               
                               if (context.mounted) {
                                 Navigator.pop(context, true); // Pass true to signal a refresh
