@@ -6,7 +6,7 @@ class ContactPopup extends StatelessWidget {
 
   Future<void> _openPhoneBook(BuildContext context) async {
     // Request permission to read contacts
-    if (await FlutterContacts.requestPermission()) {
+    if (await FlutterContacts.requestPermission(readonly: true)) {
       // Open native contact picker
       final contact = await FlutterContacts.openExternalPick();
       if (contact != null && context.mounted) {
