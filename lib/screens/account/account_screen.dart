@@ -3,6 +3,7 @@ import '../../widgets/input_fields/custom_search_bar.dart';
 import '../../widgets/buttons/back_button.dart';
 import '../home/widgets/nav_bar.dart';
 import 'widgets/account_menu_item.dart';
+import '../Auth/onboarding.dart';
 import 'widgets/profile_card.dart';
 import 'widgets/section_header.dart';
 import '../search/search_screen.dart';
@@ -187,8 +188,16 @@ class _AccountScreenState extends State<AccountScreen> {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Logout logic
+                  onPressed: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.clear();
+                    if (context.mounted) {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+                        (route) => false,
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0057E6), 
