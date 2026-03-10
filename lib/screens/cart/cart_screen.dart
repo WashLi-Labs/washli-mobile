@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../widgets/buttons/back_button.dart';
 import 'widgets/cart_toggle.dart';
 import 'choose_location/choose_location.dart';
+import 'choose_location/location_bottom_sheet.dart';
 import 'alternative_contact/alternative_contact.dart';
 import 'widgets/cart_item_card.dart';
 import 'split_my_bill/split_my_bill_section.dart';
@@ -17,6 +18,15 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   bool _isPickup = true;
+
+  void _showLocationSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const LocationBottomSheet(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,24 +94,16 @@ class _CartScreenState extends State<CartScreen> {
                         LocationSelector(
                           address: 'Fld Street',
                           subAddress: 'Nugegoda, Sri Lanka',
-                          onTap: () {
-                             Navigator.of(context).push(
-                              MaterialPageRoute(builder: (context) => const ChooseLocationScreen()),
-                            );
-                          },
+                          onTap: _showLocationSheet,
                         )
                       else
                         LocationSelector(
                           address: "I'll pickup myself",
                           subAddress: '', // Empty or hide
-                          onTap: () {
-                             Navigator.of(context).push(
-                              MaterialPageRoute(builder: (context) => const ChooseLocationScreen()),
-                            );
-                          },
+                          onTap: _showLocationSheet,
                         ),
                         
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 12),
 
                       // Alternative Contact - Present in both modes based on design image
                       const AlternativeContact(),
