@@ -20,6 +20,7 @@ class CustomSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: 42,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -38,6 +39,7 @@ class CustomSearchBar extends StatelessWidget {
         onChanged: onChanged,
         onTap: onTap,
         readOnly: readOnly,
+        textAlignVertical: TextAlignVertical.center,
         decoration: InputDecoration(
           isDense: true,
           hintText: hintText,
@@ -46,16 +48,16 @@ class CustomSearchBar extends StatelessWidget {
             fontSize: 13,
           ),
           suffixIcon: Padding(
-            padding: const EdgeInsets.all(10.0),
+            padding: const EdgeInsets.all(12.0),
             child: SvgPicture.asset(
               'assets/home-icons/Magnifer.svg',
-              width: 18,
-              height: 18,
+              width: 16,
+              height: 16,
               colorFilter: ColorFilter.mode(Colors.grey[400]!, BlendMode.srcIn),
             ),
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
         ),
       ),
     );

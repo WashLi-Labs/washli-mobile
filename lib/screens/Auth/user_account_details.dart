@@ -6,7 +6,7 @@ import '../../widgets/input_fields/email.dart';
 import '../../widgets/input_fields/f_name.dart';
 import '../../widgets/input_fields/l_name.dart';
 import '../../screens/home/home_screen.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 class UserAccountDetailsScreen extends StatefulWidget {
   const UserAccountDetailsScreen({super.key});
 
@@ -136,8 +136,13 @@ class _UserAccountDetailsScreenState extends State<UserAccountDetailsScreen> {
                         const SizedBox(height: 40),
                         
                         CreateAccountButton(
-                          onPressed: () {
+                          onPressed: () async {
                             if (_formKey.currentState!.validate()) {
+                              final prefs = await SharedPreferences.getInstance();
+                              await prefs.setString('firstName', _firstNameController.text);
+                              await prefs.setString('lastName', _lastNameController.text);
+                              await prefs.setString('email', _emailController.text);
+
                               // Navigate to Home Screen with the entered name
                               Navigator.of(context).push(
                                 MaterialPageRoute(

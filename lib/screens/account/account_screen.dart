@@ -3,6 +3,7 @@ import '../../widgets/input_fields/custom_search_bar.dart';
 import '../../widgets/buttons/back_button.dart';
 import '../home/widgets/nav_bar.dart';
 import 'widgets/account_menu_item.dart';
+import '../Auth/onboarding.dart';
 import 'widgets/profile_card.dart';
 import 'widgets/section_header.dart';
 import '../search/search_screen.dart';
@@ -10,6 +11,9 @@ import '../explore/explore_screen.dart';
 import '../payment/payment_screen.dart';
 import 'edit_profile/edit_profile_screen.dart';
 import '../cart/cart_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
+import '../home/home_screen.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -20,10 +24,38 @@ class AccountScreen extends StatefulWidget {
 
 class _AccountScreenState extends State<AccountScreen> {
   int _selectedIndex = 4;
+  String _firstName = "Sam";
+  String _lastName = "William";
+  String _email = "sam@email.com";
+  File? _profileImage;
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadUserDetails();
+  }
+
+  Future<void> _loadUserDetails() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _firstName = prefs.getString('firstName') ?? "Sam";
+      _lastName = prefs.getString('lastName') ?? "William";
+      _email = prefs.getString('email') ?? "sam@email.com";
+      
+      String? imagePath = prefs.getString('profileImagePath');
+      if (imagePath != null && imagePath.isNotEmpty) {
+        _profileImage = File(imagePath);
+      }
+    });
+  }
 
   void _onItemTapped(int index) {
       if (index == 0) {
-        Navigator.popUntil(context, (route) => route.isFirst);
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          (route) => false,
+        );
       } else if (index == 1) {
         Navigator.pushReplacement(
           context,
@@ -55,33 +87,27 @@ class _AccountScreenState extends State<AccountScreen> {
       body: SafeArea(
         child: Column(
           children: [
-             // Back Button
+            // Header with Back Button and Title
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: CustomBackButton(
-                  onTap: () {
-                     Navigator.pop(context);
-                  },
-                ),
-              ),
-            ),
-            
-            // Title
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 10),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Account',
-                  style: TextStyle(
-                    color: Colors.black,
-                    
-                    fontSize: 24, // Increased size for prominence
-                    fontWeight: FontWeight.bold,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  CustomBackButton(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
                   ),
-                ),
+                  const SizedBox(width: 16),
+                  const Text(
+                    'Account',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 24, // Increased size for prominence
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ),
 
@@ -93,10 +119,12 @@ class _AccountScreenState extends State<AccountScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 10),
-                      const ProfileCard(
-                        name: "Sam William",
-                        email: "sam@email.com",
-                        imagePath: "assets/images/shop1.jpg", 
+                      ProfileCard(
+                        name: "$_firstName $_lastName",
+                        email: _email,
+                        imageProvider: _profileImage != null
+                            ? FileImage(_profileImage!) as ImageProvider
+                            : const AssetImage("assets/images/profile1.png"),
                       ),
                       const SizedBox(height: 20),
                       const CustomSearchBar(
@@ -108,11 +136,14 @@ class _AccountScreenState extends State<AccountScreen> {
                       AccountMenuItem(
                         iconPath: "assets/icons/profile_blue.svg",
                         title: "Profile",
-                        onTap: () {
-                          Navigator.push(
+                        onTap: () async {
+                          // Wait for result from Edit Profile Flow
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => const EditProfileScreen()),
                           );
+                          // Always reload after returning to ensure data is updated
+                          _loadUserDetails();
                         },
                       ),
                       AccountMenuItem(
@@ -157,8 +188,16 @@ class _AccountScreenState extends State<AccountScreen> {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Logout logic
+                  onPressed: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.clear();
+                    if (context.mounted) {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+                        (route) => false,
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0057E6), 

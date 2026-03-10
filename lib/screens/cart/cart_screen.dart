@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../widgets/buttons/back_button.dart';
 import 'widgets/cart_toggle.dart';
@@ -8,6 +9,7 @@ import 'widgets/cart_item_card.dart';
 import 'split_my_bill/split_my_bill_section.dart';
 import 'widgets/bill_summary.dart';
 import 'widgets/payment_method_selector.dart';
+import 'widgets/clear_cart_popup.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -18,6 +20,7 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   bool _isPickup = true;
+  bool _isCartCleared = false;
 
   void _showLocationSheet() {
     showModalBottomSheet(
@@ -58,7 +61,43 @@ class _CartScreenState extends State<CartScreen> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          barrierColor: Colors.transparent,
+                          builder: (context) => Stack(
+                            children: [
+                              Positioned.fill(
+                                child: GestureDetector(
+                                  onTap: () => Navigator.pop(context),
+                                  child: BackdropFilter(
+                                    filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                                    child: Container(
+                                      color: Colors.black.withOpacity(0.3),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Align(
+                                alignment: Alignment.bottomCenter,
+                                child: ClearCartPopup(
+                                  onClearCart: () {
+                                    setState(() {
+                                      _isCartCleared = true;
+                                    });
+                                    Navigator.pop(context);
+                                  },
+                                  onSaveCart: () {
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                       child: const Text(
                         'Clear Cart',
                         style: TextStyle(
@@ -108,39 +147,67 @@ class _CartScreenState extends State<CartScreen> {
                       // Alternative Contact - Present in both modes based on design image
                       const AlternativeContact(),
                       
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
+                      const Divider(color: Color(0xFFE5E7EB), thickness: 1, height: 1),
+                      const SizedBox(height: 24),
 
-                      // Cart Items
-                      const CartItemCard(
-                        title: 'Shirts',
-                        fee: 400.00,
-                        type: 'Cotton',
-                        service: 'Dry and wash',
-                        initialQuantity: 2,
-                      ),
-                      // Add more items if needed, just one for now as per design
-                      
-                      const SizedBox(height: 16),
-                      
-                      // Split Bill
-                       SplitMyBillSection(onTap: () {
-                         // Split logic
-                       }),
-                       
-                      const SizedBox(height: 20),
-                      
-                      // Bill Summary
-                      const BillSummary(
-                        subTotal: 1200.00,
-                        deliveryFee: 150.00,
-                      ),
-                      
-                      const SizedBox(height: 16),
-                      
-                      // Payment Method
-                      const PaymentMethodSelector(),
-                      
-                      const SizedBox(height: 20),
+                      if (!_isCartCleared) ...[
+                        // Cart Items
+                        const CartItemCard(
+                          title: 'Shirts',
+                          fee: 400.00,
+                          type: 'Cotton',
+                          service: 'Dry and wash',
+                          initialQuantity: 2,
+                        ),
+                        // Add more items if needed, just one for now as per design
+                        
+                        // const SizedBox(height: 24),
+                        // const Divider(color: Color(0xFFE5E7EB), thickness: 1, height: 1),
+                        // const SizedBox(height: 24),
+                        
+                        // Split Bill
+                         SplitMyBillSection(onTap: () {
+                           // Split logic
+                         }),
+                         
+                        const SizedBox(height: 24),
+                        const Divider(color: Color(0xFFE5E7EB), thickness: 1, height: 1),
+                        const SizedBox(height: 24),
+                        
+                        // Bill Summary
+                        const BillSummary(
+                          subTotal: 1200.00,
+                          deliveryFee: 150.00,
+                        ),
+                        
+                        const SizedBox(height: 24),
+                        const Divider(color: Color(0xFFE5E7EB), thickness: 1, height: 1),
+                        const SizedBox(height: 24),
+                        
+                        // Payment Method
+                        const PaymentMethodSelector(),
+                        
+                        const SizedBox(height: 24),
+                        const Divider(color: Color(0xFFE5E7EB), thickness: 1, height: 1),
+                        const SizedBox(height: 24),
+                      ] else ...[
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 40),
+                          child: Center(
+                            child: Column(
+                              children: [
+                                Icon(Icons.remove_shopping_cart_outlined, size: 64, color: Colors.grey),
+                                SizedBox(height: 16),
+                                Text(
+                                  'Your cart is empty',
+                                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
