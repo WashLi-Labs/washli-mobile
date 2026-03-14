@@ -14,6 +14,7 @@ import '../cart/cart_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import '../home/home_screen.dart';
+import 'settings/settings_screen.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -149,7 +150,14 @@ class _AccountScreenState extends State<AccountScreen> {
                       AccountMenuItem(
                         iconPath: "assets/icons/settings_blue.svg",
                         title: "Settings",
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SettingsScreen(),
+                            ),
+                          );
+                        },
                       ),
                       AccountMenuItem(
                         iconPath: "assets/icons/payments_blue.svg",
