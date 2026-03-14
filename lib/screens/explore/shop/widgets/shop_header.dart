@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:washli_mobile/widgets/buttons/more_info.dart';
+import '../more_info.dart';
 
 class ShopHeader extends StatelessWidget {
   final Map<String, dynamic> laundry;
@@ -29,7 +30,12 @@ class ShopHeader extends StatelessWidget {
               right: 16,
               child: MoreInfoButton(
                   onTap: () {
-                    // unexpected behavior
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MoreInfoScreen(laundry: laundry),
+                      ),
+                    );
                   },
                 ),
             ),
