@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "406139201995",
+    "project_id": "washli-2a77a",
+    "storage_bucket": "washli-2a77a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:406139201995:android:9de0877763d8240d3dee4e",
+        "android_client_info": {
+          "package_name": "com.washli.washli_mobile.washli_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYkM2u06giSMhT02ZCCGem2QxCVuS29Hw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
