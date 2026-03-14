@@ -24,7 +24,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
 
   void _checkOtp(String value) {
     setState(() {
-      _isButtonEnabled = value.length == 4;
+      _isButtonEnabled = value.length == 6;
     });
   }
 

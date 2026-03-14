@@ -162,7 +162,12 @@ class _AccountScreenState extends State<AccountScreen> {
                       AccountMenuItem(
                         iconPath: "assets/icons/payments_blue.svg",
                         title: "Payments",
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const PaymentScreen()),
+                          );
+                        },
                       ),
                       
                       const SizedBox(height: 20),
