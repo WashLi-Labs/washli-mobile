@@ -6,7 +6,7 @@ import '../../widgets/buttons/back_button.dart';
 import '../../get_location/location_service.dart';
 import '../explore/explore_screen.dart';
 import '../account/account_screen.dart';
-import '../payment/payment_screen.dart';
+// import '../payment/payment_screen.dart';
 import '../cart/cart_screen.dart';
 import '../home/home_screen.dart';
 

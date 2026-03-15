@@ -7,7 +7,7 @@ import '../../widgets/buttons/back_button.dart';
 import '../home/widgets/nav_bar.dart';
 import '../search/search_screen.dart';
 import '../account/account_screen.dart';
-import '../payment/payment_screen.dart';
+// import '../payment/payment_screen.dart';
 import '../cart/cart_screen.dart';
 import '../../get_location/location_service.dart';
 import '../home/home_screen.dart';

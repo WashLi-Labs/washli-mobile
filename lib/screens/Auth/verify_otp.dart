@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
+import '../../services/database_service.dart';
 import '../../widgets/buttons/back_button.dart';
 import '../../widgets/buttons/otp_verify_button.dart';
 import '../../widgets/input_fields/otp_pinput.dart';
 import 'user_account_details.dart';
+import '../home/home_screen.dart';
 
 class VerifyOtpScreen extends StatefulWidget {
   final String mobileNumber;
   final String verificationId;
-  const VerifyOtpScreen({super.key, required this.mobileNumber, required this.verificationId});
+  const VerifyOtpScreen({
+    super.key,
+    required this.mobileNumber,
+    required this.verificationId,
+  });
 
   @override
   State<VerifyOtpScreen> createState() => _VerifyOtpScreenState();
@@ -35,19 +41,34 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     await _authService.verifyOTP(
       verificationId: widget.verificationId,
       smsCode: _otpController.text,
-      onSuccess: () {
+      onSuccess: () async {
+        if (!mounted) return;
+
+        // Check if user is fully registered
+        bool isRegistered = await DatabaseService()
+            .syncUserProfileToPreferences();
+
         if (mounted) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const UserAccountDetailsScreen()),
-            (Route<dynamic> route) => false,
-          );
+          if (isRegistered) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+              (Route<dynamic> route) => false,
+            );
+          } else {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                builder: (context) => const UserAccountDetailsScreen(),
+              ),
+              (Route<dynamic> route) => false,
+            );
+          }
         }
       },
       onError: (String error) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Invalid OTP: $error')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Invalid OTP: $error')));
         }
       },
     );
@@ -62,7 +83,10 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
           children: [
             // Fixed Back Button
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 10.0,
+              ),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: CustomBackButton(
@@ -72,7 +96,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                 ),
               ),
             ),
-            
+
             Expanded(
               child: SingleChildScrollView(
                 child: Padding(
@@ -92,7 +116,8 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                       const SizedBox(height: 8),
                       RichText(
                         text: TextSpan(
-                          text: 'We sent a verification code to your mobile number\n${widget.mobileNumber} ',
+                          text:
+                              'We sent a verification code to your mobile number\n${widget.mobileNumber} ',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey[600],
@@ -114,9 +139,9 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                           ],
                         ),
                       ),
-                      
+
                       const SizedBox(height: 40),
-                      
+
                       Center(
                         child: OtpPinput(
                           controller: _otpController,
@@ -124,9 +149,9 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                           onCompleted: _checkOtp,
                         ),
                       ),
-                      
+
                       const SizedBox(height: 20),
-                      
+
                       // Resend Code
                       Center(
                         child: Row(
@@ -134,7 +159,10 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                           children: [
                             Text(
                               "Didn't receive any code? ",
-                              style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 13,
+                              ),
                             ),
                             GestureDetector(
                               onTap: () {
@@ -152,9 +180,9 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                           ],
                         ),
                       ),
-          
+
                       const SizedBox(height: 30),
-                      
+
                       OtpVerifyButton(
                         onPressed: _isButtonEnabled ? _onVerify : null,
                       ),

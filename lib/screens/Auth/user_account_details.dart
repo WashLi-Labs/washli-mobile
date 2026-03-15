@@ -1,5 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../services/database_service.dart';
 import '../../widgets/buttons/back_button.dart';
 import '../../widgets/buttons/create_account_button.dart';
 import '../../widgets/input_fields/email.dart';
@@ -15,6 +17,7 @@ class UserAccountDetailsScreen extends StatefulWidget {
 }
 
 class _UserAccountDetailsScreenState extends State<UserAccountDetailsScreen> {
+  final DatabaseService _databaseService = DatabaseService();
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -138,21 +141,43 @@ class _UserAccountDetailsScreenState extends State<UserAccountDetailsScreen> {
                         CreateAccountButton(
                           onPressed: () async {
                             if (_formKey.currentState!.validate()) {
-                              final prefs = await SharedPreferences.getInstance();
-                              await prefs.setString('firstName', _firstNameController.text);
-                              await prefs.setString('lastName', _lastNameController.text);
-                              await prefs.setString('email', _emailController.text);
+                              try {
+                                final prefs = await SharedPreferences.getInstance();
+                                final phone = prefs.getString('mobileNumber') ?? FirebaseAuth.instance.currentUser?.phoneNumber ?? '';
 
-                              // Navigate to Home Screen with the entered name
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => HomeScreen(
-                                    userName: _firstNameController.text.isNotEmpty 
-                                        ? _firstNameController.text 
-                                        : "James", 
-                                  ),
-                                ),
-                              );
+                                // Save to Firebase Firestore
+                                await _databaseService.saveUserDetails(
+                                  firstName: _firstNameController.text,
+                                  lastName: _lastNameController.text,
+                                  email: _emailController.text,
+                                  mobileNumber: phone,
+                                );
+
+                                // Save locally
+                                await prefs.setString('firstName', _firstNameController.text);
+                                await prefs.setString('lastName', _lastNameController.text);
+                                await prefs.setString('email', _emailController.text);
+
+                                if (mounted) {
+                                  // Navigate to Home Screen and clear the stack
+                                  Navigator.of(context).pushAndRemoveUntil(
+                                    MaterialPageRoute(
+                                      builder: (context) => HomeScreen(
+                                        userName: _firstNameController.text.isNotEmpty 
+                                            ? _firstNameController.text 
+                                            : "James", 
+                                      ),
+                                    ),
+                                    (Route<dynamic> route) => false,
+                                  );
+                                }
+                              } catch (e) {
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Failed to save details: $e')),
+                                  );
+                                }
+                              }
                             }
                           },
                         ),
