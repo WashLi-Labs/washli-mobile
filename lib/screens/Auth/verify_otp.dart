@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../../services/auth_service.dart';
 import '../../widgets/buttons/back_button.dart';
 import '../../widgets/buttons/otp_verify_button.dart';
 import '../../widgets/input_fields/otp_pinput.dart';
@@ -16,6 +16,7 @@ class VerifyOtpScreen extends StatefulWidget {
 
 class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
   final TextEditingController _otpController = TextEditingController();
+  final AuthService _authService = AuthService();
   bool _isButtonEnabled = false;
 
   @override
@@ -31,27 +32,25 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
   }
 
   void _onVerify() async {
-    try {
-      PhoneAuthCredential credential = PhoneAuthProvider.credential(
-        verificationId: widget.verificationId,
-        smsCode: _otpController.text,
-      );
-
-      await FirebaseAuth.instance.signInWithCredential(credential);
-
-      if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const UserAccountDetailsScreen()),
-          (Route<dynamic> route) => false,
-        );
-      }
-    } on FirebaseAuthException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Invalid OTP: ${e.message}')),
-        );
-      }
-    }
+    await _authService.verifyOTP(
+      verificationId: widget.verificationId,
+      smsCode: _otpController.text,
+      onSuccess: () {
+        if (mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const UserAccountDetailsScreen()),
+            (Route<dynamic> route) => false,
+          );
+        }
+      },
+      onError: (String error) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Invalid OTP: $error')),
+          );
+        }
+      },
+    );
   }
 
   @override
