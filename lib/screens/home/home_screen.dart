@@ -7,7 +7,7 @@ import 'widgets/nearby_laundry_card.dart';
 import '../search/search_screen.dart';
 import '../explore/explore_screen.dart';
 import '../account/account_screen.dart';
-import '../payment/payment_screen.dart';
+// import '../payment/payment_screen.dart';
 import '../cart/cart_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

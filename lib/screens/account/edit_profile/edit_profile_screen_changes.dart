@@ -12,29 +12,33 @@ import '../../home/widgets/nav_bar.dart';
 import '../../search/search_screen.dart';
 import '../../explore/explore_screen.dart';
 import '../account_screen.dart';
-import '../account_screen.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import '../../../services/database_service.dart';
 
 class EditProfileScreenChanges extends StatefulWidget {
   const EditProfileScreenChanges({super.key});
 
   @override
-  State<EditProfileScreenChanges> createState() => _EditProfileScreenChangesState();
+  State<EditProfileScreenChanges> createState() =>
+      _EditProfileScreenChangesState();
 }
 
 class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
   final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController(); 
+  final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController(text: "");
+  final TextEditingController _addressController = TextEditingController(
+    text: "",
+  );
 
   int _selectedIndex = 4;
   File? _profileImage;
   final ImagePicker _picker = ImagePicker();
-  
+
   @override
   void initState() {
     super.initState();
@@ -46,10 +50,11 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
     setState(() {
       _firstNameController.text = prefs.getString('firstName') ?? "";
       _lastNameController.text = prefs.getString('lastName') ?? "";
-      _phoneController.text = (prefs.getString('mobileNumber') ?? "").replaceFirst('+94', '');
+      _phoneController.text = (prefs.getString('mobileNumber') ?? "")
+          .replaceFirst('+94', '');
       _emailController.text = prefs.getString('email') ?? "";
       _addressController.text = prefs.getString('address') ?? "";
-      
+
       String? imagePath = prefs.getString('profileImagePath');
       if (imagePath != null && imagePath.isNotEmpty) {
         _profileImage = File(imagePath);
@@ -115,10 +120,7 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
                   padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
                   child: Text(
                     'Profile photo',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
                 ListTile(
@@ -147,30 +149,30 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
   }
 
   void _onItemTapped(int index) {
-      if (index == 0) {
-        Navigator.popUntil(context, (route) => route.isFirst);
-      } else if (index == 1) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const SearchScreen()),
-        );
-      } else if (index == 2) {
-         Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const ExploreScreen()),
-        );
-      } else if (index == 4) {
-           Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const AccountScreen()),
-          );
-      }
-      
-      if (mounted) {
-        setState(() {
-          _selectedIndex = index;
-        });
-      }
+    if (index == 0) {
+      Navigator.popUntil(context, (route) => route.isFirst);
+    } else if (index == 1) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const SearchScreen()),
+      );
+    } else if (index == 2) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const ExploreScreen()),
+      );
+    } else if (index == 4) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const AccountScreen()),
+      );
+    }
+
+    if (mounted) {
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
   }
 
   @override
@@ -191,19 +193,22 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
         child: Column(
           children: [
             // Back Button and Title
-             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 10,
+              ),
               child: Row(
                 children: [
-                   CustomBackButton(
+                  CustomBackButton(
                     onTap: () {
-                       Navigator.pop(context);
+                      Navigator.pop(context);
                     },
                   ),
                 ],
               ),
             ),
-             const Padding(
+            const Padding(
               padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 5),
               child: Align(
                 alignment: Alignment.centerLeft,
@@ -218,7 +223,6 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
                 ),
               ),
             ),
-
 
             Expanded(
               child: SingleChildScrollView(
@@ -238,7 +242,9 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
                             image: DecorationImage(
                               image: _profileImage != null
                                   ? FileImage(_profileImage!) as ImageProvider
-                                  : const AssetImage("assets/images/profile1.png"), 
+                                  : const AssetImage(
+                                      "assets/images/profile1.png",
+                                    ),
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -253,7 +259,10 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
                               decoration: BoxDecoration(
                                 color: const Color(0xFFE8F1FF), // Light blue
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 2,
+                                ),
                               ),
                               child: const Icon(
                                 Icons.camera_alt_outlined,
@@ -274,22 +283,22 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
                         fontFamily: 'Outfit',
                         fontSize: 14,
                         color: Color(0xFF2D2D3A),
-                        fontWeight: FontWeight.w500
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 8),
                     FirstNameInput(controller: _firstNameController),
-                    
+
                     const SizedBox(height: 16),
 
                     // Last Name
-                     const Text(
+                    const Text(
                       "Last Name",
                       style: TextStyle(
                         fontFamily: 'Outfit',
                         fontSize: 14,
                         color: Color(0xFF2D2D3A),
-                        fontWeight: FontWeight.w500
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -297,44 +306,44 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
 
                     const SizedBox(height: 16),
 
-                     // Phone Number
-                     const Text(
+                    // Phone Number
+                    const Text(
                       "Phone Number",
                       style: TextStyle(
                         fontFamily: 'Outfit',
                         fontSize: 14,
                         color: Color(0xFF2D2D3A),
-                        fontWeight: FontWeight.w500
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 8),
                     MobileNumberInput(controller: _phoneController),
 
-                     const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-                     // Email
-                     const Text(
+                    // Email
+                    const Text(
                       "Email",
                       style: TextStyle(
                         fontFamily: 'Outfit',
                         fontSize: 14,
                         color: Color(0xFF2D2D3A),
-                        fontWeight: FontWeight.w500
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 8),
                     EmailInput(controller: _emailController),
 
                     const SizedBox(height: 16),
-                    
+
                     // Address
-                     const Text(
+                    const Text(
                       "Address",
                       style: TextStyle(
                         fontFamily: 'Outfit',
                         fontSize: 14,
                         color: Color(0xFF2D2D3A),
-                        fontWeight: FontWeight.w500
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -356,24 +365,66 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
                         Expanded(
                           child: SaveChangesButton(
                             onTap: () async {
-                              final prefs = await SharedPreferences.getInstance();
-                              await prefs.setString('firstName', _firstNameController.text.trim());
-                              await prefs.setString('lastName', _lastNameController.text.trim());
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              await prefs.setString(
+                                'firstName',
+                                _firstNameController.text.trim(),
+                              );
+                              await prefs.setString(
+                                'lastName',
+                                _lastNameController.text.trim(),
+                              );
                               // Re-add +94 prefix for mobile number if not present
                               String phone = _phoneController.text.trim();
                               if (!phone.startsWith('+94')) {
                                 phone = '+94$phone';
                               }
                               await prefs.setString('mobileNumber', phone);
-                              await prefs.setString('email', _emailController.text.trim());
-                              await prefs.setString('address', _addressController.text.trim());
-                              
+                              await prefs.setString(
+                                'email',
+                                _emailController.text.trim(),
+                              );
+                              await prefs.setString(
+                                'address',
+                                _addressController.text.trim(),
+                              );
+
                               if (_profileImage != null) {
-                                await prefs.setString('profileImagePath', _profileImage!.path);
+                                await prefs.setString(
+                                  'profileImagePath',
+                                  _profileImage!.path,
+                                );
                               }
-                              
+
+                              try {
+                                await DatabaseService().updateUserDetails(
+                                  firstName: _firstNameController.text.trim(),
+                                  lastName: _lastNameController.text.trim(),
+                                  email: _emailController.text.trim(),
+                                  mobileNumber: phone,
+                                  address: _addressController.text.trim(),
+                                );
+                              } catch (e) {
+                                debugPrint(
+                                  'Failed to update user profile in Firestore: $e',
+                                );
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Failed to update details in Firestore',
+                                      ),
+                                    ),
+                                  );
+                                }
+                              }
+
                               if (context.mounted) {
-                                Navigator.pop(context, true); // Pass true to signal a refresh
+                                Navigator.pop(
+                                  context,
+                                  true,
+                                ); // Pass true to signal a refresh
                               }
                             },
                           ),

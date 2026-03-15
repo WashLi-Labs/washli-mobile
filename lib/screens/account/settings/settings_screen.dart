@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
-import '../../Auth/onboarding.dart';
+import '../../Auth/login.dart';
+import '../../../services/auth_service.dart';
 import 'widgets/settings_menu_item.dart';
 import 'widgets/settings_profile_header.dart';
 import 'widgets/settings_section.dart';
@@ -76,12 +77,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
 
     if (confirmed == true && mounted) {
+      // Clear preferences and sign out from Firebase
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
+      await AuthService().signOut();
+
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
           (route) => false,
         );
       }
