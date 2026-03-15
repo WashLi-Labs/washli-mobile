@@ -5,6 +5,7 @@ import '../../Auth/onboarding.dart';
 import 'widgets/settings_menu_item.dart';
 import 'widgets/settings_profile_header.dart';
 import 'widgets/settings_section.dart';
+import 'add_home/add_home_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -175,7 +176,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           icon: Icons.home_rounded,
                           title: 'Add Home',
                           subtitle: 'Set your home address',
-                          onTap: () => _showComingSoon('Add Home'),
+                          onTap: () async {
+                            final result = await Navigator.push<String>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const AddHomeScreen(),
+                              ),
+                            );
+                            if (result != null && result.isNotEmpty && mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Home address saved: $result'),
+                                  backgroundColor: const Color(0xFF007DFC),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          },
                         ),
                         const SizedBox(height: 4),
                         SettingsMenuItem(
