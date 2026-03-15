@@ -74,24 +74,28 @@ class PaymentOptionTile extends StatelessWidget {
             Expanded(
               child: Row(
                 children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      
-                      fontSize: 16,
-                      color: Colors.black,
-                      fontWeight: FontWeight.normal,
+                  Flexible(
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.black,
+                        fontWeight: FontWeight.normal,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   if (subtitle != null) ...[
                     const SizedBox(width: 8),
-                    Text(
-                      subtitle!,
-                      style: const TextStyle(
-                        
-                        fontSize: 16,
-                        color: Colors.black,
-                        fontWeight: FontWeight.normal,
+                    Flexible(
+                      child: Text(
+                        subtitle!,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.black,
+                          fontWeight: FontWeight.normal,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],

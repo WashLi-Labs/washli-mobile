@@ -1,5 +1,0 @@
-Analyzing 2 items...                                            
-
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home\widgets\nav_bar.dart:23:33 - deprecated_member_use
-
-1 issue found. (ran in 2.5s)

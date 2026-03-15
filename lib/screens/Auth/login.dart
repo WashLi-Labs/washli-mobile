@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_service.dart';
 import '../../widgets/buttons/back_button.dart';
 import '../../widgets/buttons/send_otp_button.dart';
 import '../../widgets/input_fields/mobile_number.dart';
@@ -13,6 +14,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _mobileController = TextEditingController();
+  final AuthService _authService = AuthService();
 
   @override
   void dispose() {
@@ -81,13 +83,23 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 30),
                       
                       SendOtpButton(
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => VerifyOtpScreen(
-                                mobileNumber: _mobileController.text.isEmpty ? "07178889954" : _mobileController.text,
-                              ),
-                            ),
+                        onPressed: () async {
+                          final mobile = _mobileController.text.isEmpty ? "07178889954" : _mobileController.text;
+                          final formattedMobile = mobile.startsWith('+') ? mobile : '+94${mobile.startsWith('0') ? mobile.substring(1) : mobile}';
+                          
+                          await _authService.sendOTP(
+                            context: context,
+                            phoneNumber: formattedMobile,
+                            onCodeSent: (String verificationId, int? resendToken) {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => VerifyOtpScreen(
+                                    mobileNumber: formattedMobile,
+                                    verificationId: verificationId,
+                                  ),
+                                ),
+                              );
+                            },
                           );
                         },
                       ),
