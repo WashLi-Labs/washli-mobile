@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../../services/auth_service.dart';
 import '../../widgets/buttons/back_button.dart';
 import '../../widgets/input_fields/mobile_number.dart';
 import '../../widgets/buttons/send_otp_button.dart';
@@ -15,6 +15,7 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _mobileController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final AuthService _authService = AuthService();
 
   @override
   void dispose() {
@@ -92,15 +93,10 @@ class _SignupScreenState extends State<SignupScreen> {
                               final prefs = await SharedPreferences.getInstance();
                               await prefs.setString('mobileNumber', mobileNum);
 
-                              await FirebaseAuth.instance.verifyPhoneNumber(
+                              await _authService.sendOTP(
+                                context: context,
                                 phoneNumber: mobileNum,
-                                verificationCompleted: (PhoneAuthCredential credential) {},
-                                verificationFailed: (FirebaseAuthException e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Verification failed: ${e.message}')),
-                                  );
-                                },
-                                codeSent: (String verificationId, int? resendToken) {
+                                onCodeSent: (String verificationId, int? resendToken) {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
                                       builder: (context) => VerifyOtpScreen(
@@ -110,7 +106,6 @@ class _SignupScreenState extends State<SignupScreen> {
                                     ),
                                   );
                                 },
-                                codeAutoRetrievalTimeout: (String verificationId) {},
                               );
                             }
                           },
