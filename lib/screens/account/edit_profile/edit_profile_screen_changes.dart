@@ -37,6 +37,9 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
 
   int _selectedIndex = 4;
   File? _profileImage;
+  String? _profileImageUrl;
+  bool _isLoading = false;
+  bool _pickedNewImage = false;
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -57,8 +60,12 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
 
       String? imagePath = prefs.getString('profileImagePath');
       if (imagePath != null && imagePath.isNotEmpty) {
-        _profileImage = File(imagePath);
+        // Only load if file actually exists locally, else fallback to URL
+        if (File(imagePath).existsSync()) {
+          _profileImage = File(imagePath);
+        }
       }
+      _profileImageUrl = prefs.getString('profileImageUrl');
     });
   }
 
@@ -68,6 +75,7 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
       if (pickedFile != null) {
         setState(() {
           _profileImage = File(pickedFile.path);
+          _pickedNewImage = true;
         });
       }
     } catch (e) {
@@ -242,9 +250,13 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
                             image: DecorationImage(
                               image: _profileImage != null
                                   ? FileImage(_profileImage!) as ImageProvider
-                                  : const AssetImage(
-                                      "assets/images/profile1.png",
-                                    ),
+                                  : (_profileImageUrl != null &&
+                                            _profileImageUrl!.isNotEmpty
+                                        ? NetworkImage(_profileImageUrl!)
+                                              as ImageProvider
+                                        : const AssetImage(
+                                            "assets/images/profile1.png",
+                                          )),
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -363,71 +375,105 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
                         ),
                         const SizedBox(width: 16),
                         Expanded(
-                          child: SaveChangesButton(
-                            onTap: () async {
-                              final prefs =
-                                  await SharedPreferences.getInstance();
-                              await prefs.setString(
-                                'firstName',
-                                _firstNameController.text.trim(),
-                              );
-                              await prefs.setString(
-                                'lastName',
-                                _lastNameController.text.trim(),
-                              );
-                              // Re-add +94 prefix for mobile number if not present
-                              String phone = _phoneController.text.trim();
-                              if (!phone.startsWith('+94')) {
-                                phone = '+94$phone';
-                              }
-                              await prefs.setString('mobileNumber', phone);
-                              await prefs.setString(
-                                'email',
-                                _emailController.text.trim(),
-                              );
-                              await prefs.setString(
-                                'address',
-                                _addressController.text.trim(),
-                              );
+                          child: _isLoading
+                              ? const Center(child: CircularProgressIndicator())
+                              : SaveChangesButton(
+                                  onTap: () async {
+                                    setState(() {
+                                      _isLoading = true;
+                                    });
 
-                              if (_profileImage != null) {
-                                await prefs.setString(
-                                  'profileImagePath',
-                                  _profileImage!.path,
-                                );
-                              }
+                                    final prefs =
+                                        await SharedPreferences.getInstance();
+                                    await prefs.setString(
+                                      'firstName',
+                                      _firstNameController.text.trim(),
+                                    );
+                                    await prefs.setString(
+                                      'lastName',
+                                      _lastNameController.text.trim(),
+                                    );
+                                    // Re-add +94 prefix for mobile number if not present
+                                    String phone = _phoneController.text.trim();
+                                    if (!phone.startsWith('+94')) {
+                                      phone = '+94$phone';
+                                    }
+                                    await prefs.setString(
+                                      'mobileNumber',
+                                      phone,
+                                    );
+                                    await prefs.setString(
+                                      'email',
+                                      _emailController.text.trim(),
+                                    );
+                                    await prefs.setString(
+                                      'address',
+                                      _addressController.text.trim(),
+                                    );
 
-                              try {
-                                await DatabaseService().updateUserDetails(
-                                  firstName: _firstNameController.text.trim(),
-                                  lastName: _lastNameController.text.trim(),
-                                  email: _emailController.text.trim(),
-                                  mobileNumber: phone,
-                                  address: _addressController.text.trim(),
-                                );
-                              } catch (e) {
-                                debugPrint(
-                                  'Failed to update user profile in Firestore: $e',
-                                );
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Failed to update details in Firestore',
-                                      ),
-                                    ),
-                                  );
-                                }
-                              }
+                                    String? downloadUrl = _profileImageUrl;
 
-                              if (context.mounted) {
-                                Navigator.pop(
-                                  context,
-                                  true,
-                                ); // Pass true to signal a refresh
-                              }
-                            },
-                          ),
+                                    if (_profileImage != null) {
+                                      await prefs.setString(
+                                        'profileImagePath',
+                                        _profileImage!.path,
+                                      );
+
+                                      if (_pickedNewImage) {
+                                        // Upload to Firebase Storage only if a new image was picked
+                                        downloadUrl = await DatabaseService()
+                                            .uploadProfileImage(_profileImage!);
+                                        if (downloadUrl != null) {
+                                          await prefs.setString(
+                                            'profileImageUrl',
+                                            downloadUrl,
+                                          );
+                                        }
+                                      }
+                                    }
+
+                                    try {
+                                      await DatabaseService().updateUserDetails(
+                                        firstName: _firstNameController.text
+                                            .trim(),
+                                        lastName: _lastNameController.text
+                                            .trim(),
+                                        email: _emailController.text.trim(),
+                                        mobileNumber: phone,
+                                        address: _addressController.text.trim(),
+                                        profileImageUrl: downloadUrl,
+                                      );
+                                    } catch (e) {
+                                      debugPrint(
+                                        'Failed to update user profile in Firestore: $e',
+                                      );
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Failed to update details in Firestore',
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    }
+
+                                    if (mounted) {
+                                      setState(() {
+                                        _isLoading = false;
+                                      });
+                                    }
+
+                                    if (context.mounted) {
+                                      Navigator.pop(
+                                        context,
+                                        true,
+                                      ); // Pass true to signal a refresh
+                                    }
+                                  },
+                                ),
                         ),
                       ],
                     ),

@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -48,6 +50,7 @@ class DatabaseService {
     required String email,
     required String mobileNumber,
     required String address,
+    String? profileImageUrl,
   }) async {
     try {
       final User? currentUser = _auth.currentUser;
@@ -55,17 +58,50 @@ class DatabaseService {
         throw Exception("No authenticated user found. Cannot update details.");
       }
 
-      await _db.collection('users').doc(currentUser.uid).set({
+      Map<String, dynamic> updateData = {
         'firstName': firstName,
         'lastName': lastName,
         'email': email,
         'mobileNumber': mobileNumber,
         'address': address,
         'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      };
+
+      if (profileImageUrl != null) {
+        updateData['profileImageUrl'] = profileImageUrl;
+      }
+
+      await _db
+          .collection('users')
+          .doc(currentUser.uid)
+          .set(updateData, SetOptions(merge: true));
     } catch (e) {
       debugPrint("Error updating user details in Firestore: $e");
       rethrow;
+    }
+  }
+
+  /// Uploads a profile image to Firebase Storage and returns the download URL
+  Future<String?> uploadProfileImage(File imageFile) async {
+    try {
+      final User? currentUser = _auth.currentUser;
+      if (currentUser == null) return null;
+
+      // Create a reference to Firebase Storage
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('profile_images')
+          .child('${currentUser.uid}.jpg');
+
+      // Upload the file
+      final uploadTask = await storageRef.putFile(imageFile);
+
+      // Get the download URL
+      final downloadUrl = await uploadTask.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      debugPrint("Error uploading profile image: $e");
+      return null;
     }
   }
 
@@ -90,6 +126,12 @@ class DatabaseService {
         await prefs.setString('mobileNumber', data['mobileNumber'] ?? '');
         if (data.containsKey('address')) {
           await prefs.setString('address', data['address'] ?? '');
+        }
+        if (data.containsKey('profileImageUrl')) {
+          await prefs.setString(
+            'profileImageUrl',
+            data['profileImageUrl'] ?? '',
+          );
         }
         return true;
       }
