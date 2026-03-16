@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_service.dart';
 import '../../widgets/buttons/back_button.dart';
 import '../../widgets/input_fields/mobile_number.dart';
 import '../../widgets/buttons/send_otp_button.dart';
@@ -14,6 +15,7 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _mobileController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final AuthService _authService = AuthService();
 
   @override
   void dispose() {
@@ -91,12 +93,19 @@ class _SignupScreenState extends State<SignupScreen> {
                               final prefs = await SharedPreferences.getInstance();
                               await prefs.setString('mobileNumber', mobileNum);
 
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => VerifyOtpScreen(
-                                    mobileNumber: mobileNum,
-                                  ),
-                                ),
+                              await _authService.sendOTP(
+                                context: context,
+                                phoneNumber: mobileNum,
+                                onCodeSent: (String verificationId, int? resendToken) {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => VerifyOtpScreen(
+                                        mobileNumber: mobileNum,
+                                        verificationId: verificationId,
+                                      ),
+                                    ),
+                                  );
+                                },
                               );
                             }
                           },

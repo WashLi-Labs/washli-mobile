@@ -17,8 +17,8 @@ class OtpPinput extends StatelessWidget {
   Widget build(BuildContext context) {
     // ... theme definitions ...
     final defaultPinTheme = PinTheme(
-      width: 56,
-      height: 56,
+      width: 45,
+      height: 55,
       textStyle: const TextStyle(
         fontSize: 20,
         color: Color.fromRGBO(30, 60, 87, 1),
@@ -43,7 +43,7 @@ class OtpPinput extends StatelessWidget {
 
     return Pinput(
       controller: controller,
-      length: 4,
+      length: 6,
       defaultPinTheme: defaultPinTheme,
       focusedPinTheme: focusedPinTheme,
       submittedPinTheme: submittedPinTheme,
