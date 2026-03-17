@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/buttons/swipe_button.dart';
-import 'signup.dart';
+import 'role.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -19,10 +19,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             stops: [0.27, 1.0],
-            colors: [
-              Color(0xFF2688EA),
-              Color(0xFFBFD3FA),
-            ],
+            colors: [Color(0xFF2688EA), Color(0xFFBFD3FA)],
           ),
         ),
         child: SafeArea(
@@ -58,16 +55,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 40),
-              
+
               // Swipe Button
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: SwipeButton(
                   onSwipe: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => const SignupScreen()),
+                      MaterialPageRoute(
+                        builder: (context) => const RoleScreen(),
+                      ),
                     );
                   },
                 ),
@@ -92,5 +91,3 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 }
-
-
