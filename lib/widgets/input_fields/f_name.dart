@@ -3,8 +3,16 @@ import 'package:flutter/material.dart';
 class FirstNameInput extends StatelessWidget {
   final TextEditingController controller;
   final bool readOnly;
+  final String? hintText;
+  final String? Function(String?)? validator;
 
-  const FirstNameInput({super.key, required this.controller, this.readOnly = false});
+  const FirstNameInput({
+    super.key, 
+    required this.controller, 
+    this.readOnly = false,
+    this.hintText,
+    this.validator,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +41,7 @@ class FirstNameInput extends StatelessWidget {
         ),
         filled: true,
         fillColor: Colors.white,
-        hintText: 'First Name',
+        hintText: hintText ?? 'First Name',
         hintStyle: const TextStyle(
           color: Colors.grey,
           fontSize: 14,
@@ -44,9 +52,9 @@ class FirstNameInput extends StatelessWidget {
         fontSize: 16,
         color: Colors.black87,
       ),
-      validator: (value) {
+      validator: validator ?? (value) {
         if (value == null || value.trim().isEmpty) {
-          return 'First name is required';
+          return hintText != null ? '$hintText is required' : 'First name is required';
         }
         return null; // Error will appear below the border
       },

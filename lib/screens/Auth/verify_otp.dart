@@ -7,6 +7,7 @@ import '../../widgets/input_fields/otp_pinput.dart';
 import 'user_account_details.dart';
 import '../home/home_screen.dart';
 import '../merchant/merchant_home/merchant_home.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class VerifyOtpScreen extends StatefulWidget {
   final String mobileNumber;
@@ -47,9 +48,12 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
       onSuccess: () async {
         if (!mounted) return;
 
-        // Check if user is fully registered
+        // Save role and sync profile
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('role', widget.role);
+
         bool isRegistered = await DatabaseService()
-            .syncUserProfileToPreferences();
+            .syncUserProfileToPreferences(role: widget.role);
 
         if (mounted) {
           if (widget.role == "Merchant") {

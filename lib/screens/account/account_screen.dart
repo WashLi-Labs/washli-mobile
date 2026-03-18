@@ -15,9 +15,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import '../home/home_screen.dart';
 import 'settings/settings_screen.dart';
+import '../merchant/merchant_home/widgets/merchant_nav_bar.dart';
+import '../merchant/orders/orders.dart';
+import '../merchant/merchant_activity/activities/activities.dart';
+import '../merchant/dashboard/dashboard.dart';
+import '../merchant/merchant_home/merchant_home.dart';
+import '../../services/database_service.dart';
 
 class AccountScreen extends StatefulWidget {
-  const AccountScreen({super.key});
+  final String role;
+  const AccountScreen({super.key, this.role = "Customer"});
 
   @override
   State<AccountScreen> createState() => _AccountScreenState();
@@ -25,10 +32,11 @@ class AccountScreen extends StatefulWidget {
 
 class _AccountScreenState extends State<AccountScreen> {
   int _selectedIndex = 4;
-  String _firstName = "Sam";
-  String _lastName = "William";
-  String _email = "sam@email.com";
+  String _firstName = "";
+  String _lastName = "";
+  String _email = "";
   File? _profileImage;
+  bool _isLoading = false;
   
   @override
   void initState() {
@@ -37,43 +45,90 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   Future<void> _loadUserDetails() async {
-    final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _firstName = prefs.getString('firstName') ?? "Sam";
-      _lastName = prefs.getString('lastName') ?? "William";
-      _email = prefs.getString('email') ?? "sam@email.com";
-      
-      String? imagePath = prefs.getString('profileImagePath');
-      if (imagePath != null && imagePath.isNotEmpty) {
-        _profileImage = File(imagePath);
-      }
+      _isLoading = true;
     });
+    
+    final prefs = await SharedPreferences.getInstance();
+    
+    // If name is missing or empty, try to sync from Firestore first
+    String? firstName = prefs.getString('firstName');
+    if (firstName == null || firstName.isEmpty || firstName == "Merchant" || firstName == "Sam") {
+      debugPrint("AccountScreen: Name is missing or default, triggering sync...");
+      await DatabaseService().syncUserProfileToPreferences(role: widget.role);
+    }
+
+    if (mounted) {
+      setState(() {
+        _firstName = prefs.getString('firstName') ?? (widget.role == "Merchant" ? "Merchant" : "Sam");
+        _lastName = prefs.getString('lastName') ?? (widget.role == "Merchant" ? "" : "William");
+        _email = prefs.getString('email') ?? (widget.role == "Merchant" ? "merchant@email.com" : "sam@email.com");
+        
+        String? imagePath = prefs.getString('profileImagePath');
+        if (imagePath != null && imagePath.isNotEmpty) {
+          _profileImage = File(imagePath);
+        }
+        _isLoading = false;
+      });
+    }
   }
 
   void _onItemTapped(int index) {
-      if (index == 0) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-          (route) => false,
-        );
-      } else if (index == 1) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const SearchScreen()),
-        );
-      } else if (index == 2) {
-         Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const ExploreScreen()),
-        );
-      } else if (index == 3) {
-         Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const CartScreen()),
-        );
-      } else if (index == 4) {
+      if (widget.role == "Merchant") {
+        if (index == 0) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const MerchantHomeScreen()),
+            (route) => false,
+          );
+        } else if (index == 1) {
+          // Navigate to Merchant Orders
+          // For now, push and reset index when back
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const OrdersScreen()),
+          ).then((_) => setState(() => _selectedIndex = 4));
+        } else if (index == 2) {
+          // Navigate to Merchant Activities
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ActivitiesScreen()),
+          ).then((_) => setState(() => _selectedIndex = 4));
+        } else if (index == 3) {
+          // Navigate to Dashboard
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const DashboardScreen()),
+          ).then((_) => setState(() => _selectedIndex = 4));
+        } else if (index == 4) {
           // Already on Account
+        }
+      } else {
+        // Customer Navigation
+        if (index == 0) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            (route) => false,
+          );
+        } else if (index == 1) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const SearchScreen()),
+          );
+        } else if (index == 2) {
+           Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const ExploreScreen()),
+          );
+        } else if (index == 3) {
+           Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const CartScreen()),
+          );
+        } else if (index == 4) {
+            // Already on Account
+        }
       }
       
       setState(() {
@@ -113,86 +168,89 @@ class _AccountScreenState extends State<AccountScreen> {
             ),
 
             Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 10),
-                      ProfileCard(
-                        name: "$_firstName $_lastName",
-                        email: _email,
-                        imageProvider: _profileImage != null
-                            ? FileImage(_profileImage!) as ImageProvider
-                            : const AssetImage("assets/images/profile1.png"),
-                      ),
-                      const SizedBox(height: 20),
-                      const CustomSearchBar(
-                        hintText: "Search for a Setting.....",
-                      ),
-                      const SizedBox(height: 20),
-                      
-                      const SectionHeader(title: "Account"),
-                      AccountMenuItem(
-                        iconPath: "assets/icons/profile_blue.svg",
-                        title: "Profile",
-                        onTap: () async {
-                          // Wait for result from Edit Profile Flow
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const EditProfileScreen()),
-                          );
-                          // Always reload after returning to ensure data is updated
-                          _loadUserDetails();
-                        },
-                      ),
-                      AccountMenuItem(
-                        iconPath: "assets/icons/settings_blue.svg",
-                        title: "Settings",
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SettingsScreen(),
+              child: _isLoading 
+                ? const Center(child: CircularProgressIndicator())
+                : SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 10),
+                          ProfileCard(
+                            name: _lastName.isNotEmpty ? "$_firstName $_lastName" : _firstName,
+                            email: _email,
+                            imageProvider: _profileImage != null
+                                ? FileImage(_profileImage!) as ImageProvider
+                                : const AssetImage("assets/images/profile1.png"),
+                          ),
+                          const SizedBox(height: 20),
+                          const CustomSearchBar(
+                            hintText: "Search for a Setting.....",
+                          ),
+                          const SizedBox(height: 20),
+                          
+                          const SectionHeader(title: "Account"),
+                          AccountMenuItem(
+                            iconPath: "assets/icons/profile_blue.svg",
+                            title: "Profile",
+                            onTap: () async {
+                              // Wait for result from Edit Profile Flow
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => EditProfileScreen(role: widget.role)),
+                              );
+                              // Always reload after returning to ensure data is updated
+                              _loadUserDetails();
+                            },
+                          ),
+                          AccountMenuItem(
+                            iconPath: "assets/icons/settings_blue.svg",
+                            title: "Settings",
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const SettingsScreen(),
+                                ),
+                              );
+                            },
+                          ),
+                          if (widget.role == "Customer")
+                            AccountMenuItem(
+                              iconPath: "assets/icons/payments_blue.svg",
+                              title: "Payments",
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const PaymentScreen()),
+                                );
+                              },
                             ),
-                          );
-                        },
+                          
+                          const SizedBox(height: 20),
+                          const SectionHeader(title: "Privacy & Support"),
+                          AccountMenuItem(
+                            iconPath: "assets/icons/privacy_blue.svg",
+                            title: "Privacy Policy",
+                            onTap: () {},
+                          ),
+                           AccountMenuItem(
+                            iconPath: "assets/icons/help_blue.svg",
+                            title: "Help & Support",
+                            onTap: () {},
+                          ),
+                           AccountMenuItem(
+                            iconPath: "assets/icons/about_blue.svg",
+                            title: "About",
+                            onTap: () {},
+                          ),
+            
+                          const SizedBox(height: 30),
+                        ],
                       ),
-                      AccountMenuItem(
-                        iconPath: "assets/icons/payments_blue.svg",
-                        title: "Payments",
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const PaymentScreen()),
-                          );
-                        },
-                      ),
-                      
-                      const SizedBox(height: 20),
-                      const SectionHeader(title: "Privacy & Support"),
-                      AccountMenuItem(
-                        iconPath: "assets/icons/privacy_blue.svg",
-                        title: "Privacy Policy",
-                        onTap: () {},
-                      ),
-                       AccountMenuItem(
-                        iconPath: "assets/icons/help_blue.svg",
-                        title: "Help & Support",
-                        onTap: () {},
-                      ),
-                       AccountMenuItem(
-                        iconPath: "assets/icons/about_blue.svg",
-                        title: "About",
-                        onTap: () {},
-                      ),
-        
-                      const SizedBox(height: 30),
-                    ],
+                    ),
                   ),
-                ),
-              ),
             ),
             
             // Bottom aligned Logout Button
@@ -234,10 +292,15 @@ class _AccountScreenState extends State<AccountScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: NavBar(
-        selectedIndex: _selectedIndex,
-        onItemTapped: _onItemTapped,
-      ),
+      bottomNavigationBar: widget.role == "Merchant" 
+        ? MerchantNavBar(
+            selectedIndex: _selectedIndex,
+            onItemTapped: _onItemTapped,
+          )
+        : NavBar(
+            selectedIndex: _selectedIndex,
+            onItemTapped: _onItemTapped,
+          ),
     );
   }
 }
