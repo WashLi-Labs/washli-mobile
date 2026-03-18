@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
-import '../../Auth/login.dart';
+import '../../Auth/role.dart';
 import '../../../services/auth_service.dart';
 import 'widgets/settings_menu_item.dart';
 import 'widgets/settings_profile_header.dart';
@@ -85,7 +85,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          MaterialPageRoute(builder: (_) => const RoleScreen()),
           (route) => false,
         );
       }

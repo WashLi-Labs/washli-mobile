@@ -1,0 +1,98 @@
+import 'package:flutter/material.dart';
+import 'customer_detail.dart';
+import 'item_details.dart';
+import '../../../../orders/widgets/order_accept_btn.dart';
+import '../../../../orders/widgets/order_cancel_btn.dart';
+
+class OrderPopup extends StatelessWidget {
+  final bool showActions;
+
+  const OrderPopup({
+    super.key,
+    this.showActions = false,
+  });
+
+  static void show(BuildContext context, {bool showActions = false}) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => OrderPopup(showActions: showActions),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.9,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 12),
+          // Handle
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.blue[700],
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Icon(Icons.arrow_back_ios, size: 20),
+                ),
+                const Expanded(
+                  child: Text(
+                    'Order Details',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2D2D3A),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 20), // Placeholder for symmetry
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          // Scrollable Content
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  if (showActions) ...[
+                    Row(
+                      children: [
+                        OrderCancelButton(onTap: () => Navigator.pop(context)),
+                        const SizedBox(width: 16),
+                        OrderAcceptButton(onTap: () => Navigator.pop(context)),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                  const CustomerDetail(),
+                  const SizedBox(height: 16),
+                  const ItemDetails(),
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
