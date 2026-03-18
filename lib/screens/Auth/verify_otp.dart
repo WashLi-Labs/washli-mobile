@@ -44,6 +44,12 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
       onSuccess: () async {
         if (!mounted) return;
 
+        // ⚠️ Wait a brief moment to ensure the background Cloud Function finishes
+        await Future.delayed(const Duration(seconds: 2));
+
+        // 🔄 Force refresh the token to grab the new custom claims via AuthService
+        await _authService.refreshToken();
+
         // Check if user is fully registered
         bool isRegistered = await DatabaseService()
             .syncUserProfileToPreferences();

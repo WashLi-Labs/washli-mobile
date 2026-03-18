@@ -13,7 +13,7 @@ void main() async {
   );
   
   // Disable App Verification for testing (Forces use of fictional phone numbers)
-  // await FirebaseAuth.instance.setSettings(appVerificationDisabledForTesting: true);
+  await FirebaseAuth.instance.setSettings(appVerificationDisabledForTesting: true);
   // If you also want to force the Recaptcha flow for real numbers (if supported):
   await FirebaseAuth.instance.setSettings(forceRecaptchaFlow: true);
 

@@ -15,7 +15,11 @@ class AuthService {
       verificationCompleted: (PhoneAuthCredential credential) async {
         // Auto-retrieval of SMS code (usually works on Android)
         try {
-          await _auth.signInWithCredential(credential);
+          UserCredential userCredential = await _auth.signInWithCredential(credential);
+          String? token = await userCredential.user?.getIdToken();
+          debugPrint("--- FIREBASE JWT TOKEN ---");
+          debugPrint(token);
+          debugPrint("---------------------------");
         } catch (e) {
           debugPrint("Auto-retrieval failed: $e");
         }
@@ -45,7 +49,13 @@ class AuthService {
         smsCode: smsCode,
       );
 
-      await _auth.signInWithCredential(credential);
+      UserCredential userCredential = await _auth.signInWithCredential(credential);
+      String? token = await userCredential.user?.getIdToken();
+      
+      debugPrint("--- FIREBASE JWT TOKEN ---");
+      debugPrint(token);
+      debugPrint("---------------------------");
+
       onSuccess();
     } on FirebaseAuthException catch (e) {
       onError(e.message ?? 'Unknown error occurred');
@@ -57,5 +67,24 @@ class AuthService {
   /// Logs out the current user.
   Future<void> signOut() async {
     await _auth.signOut();
+  }
+
+  /// Refreshes the current user's ID token to fetch newly added custom claims.
+  Future<String?> refreshToken() async {
+    try {
+      User? user = _auth.currentUser;
+      if (user != null) {
+        // Force refresh (true) to pull latest claims from Firebase
+        String? token = await user.getIdToken(true);
+        debugPrint("--- REFRESHED FIREBASE JWT TOKEN (with claims) ---");
+        debugPrint(token);
+        debugPrint("--------------------------------------------------");
+        return token;
+      }
+      return null;
+    } catch (e) {
+      debugPrint("Error refreshing token: $e");
+      return null;
+    }
   }
 }
