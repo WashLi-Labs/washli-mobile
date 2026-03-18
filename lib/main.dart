@@ -6,6 +6,8 @@ import 'screens/splash_screen.dart';
 import 'package:washli_mobile/theme/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -17,7 +19,11 @@ void main() async {
   // If you also want to force the Recaptcha flow for real numbers (if supported):
   await FirebaseAuth.instance.setSettings(forceRecaptchaFlow: true);
 
-  runApp(const MyApp());
+  runApp(
+    const ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

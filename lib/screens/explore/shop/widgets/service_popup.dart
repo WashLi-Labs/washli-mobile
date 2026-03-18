@@ -1,30 +1,68 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:washli_mobile/widgets/buttons/add_button.dart';
+import 'package:washli_mobile/providers/cart_provider.dart';
 
-
-class ServicePopup extends StatefulWidget {
+class ServicePopup extends ConsumerStatefulWidget {
+  final String shopName;
   final String title;
   final String price;
   final String description;
+  final String imagePath;
 
   const ServicePopup({
     super.key,
+    required this.shopName,
     required this.title,
     required this.price,
     required this.description,
+    this.imagePath = 'assets/images/service image.png',
   });
 
   @override
-  State<ServicePopup> createState() => _ServicePopupState();
+  ConsumerState<ServicePopup> createState() => _ServicePopupState();
 }
 
-class _ServicePopupState extends State<ServicePopup> {
+class _ServicePopupState extends ConsumerState<ServicePopup> {
   int _count = 1;
+  bool isAddedState = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Check if item already in cart
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final cart = ref.read(cartProvider);
+      final index = cart.items.indexWhere((item) => item.title == widget.title);
+      if (index != -1) {
+        setState(() {
+          _count = cart.items[index].quantity;
+          isAddedState = true;
+        });
+      }
+    });
+  }
+
+  void _updateCart(int count) {
+    if (count > 0) {
+      ref.read(cartProvider.notifier).addItem(
+        shopName: widget.shopName,
+        title: widget.title,
+        priceStr: widget.price,
+        imagePath: widget.imagePath,
+        description: widget.description,
+        quantity: count,
+      );
+    } else {
+      ref.read(cartProvider.notifier).removeItem(widget.title);
+    }
+  }
 
   void _increment() {
     setState(() {
       _count++;
     });
+    _updateCart(_count);
   }
 
   void _decrement() {
@@ -32,10 +70,13 @@ class _ServicePopupState extends State<ServicePopup> {
       setState(() {
         _count--;
       });
+      _updateCart(_count);
     } else {
       setState(() {
         isAddedState = false;
+        _count = 0;
       });
+      _updateCart(0);
     }
   }
 
@@ -68,7 +109,7 @@ class _ServicePopupState extends State<ServicePopup> {
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Image.asset(
-              'assets/images/service image.png',
+              widget.imagePath,
               width: double.infinity,
               height: 250,
               fit: BoxFit.cover,
@@ -132,10 +173,9 @@ class _ServicePopupState extends State<ServicePopup> {
           isAddedState = true;
           _count = 1;
         });
+        _updateCart(1);
       },
     );
   }
-
-  bool isAddedState = false; // Add this state variable to the class
 }
 
