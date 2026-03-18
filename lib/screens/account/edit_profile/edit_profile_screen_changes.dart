@@ -19,6 +19,9 @@ import 'package:image_picker/image_picker.dart';
 import '../../../services/database_service.dart';
 import '../../merchant/merchant_home/merchant_home.dart';
 import '../../merchant/merchant_home/widgets/merchant_nav_bar.dart';
+import '../../merchant/orders/orders.dart';
+import '../../merchant/merchant_activity/activities/activities.dart';
+import '../../merchant/dashboard/dashboard.dart';
 
 class EditProfileScreenChanges extends StatefulWidget {
   final String role;
@@ -183,7 +186,20 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
           (route) => false,
         );
       } else if (index == 1) {
-        Navigator.pop(context);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const OrdersScreen()),
+        );
+      } else if (index == 2) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const ActivitiesScreen()),
+        );
+      } else if (index == 3) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const DashboardScreen()),
+        );
       } else if (index == 4) {
         Navigator.pop(context);
       }
