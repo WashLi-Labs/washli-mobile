@@ -48,6 +48,12 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
       onSuccess: () async {
         if (!mounted) return;
 
+        // ⚠️ Wait a brief moment to ensure the background Cloud Function finishes
+        await Future.delayed(const Duration(seconds: 2));
+
+        // 🔄 Force refresh the token to grab the new custom claims via AuthService
+        await _authService.refreshToken();
+
         // Save role and sync profile
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('role', widget.role);
