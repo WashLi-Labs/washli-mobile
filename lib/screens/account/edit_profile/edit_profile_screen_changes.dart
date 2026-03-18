@@ -17,9 +17,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import '../../../services/database_service.dart';
+import '../../merchant/merchant_home/merchant_home.dart';
+import '../../merchant/merchant_home/widgets/merchant_nav_bar.dart';
 
 class EditProfileScreenChanges extends StatefulWidget {
-  const EditProfileScreenChanges({super.key});
+  final String role;
+  const EditProfileScreenChanges({super.key, this.role = "Customer"});
 
   @override
   State<EditProfileScreenChanges> createState() =>
@@ -49,24 +52,39 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
   }
 
   Future<void> _loadUserDetails() async {
-    final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _firstNameController.text = prefs.getString('firstName') ?? "";
-      _lastNameController.text = prefs.getString('lastName') ?? "";
-      _phoneController.text = (prefs.getString('mobileNumber') ?? "")
-          .replaceFirst('+94', '');
-      _emailController.text = prefs.getString('email') ?? "";
-      _addressController.text = prefs.getString('address') ?? "";
-
-      String? imagePath = prefs.getString('profileImagePath');
-      if (imagePath != null && imagePath.isNotEmpty) {
-        // Only load if file actually exists locally, else fallback to URL
-        if (File(imagePath).existsSync()) {
-          _profileImage = File(imagePath);
-        }
-      }
-      _profileImageUrl = prefs.getString('profileImageUrl');
+      _isLoading = true;
     });
+
+    final prefs = await SharedPreferences.getInstance();
+    
+    // If name is missing or empty, try to sync from Firestore first
+    String? firstName = prefs.getString('firstName');
+    if (firstName == null || firstName.isEmpty || firstName == "Merchant") {
+      debugPrint("EditProfileScreenChanges: Name is missing or default, triggering sync...");
+      await DatabaseService().syncUserProfileToPreferences(role: widget.role);
+    }
+
+    if (mounted) {
+      setState(() {
+        _firstNameController.text = prefs.getString('firstName') ?? "";
+        _lastNameController.text = prefs.getString('lastName') ?? "";
+        _phoneController.text = (prefs.getString('mobileNumber') ?? "")
+            .replaceFirst('+94', '');
+        _emailController.text = prefs.getString('email') ?? "";
+        _addressController.text = prefs.getString('address') ?? "";
+  
+        String? imagePath = prefs.getString('profileImagePath');
+        if (imagePath != null && imagePath.isNotEmpty) {
+          // Only load if file actually exists locally, else fallback to URL
+          if (File(imagePath).existsSync()) {
+            _profileImage = File(imagePath);
+          }
+        }
+        _profileImageUrl = prefs.getString('profileImageUrl');
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -157,23 +175,37 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
   }
 
   void _onItemTapped(int index) {
-    if (index == 0) {
-      Navigator.popUntil(context, (route) => route.isFirst);
-    } else if (index == 1) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const SearchScreen()),
-      );
-    } else if (index == 2) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const ExploreScreen()),
-      );
-    } else if (index == 4) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const AccountScreen()),
-      );
+    if (widget.role == "Merchant") {
+      if (index == 0) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => MerchantHomeScreen()),
+          (route) => false,
+        );
+      } else if (index == 1) {
+        Navigator.pop(context);
+      } else if (index == 4) {
+        Navigator.pop(context);
+      }
+    } else {
+      if (index == 0) {
+        Navigator.popUntil(context, (route) => route.isFirst);
+      } else if (index == 1) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const SearchScreen()),
+        );
+      } else if (index == 2) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const ExploreScreen()),
+        );
+      } else if (index == 4) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AccountScreen()),
+        );
+      }
     }
 
     if (mounted) {
@@ -233,262 +265,274 @@ class _EditProfileScreenChangesState extends State<EditProfileScreenChanges> {
             ),
 
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 20),
-                    // Profile Image with Camera Icon
-                    Stack(
+              child: _isLoading 
+                ? const Center(child: CircularProgressIndicator())
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 120,
-                          height: 120,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            image: DecorationImage(
-                              image: _profileImage != null
-                                  ? FileImage(_profileImage!) as ImageProvider
-                                  : (_profileImageUrl != null &&
-                                            _profileImageUrl!.isNotEmpty
-                                        ? NetworkImage(_profileImageUrl!)
-                                              as ImageProvider
-                                        : const AssetImage(
-                                            "assets/images/profile1.png",
-                                          )),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: GestureDetector(
-                            onTap: _showImagePickerOptions,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
+                        const SizedBox(height: 20),
+                        // Profile Image with Camera Icon
+                        Stack(
+                          children: [
+                            Container(
+                              width: 120,
+                              height: 120,
                               decoration: BoxDecoration(
-                                color: const Color(0xFFE8F1FF), // Light blue
                                 shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: 2,
+                                image: DecorationImage(
+                                  image: _profileImage != null
+                                      ? FileImage(_profileImage!) as ImageProvider
+                                      : (_profileImageUrl != null &&
+                                                _profileImageUrl!.isNotEmpty
+                                            ? NetworkImage(_profileImageUrl!)
+                                                  as ImageProvider
+                                            : const AssetImage(
+                                                "assets/images/profile1.png",
+                                              )),
+                                  fit: BoxFit.cover,
                                 ),
-                              ),
-                              child: const Icon(
-                                Icons.camera_alt_outlined,
-                                color: Color(0xFF0057FF),
-                                size: 20,
                               ),
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 30),
-
-                    // First Name
-                    const Text(
-                      "First Name",
-                      style: TextStyle(
-                        fontFamily: 'Outfit',
-                        fontSize: 14,
-                        color: Color(0xFF2D2D3A),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    FirstNameInput(controller: _firstNameController),
-
-                    const SizedBox(height: 16),
-
-                    // Last Name
-                    const Text(
-                      "Last Name",
-                      style: TextStyle(
-                        fontFamily: 'Outfit',
-                        fontSize: 14,
-                        color: Color(0xFF2D2D3A),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    LastNameInput(controller: _lastNameController),
-
-                    const SizedBox(height: 16),
-
-                    // Phone Number
-                    const Text(
-                      "Phone Number",
-                      style: TextStyle(
-                        fontFamily: 'Outfit',
-                        fontSize: 14,
-                        color: Color(0xFF2D2D3A),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    MobileNumberInput(controller: _phoneController),
-
-                    const SizedBox(height: 16),
-
-                    // Email
-                    const Text(
-                      "Email",
-                      style: TextStyle(
-                        fontFamily: 'Outfit',
-                        fontSize: 14,
-                        color: Color(0xFF2D2D3A),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    EmailInput(controller: _emailController),
-
-                    const SizedBox(height: 16),
-
-                    // Address
-                    const Text(
-                      "Address",
-                      style: TextStyle(
-                        fontFamily: 'Outfit',
-                        fontSize: 14,
-                        color: Color(0xFF2D2D3A),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    AddressInput(controller: _addressController),
-
-                    const SizedBox(height: 40),
-
-                    // Cancel and Save Changes Buttons
-                    Row(
-                      children: [
-                        Expanded(
-                          child: CancelButton(
-                            onTap: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _isLoading
-                              ? const Center(child: CircularProgressIndicator())
-                              : SaveChangesButton(
-                                  onTap: () async {
-                                    setState(() {
-                                      _isLoading = true;
-                                    });
-
-                                    final prefs =
-                                        await SharedPreferences.getInstance();
-                                    await prefs.setString(
-                                      'firstName',
-                                      _firstNameController.text.trim(),
-                                    );
-                                    await prefs.setString(
-                                      'lastName',
-                                      _lastNameController.text.trim(),
-                                    );
-                                    // Re-add +94 prefix for mobile number if not present
-                                    String phone = _phoneController.text.trim();
-                                    if (!phone.startsWith('+94')) {
-                                      phone = '+94$phone';
-                                    }
-                                    await prefs.setString(
-                                      'mobileNumber',
-                                      phone,
-                                    );
-                                    await prefs.setString(
-                                      'email',
-                                      _emailController.text.trim(),
-                                    );
-                                    await prefs.setString(
-                                      'address',
-                                      _addressController.text.trim(),
-                                    );
-
-                                    String? downloadUrl = _profileImageUrl;
-
-                                    if (_profileImage != null) {
-                                      await prefs.setString(
-                                        'profileImagePath',
-                                        _profileImage!.path,
-                                      );
-
-                                      if (_pickedNewImage) {
-                                        // Upload to Firebase Storage only if a new image was picked
-                                        downloadUrl = await DatabaseService()
-                                            .uploadProfileImage(_profileImage!);
-                                        if (downloadUrl != null) {
-                                          await prefs.setString(
-                                            'profileImageUrl',
-                                            downloadUrl,
-                                          );
-                                        }
-                                      }
-                                    }
-
-                                    try {
-                                      await DatabaseService().updateUserDetails(
-                                        firstName: _firstNameController.text
-                                            .trim(),
-                                        lastName: _lastNameController.text
-                                            .trim(),
-                                        email: _emailController.text.trim(),
-                                        mobileNumber: phone,
-                                        address: _addressController.text.trim(),
-                                        profileImageUrl: downloadUrl,
-                                      );
-                                    } catch (e) {
-                                      debugPrint(
-                                        'Failed to update user profile in Firestore: $e',
-                                      );
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'Failed to update details in Firestore',
-                                            ),
-                                          ),
-                                        );
-                                      }
-                                    }
-
-                                    if (mounted) {
-                                      setState(() {
-                                        _isLoading = false;
-                                      });
-                                    }
-
-                                    if (context.mounted) {
-                                      Navigator.pop(
-                                        context,
-                                        true,
-                                      ); // Pass true to signal a refresh
-                                    }
-                                  },
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: GestureDetector(
+                                onTap: _showImagePickerOptions,
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE8F1FF), // Light blue
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.camera_alt_outlined,
+                                    color: Color(0xFF0057FF),
+                                    size: 20,
+                                  ),
                                 ),
+                              ),
+                            ),
+                          ],
                         ),
+                        const SizedBox(height: 30),
+    
+                        // First Name / Outlet Name
+                        Text(
+                          widget.role == "Merchant" ? "Outlet Name" : "First Name",
+                          style: const TextStyle(
+                            fontFamily: 'Outfit',
+                            fontSize: 14,
+                            color: Color(0xFF2D2D3A),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        FirstNameInput(
+                          controller: _firstNameController,
+                          hintText: widget.role == "Merchant" ? "Outlet Name" : "First Name",
+                        ),
+    
+                        if (widget.role != "Merchant") ...[
+                          const SizedBox(height: 16),
+                          // Last Name
+                          const Text(
+                            "Last Name",
+                            style: TextStyle(
+                              fontFamily: 'Outfit',
+                              fontSize: 14,
+                              color: Color(0xFF2D2D3A),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          LastNameInput(controller: _lastNameController),
+                        ],
+    
+                        const SizedBox(height: 16),
+    
+                        // Phone Number
+                        const Text(
+                          "Phone Number",
+                          style: TextStyle(
+                            fontFamily: 'Outfit',
+                            fontSize: 14,
+                            color: Color(0xFF2D2D3A),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        MobileNumberInput(controller: _phoneController),
+    
+                        const SizedBox(height: 16),
+    
+                        // Email
+                        const Text(
+                          "Email",
+                          style: TextStyle(
+                            fontFamily: 'Outfit',
+                            fontSize: 14,
+                            color: Color(0xFF2D2D3A),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        EmailInput(controller: _emailController),
+    
+                        const SizedBox(height: 16),
+    
+                        // Address
+                        const Text(
+                          "Address",
+                          style: TextStyle(
+                            fontFamily: 'Outfit',
+                            fontSize: 14,
+                            color: Color(0xFF2D2D3A),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        AddressInput(controller: _addressController),
+    
+                        const SizedBox(height: 40),
+    
+                        // Cancel and Save Changes Buttons
+                        Row(
+                          children: [
+                            Expanded(
+                              child: CancelButton(
+                                onTap: () {
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _isLoading
+                                  ? const Center(child: CircularProgressIndicator())
+                                  : SaveChangesButton(
+                                      onTap: () async {
+                                        setState(() {
+                                          _isLoading = true;
+                                        });
+    
+                                        final prefs =
+                                            await SharedPreferences.getInstance();
+                                        await prefs.setString(
+                                          'firstName',
+                                          _firstNameController.text.trim(),
+                                        );
+                                        await prefs.setString(
+                                          'lastName',
+                                          _lastNameController.text.trim(),
+                                        );
+                                        // Re-add +94 prefix for mobile number if not present
+                                        String phone = _phoneController.text.trim();
+                                        if (!phone.startsWith('+94')) {
+                                          phone = '+94$phone';
+                                        }
+                                        await prefs.setString(
+                                          'mobileNumber',
+                                          phone,
+                                        );
+                                        await prefs.setString(
+                                          'email',
+                                          _emailController.text.trim(),
+                                        );
+                                        await prefs.setString(
+                                          'address',
+                                          _addressController.text.trim(),
+                                        );
+    
+                                        String? downloadUrl = _profileImageUrl;
+    
+                                        if (_profileImage != null) {
+                                          await prefs.setString(
+                                            'profileImagePath',
+                                            _profileImage!.path,
+                                          );
+    
+                                          if (_pickedNewImage) {
+                                            // Upload to Firebase Storage only if a new image was picked
+                                            downloadUrl = await DatabaseService()
+                                                .uploadProfileImage(_profileImage!);
+                                            if (downloadUrl != null) {
+                                              await prefs.setString(
+                                                'profileImageUrl',
+                                                downloadUrl,
+                                              );
+                                            }
+                                          }
+                                        }
+    
+                                        try {
+                                          await DatabaseService().updateUserDetails(
+                                            firstName: _firstNameController.text
+                                                .trim(),
+                                            lastName: _lastNameController.text
+                                                .trim(),
+                                            email: _emailController.text.trim(),
+                                            mobileNumber: phone,
+                                            address: _addressController.text.trim(),
+                                            role: widget.role,
+                                            profileImageUrl: downloadUrl,
+                                          );
+                                        } catch (e) {
+                                          debugPrint(
+                                            'Failed to update user profile in Firestore: $e',
+                                          );
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Failed to update details in Firestore',
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        }
+    
+                                        if (mounted) {
+                                          setState(() {
+                                            _isLoading = false;
+                                          });
+                                        }
+    
+                                        if (context.mounted) {
+                                          Navigator.pop(
+                                            context,
+                                            true,
+                                          ); // Pass true to signal a refresh
+                                        }
+                                      },
+                                    ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
                       ],
                     ),
-                    const SizedBox(height: 20),
-                  ],
-                ),
-              ),
+                  ),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: NavBar(
-        selectedIndex: _selectedIndex,
-        onItemTapped: _onItemTapped,
-      ),
+      bottomNavigationBar: widget.role == "Merchant"
+          ? MerchantNavBar(
+              selectedIndex: _selectedIndex,
+              onItemTapped: _onItemTapped,
+            )
+          : NavBar(
+              selectedIndex: _selectedIndex,
+              onItemTapped: _onItemTapped,
+            ),
     );
   }
 }

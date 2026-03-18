@@ -7,10 +7,14 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DatabaseService {
-  // Specify the custom database name 'washliauth'
+  // Specify the custom database names
   final FirebaseFirestore _db = FirebaseFirestore.instanceFor(
     app: Firebase.app(),
     databaseId: 'washliauth',
+  );
+  final FirebaseFirestore _merchantDb = FirebaseFirestore.instanceFor(
+    app: Firebase.app(),
+    databaseId: 'merchant-onboarding',
   );
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -50,6 +54,7 @@ class DatabaseService {
     required String email,
     required String mobileNumber,
     required String address,
+    String? role,
     String? profileImageUrl,
   }) async {
     try {
@@ -58,23 +63,94 @@ class DatabaseService {
         throw Exception("No authenticated user found. Cannot update details.");
       }
 
-      Map<String, dynamic> updateData = {
-        'firstName': firstName,
-        'lastName': lastName,
-        'email': email,
-        'mobileNumber': mobileNumber,
-        'address': address,
-        'updatedAt': FieldValue.serverTimestamp(),
-      };
+      final prefs = await SharedPreferences.getInstance();
+      String currentRole = role ?? prefs.getString('role') ?? 'Customer';
+
+      Map<String, dynamic> updateData = {};
+
+      if (currentRole == "Merchant") {
+        updateData = {
+          'outletName': firstName, // Mapping firstName to outletName
+          'ownerEmail': email,
+          'ownerPhone': mobileNumber,
+          'outletAddress': address,
+          'updatedAt': FieldValue.serverTimestamp(),
+        };
+      } else {
+        updateData = {
+          'firstName': firstName,
+          'lastName': lastName,
+          'email': email,
+          'mobileNumber': mobileNumber,
+          'address': address,
+          'updatedAt': FieldValue.serverTimestamp(),
+        };
+      }
 
       if (profileImageUrl != null) {
         updateData['profileImageUrl'] = profileImageUrl;
       }
 
-      await _db
-          .collection('users')
-          .doc(currentUser.uid)
-          .set(updateData, SetOptions(merge: true));
+      if (currentRole == "Merchant") {
+        // List of database instances to search
+        List<FirebaseFirestore> databases = [
+          _merchantDb, // 'merchant-onboarding'
+          _db, // 'washliauth'
+          FirebaseFirestore.instance, // default
+        ];
+        List<String> collections = ['merchants', 'merchant-onboarding'];
+        
+        bool updated = false;
+        for (var db in databases) {
+          try {
+            for (var col in collections) {
+              DocumentSnapshot doc = await db.collection(col).doc(currentUser.uid).get();
+              if (doc.exists) {
+                await db.collection(col).doc(currentUser.uid).set(updateData, SetOptions(merge: true));
+                updated = true;
+                break;
+              }
+            }
+          } catch (e) {
+            debugPrint("Update Error: Database index failed: $e");
+          }
+          if (updated) break;
+        }
+        
+        // If not found by UID in any DB, search by phone number to find the right doc to update
+        if (!updated && currentUser.phoneNumber != null) {
+          String phone = currentUser.phoneNumber!;
+          String localPhone = '0${phone.startsWith('+94') ? phone.substring(3) : phone}';
+          String noLeadPhone = phone.startsWith('+94') ? phone.substring(3) : phone;
+          List<String> phoneFormats = [phone, localPhone, noLeadPhone];
+
+          for (var db in databases) {
+            try {
+              for (var col in collections) {
+                for (var p in phoneFormats) {
+                  final query = await db.collection(col).where('ownerPhone', isEqualTo: p).limit(1).get();
+                  if (query.docs.isNotEmpty) {
+                    await query.docs.first.reference.set(updateData, SetOptions(merge: true));
+                    updated = true;
+                    break;
+                  }
+                }
+                if (updated) break;
+              }
+            } catch (e) {
+              debugPrint("Update Error: Database phone search failed: $e");
+            }
+            if (updated) break;
+          }
+        }
+
+        // Final fallback if document still not found anywhere - create in default merchantDb
+        if (!updated) {
+          await _merchantDb.collection('merchant-onboarding').doc(currentUser.uid).set(updateData, SetOptions(merge: true));
+        }
+      } else {
+        await _db.collection('users').doc(currentUser.uid).set(updateData, SetOptions(merge: true));
+      }
     } catch (e) {
       debugPrint("Error updating user details in Firestore: $e");
       rethrow;
@@ -105,39 +181,119 @@ class DatabaseService {
     }
   }
 
-  /// Fetch user profile and save to preferences. Returns true if user data exists.
-  Future<bool> syncUserProfileToPreferences() async {
+  Future<bool> syncUserProfileToPreferences({String? role}) async {
     try {
       final User? currentUser = _auth.currentUser;
-      if (currentUser == null) return false;
+      if (currentUser == null) {
+        debugPrint("Sync Error: currentUser is null");
+        return false;
+      }
 
-      DocumentSnapshot doc = await _db
-          .collection('users')
-          .doc(currentUser.uid)
-          .get();
-      if (!doc.exists) return false;
+      final prefs = await SharedPreferences.getInstance();
+      String currentRole = role ?? prefs.getString('role') ?? 'Customer';
+
+      DocumentSnapshot? doc;
+      if (currentRole == "Merchant") {
+        // List of database instances to search
+        List<FirebaseFirestore> databases = [
+          _merchantDb, // 'merchant-onboarding'
+          _db, // 'washliauth'
+          FirebaseFirestore.instance, // default
+        ];
+
+        // For merchants, check 'merchants' and 'merchant-onboarding' collections across all DBs
+        List<String> collections = ['merchants', 'merchant-onboarding'];
+
+        for (var db in databases) {
+          try {
+            for (String col in collections) {
+              doc = await db.collection(col).doc(currentUser.uid).get();
+              if (doc.exists) break;
+            }
+          } catch (e) {
+            debugPrint("Sync Progress: Database error (likely missing databaseId): $e");
+          }
+          if (doc != null && doc.exists) break;
+        }
+
+        // If still not found by UID, try searching by phone number across all DBs
+        if ((doc == null || !doc.exists) && currentUser.phoneNumber != null) {
+          String phone = currentUser.phoneNumber!;
+          String localPhone = '0${phone.startsWith('+94') ? phone.substring(3) : phone}';
+          String noLeadPhone = phone.startsWith('+94') ? phone.substring(3) : phone;
+
+          List<String> phoneFormats = [phone, localPhone, noLeadPhone];
+          
+          debugPrint("Sync Progress: UID lookup failed. Searching by phone formats: $phoneFormats");
+
+          for (var db in databases) {
+            try {
+              for (String col in collections) {
+                for (String p in phoneFormats) {
+                  final query = await db
+                      .collection(col)
+                      .where('ownerPhone', isEqualTo: p)
+                      .limit(1)
+                      .get();
+                  if (query.docs.isNotEmpty) {
+                    doc = query.docs.first;
+                    debugPrint("Sync Progress: Found merchant document in '$col' (${db.databaseId}) via phone: $p");
+                    break;
+                  }
+                }
+                if (doc != null && doc.exists) break;
+              }
+            } catch (e) {
+              debugPrint("Sync Progress: Database error during phone search: $e");
+            }
+            if (doc != null && doc.exists) break;
+          }
+        }
+      } else {
+        debugPrint("Sync Progress: Checking 'users' collection for UID: ${currentUser.uid}");
+        doc = await _db.collection('users').doc(currentUser.uid).get();
+      }
+
+      if (doc == null || !doc.exists) {
+        debugPrint("Sync Error: No document found for $currentRole after all checks.");
+        return false;
+      }
 
       Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
       if (data != null) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('firstName', data['firstName'] ?? '');
-        await prefs.setString('lastName', data['lastName'] ?? '');
-        await prefs.setString('email', data['email'] ?? '');
-        await prefs.setString('mobileNumber', data['mobileNumber'] ?? '');
-        if (data.containsKey('address')) {
-          await prefs.setString('address', data['address'] ?? '');
+        debugPrint("Sync Progress: Document data found: $data");
+        if (currentRole == "Merchant") {
+          // Fields for merchant (based on typical schema and user instructions)
+          await prefs.setString('firstName',
+              data['outletName'] ?? data['shopName'] ?? data['merchantName'] ?? 'Merchant');
+          await prefs.setString('lastName', ''); // Merchants might not have a last name
+          await prefs.setString('email', data['ownerEmail'] ?? data['email'] ?? '');
+          await prefs.setString('mobileNumber', data['ownerPhone'] ?? data['phone'] ?? (currentUser.phoneNumber ?? ''));
+          await prefs.setString('address',
+              data['outletAddress'] ?? data['shopAddress'] ?? data['address'] ?? '');
+          debugPrint("Sync Progress: Merchant fields saved to SharedPreferences");
+        } else {
+          // Fields for customer
+          await prefs.setString('firstName', data['firstName'] ?? '');
+          await prefs.setString('lastName', data['lastName'] ?? '');
+          await prefs.setString('email', data['email'] ?? '');
+          await prefs.setString('mobileNumber', data['mobileNumber'] ?? (currentUser.phoneNumber ?? ''));
+          if (data.containsKey('address')) {
+            await prefs.setString('address', data['address'] ?? '');
+          }
+          debugPrint("Sync Progress: Customer fields saved to SharedPreferences");
         }
+
         if (data.containsKey('profileImageUrl')) {
-          await prefs.setString(
-            'profileImageUrl',
-            data['profileImageUrl'] ?? '',
-          );
+          await prefs.setString('profileImageUrl', data['profileImageUrl'] ?? '');
+          debugPrint("Sync Progress: profileImageUrl saved: ${data['profileImageUrl']}");
         }
         return true;
       }
+      debugPrint("Sync Error: data is null even if document exists");
       return false;
     } catch (e) {
-      debugPrint("Error syncing user profile: $e");
+      debugPrint("Sync Error: Exception during syncing: $e");
       return false;
     }
   }
