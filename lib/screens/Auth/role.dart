@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../widgets/buttons/merchant_btn.dart';
 import '../../widgets/buttons/customer_btn.dart';
 import 'signup.dart';
-import 'merchant_signup.dart';
+import 'login.dart';
 
 class RoleScreen extends StatelessWidget {
   const RoleScreen({super.key});
@@ -75,7 +75,7 @@ class RoleScreen extends StatelessWidget {
                             Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (context) =>
-                                    const MerchantSignupScreen(),
+                                    const LoginScreen(role: 'Merchant'),
                               ),
                             );
                           },
@@ -85,7 +85,8 @@ class RoleScreen extends StatelessWidget {
                           onPressed: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (context) => const SignupScreen(),
+                                builder: (context) =>
+                                    const LoginScreen(role: 'Customer'),
                               ),
                             );
                           },

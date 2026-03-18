@@ -6,6 +6,8 @@ import 'widgets/order_stats_card.dart';
 import 'widgets/recent_activity_card.dart';
 import '../merchant_activity/activities/activities.dart';
 import '../orders/orders.dart';
+import '../add_promotion/promotion.dart';
+import '../dashboard/dashboard.dart';
 
 class MerchantHomeScreen extends StatefulWidget {
   const MerchantHomeScreen({super.key});
@@ -35,6 +37,17 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
         MaterialPageRoute(builder: (context) => const ActivitiesScreen()),
       ).then((_) {
         // Reset index to Home when returning from Activities if desired
+        setState(() {
+          _selectedIndex = 0;
+        });
+      });
+      return;
+    }
+    if (index == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const DashboardScreen()),
+      ).then((_) {
         setState(() {
           _selectedIndex = 0;
         });
@@ -136,7 +149,14 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
                   (MediaQuery.of(context).size.width -
                       (MediaQuery.of(context).size.width * 0.75)) /
                   2,
-              child: const MerchantActionCard(),
+              child: MerchantActionCard(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const PromotionScreen()),
+                  );
+                },
+              ),
             ),
           ],
         ),

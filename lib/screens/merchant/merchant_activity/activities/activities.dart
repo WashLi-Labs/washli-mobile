@@ -6,6 +6,7 @@ import 'widgets/inprogress.dart';
 import 'widgets/completed.dart';
 import 'widgets/canceled.dart';
 import '../../orders/orders.dart';
+import '../../dashboard/dashboard.dart';
 
 class ActivitiesScreen extends StatefulWidget {
   const ActivitiesScreen({super.key});
@@ -42,11 +43,17 @@ class _ActivitiesScreenState extends State<ActivitiesScreen> with SingleTickerPr
         context,
         MaterialPageRoute(builder: (context) => const OrdersScreen()),
       );
+    } else if (index == 3) {
+      // Dashboard tab
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const DashboardScreen()),
+      );
     } else {
       setState(() {
         _selectedIndex = index;
       });
-      // Handle other navigation (Dashboard, Account) if needed
+      // Handle other navigation (Account) if needed
     }
   }
 
