@@ -6,14 +6,17 @@ import '../../widgets/buttons/otp_verify_button.dart';
 import '../../widgets/input_fields/otp_pinput.dart';
 import 'user_account_details.dart';
 import '../home/home_screen.dart';
+import '../merchant/merchant_home/merchant_home.dart';
 
 class VerifyOtpScreen extends StatefulWidget {
   final String mobileNumber;
   final String verificationId;
+  final String role;
   const VerifyOtpScreen({
     super.key,
     required this.mobileNumber,
     required this.verificationId,
+    required this.role,
   });
 
   @override
@@ -55,18 +58,26 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
             .syncUserProfileToPreferences();
 
         if (mounted) {
-          if (isRegistered) {
+          if (widget.role == "Merchant") {
             Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => const HomeScreen()),
+              MaterialPageRoute(
+                  builder: (context) => const MerchantHomeScreen()),
               (Route<dynamic> route) => false,
             );
           } else {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(
-                builder: (context) => const UserAccountDetailsScreen(),
-              ),
-              (Route<dynamic> route) => false,
-            );
+            if (isRegistered) {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+                (Route<dynamic> route) => false,
+              );
+            } else {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (context) => const UserAccountDetailsScreen(),
+                ),
+                (Route<dynamic> route) => false,
+              );
+            }
           }
         }
       },

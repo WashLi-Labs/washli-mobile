@@ -99,10 +99,11 @@ class _SignupScreenState extends State<SignupScreen> {
                                 onCodeSent: (String verificationId, int? resendToken) {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
-                                      builder: (context) => VerifyOtpScreen(
-                                        mobileNumber: mobileNum,
-                                        verificationId: verificationId,
-                                      ),
+                                        builder: (context) => VerifyOtpScreen(
+                                          mobileNumber: mobileNum,
+                                          verificationId: verificationId,
+                                          role: "Customer",
+                                        ),
                                     ),
                                   );
                                 },
