@@ -7,6 +7,7 @@ import 'widgets/sales_summery/total_earnings.dart';
 import 'widgets/sales_summery/complete_orders.dart';
 import 'widgets/sales_summery/earnings.dart';
 import 'widgets/sales_summery/customer_review.dart';
+import '../../account/account_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -36,11 +37,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
         context,
         MaterialPageRoute(builder: (context) => ActivitiesScreen()),
       );
+    } else if (index == 4) {
+      // Account tab
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const AccountScreen(role: "Merchant")),
+      );
     } else {
       setState(() {
         _selectedIndex = index;
       });
-      // Handle other navigation (Account) if needed
     }
   }
 

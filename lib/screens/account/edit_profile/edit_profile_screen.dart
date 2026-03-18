@@ -18,6 +18,9 @@ import 'dart:io';
 import '../../merchant/merchant_home/merchant_home.dart';
 import '../../merchant/merchant_home/widgets/merchant_nav_bar.dart';
 import '../../../services/database_service.dart';
+import '../../merchant/orders/orders.dart';
+import '../../merchant/merchant_activity/activities/activities.dart';
+import '../../merchant/dashboard/dashboard.dart';
 
 
 class EditProfileScreen extends StatefulWidget {
@@ -85,12 +88,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             (route) => false,
           );
         } else if (index == 1) {
-          // Navigator.pushReplacement(
-          //   context,
-          //   MaterialPageRoute(builder: (context) => const OrdersScreen()),
-          // );
-          // For now just pop back to Account or handle as needed
-          Navigator.pop(context);
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const OrdersScreen()),
+          );
+        } else if (index == 2) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const ActivitiesScreen()),
+          );
+        } else if (index == 3) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const DashboardScreen()),
+          );
         } else if (index == 4) {
           Navigator.pop(context);
         }
