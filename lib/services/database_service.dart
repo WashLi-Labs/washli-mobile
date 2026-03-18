@@ -101,47 +101,56 @@ class DatabaseService {
         List<String> collections = ['merchants', 'merchant-onboarding'];
         
         bool updated = false;
+        List<Future<bool>> updateTasks = [];
+
         for (var db in databases) {
-          try {
-            for (var col in collections) {
-              DocumentSnapshot doc = await db.collection(col).doc(currentUser.uid).get();
-              if (doc.exists) {
-                await db.collection(col).doc(currentUser.uid).set(updateData, SetOptions(merge: true));
-                updated = true;
-                break;
-              }
-            }
-          } catch (e) {
-            debugPrint("Update Error: Database index failed: $e");
+          for (var col in collections) {
+            // Task: Try updating by UID first
+            updateTasks.add(() async {
+              try {
+                DocumentSnapshot doc = await db.collection(col).doc(currentUser.uid).get();
+                if (doc.exists) {
+                  await db.collection(col).doc(currentUser.uid).set(updateData, SetOptions(merge: true));
+                  return true;
+                }
+              } catch (_) {}
+              return false;
+            }());
           }
-          if (updated) break;
         }
-        
-        // If not found by UID in any DB, search by phone number to find the right doc to update
+
+        // Wait for UID updates
+        List<bool> uidResults = await Future.wait(updateTasks);
+        updated = uidResults.any((r) => r);
+
+        // If not found by UID, search by phone number
         if (!updated && currentUser.phoneNumber != null) {
           String phone = currentUser.phoneNumber!;
           String localPhone = '0${phone.startsWith('+94') ? phone.substring(3) : phone}';
           String noLeadPhone = phone.startsWith('+94') ? phone.substring(3) : phone;
           List<String> phoneFormats = [phone, localPhone, noLeadPhone];
 
+          List<Future<bool>> phoneTasks = [];
           for (var db in databases) {
-            try {
-              for (var col in collections) {
-                for (var p in phoneFormats) {
-                  final query = await db.collection(col).where('ownerPhone', isEqualTo: p).limit(1).get();
+            for (var col in collections) {
+              phoneTasks.add(() async {
+                try {
+                  final query = await db
+                      .collection(col)
+                      .where('ownerPhone', whereIn: phoneFormats)
+                      .limit(1)
+                      .get();
                   if (query.docs.isNotEmpty) {
                     await query.docs.first.reference.set(updateData, SetOptions(merge: true));
-                    updated = true;
-                    break;
+                    return true;
                   }
-                }
-                if (updated) break;
-              }
-            } catch (e) {
-              debugPrint("Update Error: Database phone search failed: $e");
+                } catch (_) {}
+                return false;
+              }());
             }
-            if (updated) break;
           }
+          List<bool> phoneResults = await Future.wait(phoneTasks);
+          updated = phoneResults.any((r) => r);
         }
 
         // Final fallback if document still not found anywhere - create in default merchantDb
@@ -203,52 +212,48 @@ class DatabaseService {
 
         // For merchants, check 'merchants' and 'merchant-onboarding' collections across all DBs
         List<String> collections = ['merchants', 'merchant-onboarding'];
-
-        for (var db in databases) {
-          try {
-            for (String col in collections) {
-              doc = await db.collection(col).doc(currentUser.uid).get();
-              if (doc.exists) break;
-            }
-          } catch (e) {
-            debugPrint("Sync Progress: Database error (likely missing databaseId): $e");
-          }
-          if (doc != null && doc.exists) break;
-        }
-
-        // If still not found by UID, try searching by phone number across all DBs
-        if ((doc == null || !doc.exists) && currentUser.phoneNumber != null) {
+        List<String> phoneFormats = [];
+        if (currentUser.phoneNumber != null) {
           String phone = currentUser.phoneNumber!;
           String localPhone = '0${phone.startsWith('+94') ? phone.substring(3) : phone}';
           String noLeadPhone = phone.startsWith('+94') ? phone.substring(3) : phone;
+          phoneFormats = [phone, localPhone, noLeadPhone];
+        }
 
-          List<String> phoneFormats = [phone, localPhone, noLeadPhone];
-          
-          debugPrint("Sync Progress: UID lookup failed. Searching by phone formats: $phoneFormats");
+        List<Future<DocumentSnapshot?>> tasks = [];
 
-          for (var db in databases) {
-            try {
-              for (String col in collections) {
-                for (String p in phoneFormats) {
+        for (var db in databases) {
+          for (String col in collections) {
+            // Task 1: Check by UID
+            tasks.add(() async {
+              try {
+                var d = await db.collection(col).doc(currentUser.uid).get();
+                return d.exists ? d : null;
+              } catch (_) {
+                return null;
+              }
+            }());
+
+            // Task 2: Check by Phone (if available)
+            if (phoneFormats.isNotEmpty) {
+              tasks.add(() async {
+                try {
                   final query = await db
                       .collection(col)
-                      .where('ownerPhone', isEqualTo: p)
+                      .where('ownerPhone', whereIn: phoneFormats)
                       .limit(1)
                       .get();
-                  if (query.docs.isNotEmpty) {
-                    doc = query.docs.first;
-                    debugPrint("Sync Progress: Found merchant document in '$col' (${db.databaseId}) via phone: $p");
-                    break;
-                  }
+                  return query.docs.isNotEmpty ? query.docs.first : null;
+                } catch (_) {
+                  return null;
                 }
-                if (doc != null && doc.exists) break;
-              }
-            } catch (e) {
-              debugPrint("Sync Progress: Database error during phone search: $e");
+              }());
             }
-            if (doc != null && doc.exists) break;
           }
         }
+
+        final results = await Future.wait(tasks);
+        doc = results.firstWhere((d) => d != null, orElse: () => null);
       } else {
         debugPrint("Sync Progress: Checking 'users' collection for UID: ${currentUser.uid}");
         doc = await _db.collection('users').doc(currentUser.uid).get();
