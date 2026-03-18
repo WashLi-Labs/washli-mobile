@@ -121,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (!exists) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('User not registered'),
+                                content: Text('User not registered. Please sign up'),
                               ),
                             );
                             return;
