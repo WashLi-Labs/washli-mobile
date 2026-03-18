@@ -7,6 +7,7 @@ import 'widgets/completed.dart';
 import 'widgets/canceled.dart';
 import '../../orders/orders.dart';
 import '../../dashboard/dashboard.dart';
+import '../../../account/account_screen.dart';
 
 class ActivitiesScreen extends StatefulWidget {
   const ActivitiesScreen({super.key});
@@ -49,11 +50,16 @@ class _ActivitiesScreenState extends State<ActivitiesScreen> with SingleTickerPr
         context,
         MaterialPageRoute(builder: (context) => const DashboardScreen()),
       );
+    } else if (index == 4) {
+      // Account tab
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const AccountScreen(role: "Merchant")),
+      );
     } else {
       setState(() {
         _selectedIndex = index;
       });
-      // Handle other navigation (Account) if needed
     }
   }
 

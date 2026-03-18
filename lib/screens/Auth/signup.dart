@@ -4,6 +4,7 @@ import '../../widgets/buttons/back_button.dart';
 import '../../widgets/input_fields/mobile_number.dart';
 import '../../widgets/buttons/send_otp_button.dart';
 import 'verify_otp.dart';
+import 'login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -111,6 +112,44 @@ class _SignupScreenState extends State<SignupScreen> {
                             }
                           },
                         ),
+
+                        const SizedBox(height: 30),
+                        
+                        // Already have an account text
+                        Center(
+                          child: RichText(
+                            text: TextSpan(
+                              text: 'Already have an account? ',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
+                              children: [
+                                WidgetSpan(
+                                  alignment: PlaceholderAlignment.middle,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => const LoginScreen(role: 'Customer'),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text(
+                                      'Log In',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Color(0xFF007BFF),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 40),
                       ],
                     ),
                   ),

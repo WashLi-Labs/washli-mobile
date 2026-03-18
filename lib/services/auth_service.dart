@@ -85,99 +85,67 @@ class AuthService {
     required String role,
   }) async {
     try {
+      final stopwatch = Stopwatch()..start();
+      
       // Normalize phone numbers for comparison
-      // Assuming phoneNumber is already in +947XXXXXXXX format (from LoginScreen)
       String localPhone =
           '0${phoneNumber.startsWith('+94') ? phoneNumber.substring(3) : phoneNumber}';
       String noLeadPhone =
           phoneNumber.startsWith('+94') ? phoneNumber.substring(3) : phoneNumber;
 
-      debugPrint("Checking existence for $role: $phoneNumber or $localPhone or $noLeadPhone");
+      final formats = [phoneNumber, localPhone, noLeadPhone];
+      debugPrint("Checking existence for $role: $formats");
 
-      // List of query configurations to try
+      // Define databases and queries to check
+      List<FirebaseFirestore> databases;
       List<Map<String, String>> queries = [];
 
       if (role == "Merchant") {
+        databases = [_merchantDb, _db, FirebaseFirestore.instance];
         queries.add({'collection': 'merchants', 'field': 'ownerPhone'});
         queries.add({'collection': 'merchant-onboarding', 'field': 'ownerPhone'});
       } else {
-        // Fallbacks for existing standard users (highest priority first)
+        databases = [_db, FirebaseFirestore.instance, _merchantDb];
         queries.add({'collection': 'users', 'field': 'mobileNumber'});
-        // Based on user instructions
         queries.add({'collection': 'washliauth', 'field': 'phone'});
         queries.add({'collection': 'users', 'field': 'phone'});
       }
 
-      // Order databases based on role
-      List<FirebaseFirestore> dbInstances;
-      if (role == "Merchant") {
-        dbInstances = [
-          _merchantDb, // 'merchant-onboarding'
-          _db, // 'washliauth'
-          FirebaseFirestore.instance, // (default)
-        ];
-      } else {
-        dbInstances = [
-          _db, // 'washliauth'
-          FirebaseFirestore.instance, // (default)
-          _merchantDb, // 'merchant-onboarding'
-        ];
-      }
+      // Create a list of all unique database-collection-field tasks
+      List<Future<bool>> tasks = [];
 
-      for (int i = 0; i < dbInstances.length; i++) {
-        var db = dbInstances[i];
-        String dbLabel = i == 0 ? (role == "Merchant" ? "MerchantDB" : "WashLiAuthDB") : "Default/OtherDB";
-        debugPrint("Searching in database index $i ($dbLabel)");
-
+      for (var db in databases) {
         for (var queryConfig in queries) {
-          String col = queryConfig['collection']!;
-          String field = queryConfig['field']!;
-
-          try {
-            debugPrint("Querying collection '$col' field '$field'...");
-            
-            // Try all formats in a single batch (or sequential)
-            // 1. International format
-            QuerySnapshot intlQuery = await db
-                .collection(col)
-                .where(field, isEqualTo: phoneNumber)
-                .limit(1)
-                .get();
-            if (intlQuery.docs.isNotEmpty) {
-              debugPrint("Found user in database index $i -> $col ($field: $phoneNumber)");
-              return true;
+          final col = queryConfig['collection']!;
+          final field = queryConfig['field']!;
+          
+          tasks.add(() async {
+            try {
+              final query = await db
+                  .collection(col)
+                  .where(field, whereIn: formats)
+                  .limit(1)
+                  .get();
+              
+              if (query.docs.isNotEmpty) {
+                debugPrint("Found user in $col ($field) in ${stopwatch.elapsedMilliseconds}ms");
+                return true;
+              }
+            } catch (e) {
+              // Ignore errors for individual database/collection mismatches
+              debugPrint("Query failed for $col in a DB: $e");
             }
-
-            // 2. Local format
-            QuerySnapshot localQuery = await db
-                .collection(col)
-                .where(field, isEqualTo: localPhone)
-                .limit(1)
-                .get();
-            if (localQuery.docs.isNotEmpty) {
-              debugPrint("Found user in database index $i -> $col ($field: $localPhone)");
-              return true;
-            }
-
-            // 3. No leading format
-            QuerySnapshot noLeadQuery = await db
-                .collection(col)
-                .where(field, isEqualTo: noLeadPhone)
-                .limit(1)
-                .get();
-            if (noLeadQuery.docs.isNotEmpty) {
-              debugPrint("Found user in database index $i -> $col ($field: $noLeadPhone)");
-              return true;
-            }
-          } catch (e) {
-            // Some databases might not have the collection, ignore and continue
-            debugPrint("Query failed for $col in DB index $i: $e");
-          }
+            return false;
+          }());
         }
       }
 
-      debugPrint("No user found for $role with $phoneNumber after all checks");
-      return false;
+      // Wait for all queries to complete
+      final results = await Future.wait(tasks);
+      final exists = results.any((element) => element == true);
+
+      debugPrint("Check finished in ${stopwatch.elapsedMilliseconds}ms. Found: $exists");
+      return exists;
     } catch (e) {
       debugPrint("Error checking user existence: $e");
       return false;

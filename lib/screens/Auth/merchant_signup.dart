@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../widgets/buttons/back_button.dart';
 import 'signup.dart';
+import 'login.dart';
 
 class MerchantSignupScreen extends StatelessWidget {
   const MerchantSignupScreen({super.key});
@@ -115,7 +116,8 @@ class MerchantSignupScreen extends StatelessWidget {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const SignupScreen(),
+                              builder: (context) =>
+                                  const LoginScreen(role: 'Merchant'),
                             ),
                           );
                         },

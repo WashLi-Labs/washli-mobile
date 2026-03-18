@@ -5,6 +5,7 @@ import 'widgets/order_card.dart';
 import '../merchant_activity/activities/widgets/order_details/order_popup.dart';
 import '../merchant_activity/activities/activities.dart';
 import '../dashboard/dashboard.dart';
+import '../../account/account_screen.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -34,11 +35,16 @@ class _OrdersScreenState extends State<OrdersScreen> {
         context,
         MaterialPageRoute(builder: (context) => const DashboardScreen()),
       );
+    } else if (index == 4) {
+      // Account tab
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const AccountScreen(role: "Merchant")),
+      );
     } else {
       setState(() {
         _selectedIndex = index;
       });
-      // Handle other navigation (Account) if needed
     }
   }
 

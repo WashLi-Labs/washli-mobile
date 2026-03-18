@@ -8,6 +8,8 @@ import '../merchant_activity/activities/activities.dart';
 import '../orders/orders.dart';
 import '../add_promotion/promotion.dart';
 import '../dashboard/dashboard.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../account/account_screen.dart';
 
 class MerchantHomeScreen extends StatefulWidget {
   const MerchantHomeScreen({super.key});
@@ -18,6 +20,20 @@ class MerchantHomeScreen extends StatefulWidget {
 
 class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
   int _selectedIndex = 0;
+  String _merchantName = "Fresh Wash\nLaundry";
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMerchantName();
+  }
+
+  Future<void> _loadMerchantName() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _merchantName = prefs.getString('firstName') ?? "Fresh Wash\nLaundry";
+    });
+  }
 
   void _onItemTapped(int index) {
     if (index == 1) {
@@ -54,6 +70,17 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
       });
       return;
     }
+    if (index == 4) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => AccountScreen(role: "Merchant")),
+      ).then((_) {
+        setState(() {
+          _selectedIndex = 0;
+        });
+      });
+      return;
+    }
     setState(() {
       _selectedIndex = index;
     });
@@ -70,7 +97,7 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header
-                const MerchantHomeHeader(merchantName: "Fresh Wash\nLaundry"),
+                MerchantHomeHeader(merchantName: _merchantName),
 
                 // Spacing for Action Card intersection
                 const SizedBox(height: 50),

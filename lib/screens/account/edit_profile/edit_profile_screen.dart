@@ -15,10 +15,17 @@ import '../account_screen.dart';
 import 'edit_profile_screen_changes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
+import '../../merchant/merchant_home/merchant_home.dart';
+import '../../merchant/merchant_home/widgets/merchant_nav_bar.dart';
+import '../../../services/database_service.dart';
+import '../../merchant/orders/orders.dart';
+import '../../merchant/merchant_activity/activities/activities.dart';
+import '../../merchant/dashboard/dashboard.dart';
 
 
 class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({super.key});
+  final String role;
+  const EditProfileScreen({super.key, this.role = "Customer"});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -33,6 +40,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   int _selectedIndex = 4; // Account tab
   File? _profileImage;
+  bool _isLoading = false;
   
   @override
   void initState() {
@@ -41,41 +49,81 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _loadUserDetails() async {
-    final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _firstNameController.text = prefs.getString('firstName') ?? "";
-      _lastNameController.text = prefs.getString('lastName') ?? "";
-      _phoneController.text = (prefs.getString('mobileNumber') ?? "").replaceFirst('+94', '');
-      _emailController.text = prefs.getString('email') ?? "";
-      _addressController.text = prefs.getString('address') ?? "";
-      
-      String? imagePath = prefs.getString('profileImagePath');
-      if (imagePath != null && imagePath.isNotEmpty) {
-        _profileImage = File(imagePath);
-      }
+      _isLoading = true;
     });
+
+    final prefs = await SharedPreferences.getInstance();
+    
+    // If name is missing or empty, try to sync from Firestore first
+    String? firstName = prefs.getString('firstName');
+    if (firstName == null || firstName.isEmpty || firstName == "Merchant") {
+      debugPrint("EditProfileScreen: Name is missing or default, triggering sync...");
+      await DatabaseService().syncUserProfileToPreferences(role: widget.role);
+    }
+
+    if (mounted) {
+      setState(() {
+        _firstNameController.text = prefs.getString('firstName') ?? "";
+        _lastNameController.text = prefs.getString('lastName') ?? "";
+        _phoneController.text = (prefs.getString('mobileNumber') ?? "").replaceFirst('+94', '');
+        _emailController.text = prefs.getString('email') ?? "";
+        _addressController.text = prefs.getString('address') ?? "";
+        
+        String? imagePath = prefs.getString('profileImagePath');
+        if (imagePath != null && imagePath.isNotEmpty) {
+          _profileImage = File(imagePath);
+        }
+        _isLoading = false;
+      });
+    }
   }
 
   void _onItemTapped(int index) {
-      if (index == 0) {
-        Navigator.popUntil(context, (route) => route.isFirst);
-      } else if (index == 1) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const SearchScreen()),
-        );
-      } else if (index == 2) {
-         Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const ExploreScreen()),
-        );
-      } else if (index == 4) {
-          // Already in Account section, maybe pop back to main account screen? 
-          // For now, let's just go back to AccountScreen
+      if (widget.role == "Merchant") {
+        if (index == 0) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => MerchantHomeScreen()),
+            (route) => false,
+          );
+        } else if (index == 1) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const OrdersScreen()),
+          );
+        } else if (index == 2) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const ActivitiesScreen()),
+          );
+        } else if (index == 3) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const DashboardScreen()),
+          );
+        } else if (index == 4) {
+          Navigator.pop(context);
+        }
+      } else {
+        if (index == 0) {
+          Navigator.popUntil(context, (route) => route.isFirst);
+        } else if (index == 1) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const SearchScreen()),
+          );
+        } else if (index == 2) {
            Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const AccountScreen()),
+            MaterialPageRoute(builder: (context) => const ExploreScreen()),
           );
+        } else if (index == 4) {
+             Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const AccountScreen()),
+            );
+        }
       }
       
       if (mounted) {
@@ -155,10 +203,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     const SizedBox(height: 30),
 
-                    // First Name
-                    const Text(
-                      "First Name",
-                      style: TextStyle(
+                    // First Name / Outlet Name
+                    Text(
+                      widget.role == "Merchant" ? "Outlet Name" : "First Name",
+                      style: const TextStyle(
                         fontFamily: 'Outfit',
                         fontSize: 14,
                         color: Color(0xFF2D2D3A),
@@ -166,23 +214,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    FirstNameInput(controller: _firstNameController, readOnly: true),
+                    FirstNameInput(
+                      controller: _firstNameController, 
+                      readOnly: true,
+                      hintText: widget.role == "Merchant" ? "Outlet Name" : "First Name",
+                    ),
                     
-                    const SizedBox(height: 16),
-
-                    // Last Name
-                     const Text(
-                      "Last Name",
-                      style: TextStyle(
-                        fontFamily: 'Outfit',
-                        fontSize: 14,
-                        color: Color(0xFF2D2D3A),
-                        fontWeight: FontWeight.w500
+                    if (widget.role != "Merchant") ...[
+                      const SizedBox(height: 16),
+                      // Last Name
+                       const Text(
+                        "Last Name",
+                        style: TextStyle(
+                          fontFamily: 'Outfit',
+                          fontSize: 14,
+                          color: Color(0xFF2D2D3A),
+                          fontWeight: FontWeight.w500
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    // Assuming LastNameInput exists or using FirstNameInput logic
-                    LastNameInput(controller: _lastNameController, readOnly: true),
+                      const SizedBox(height: 8),
+                      LastNameInput(controller: _lastNameController, readOnly: true),
+                    ],
 
                     const SizedBox(height: 16),
 
@@ -231,19 +283,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                     const SizedBox(height: 40),
 
-                    SubmitButton(
-                      text: "Edit Profile",
-                      onTap: () async {
-                         final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const EditProfileScreenChanges()),
-                        );
-                        
-                        if (result == true) {
-                          _loadUserDetails(); // Reload if changes were saved
-                        }
-                      },
-                    ),
+                    _isLoading 
+                      ? const Center(child: CircularProgressIndicator())
+                      : SubmitButton(
+                          text: "Edit Profile",
+                          onTap: () async {
+                             final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => EditProfileScreenChanges(role: widget.role)),
+                            );
+                            
+                            if (result == true) {
+                              _loadUserDetails(); // Reload if changes were saved
+                            }
+                          },
+                        ),
                     const SizedBox(height: 20),
                   ],
                 ),
@@ -252,10 +306,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: NavBar(
-        selectedIndex: _selectedIndex,
-        onItemTapped: _onItemTapped,
-      ),
+      bottomNavigationBar: widget.role == "Merchant"
+        ? MerchantNavBar(
+            selectedIndex: _selectedIndex,
+            onItemTapped: _onItemTapped,
+          )
+        : NavBar(
+            selectedIndex: _selectedIndex,
+            onItemTapped: _onItemTapped,
+          ),
     );
   }
 }

@@ -4,6 +4,7 @@ import '../../widgets/buttons/back_button.dart';
 import '../../widgets/buttons/send_otp_button.dart';
 import '../../widgets/input_fields/mobile_number.dart';
 import 'verify_otp.dart';
+import 'signup.dart';
 
 class LoginScreen extends StatefulWidget {
   final String role;
@@ -61,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Fill in the details to create your account', 
+                        'Log in to your account', 
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey[600],
@@ -120,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (!exists) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('User not registered'),
+                                content: Text('User not registered. Please sign up'),
                               ),
                             );
                             return;
@@ -144,6 +145,43 @@ class _LoginScreenState extends State<LoginScreen> {
                           );
                         },
                       ),
+                      const SizedBox(height: 30),
+                      
+                      // Don't have an account text
+                      Center(
+                        child: RichText(
+                          text: TextSpan(
+                            text: "Don't have an account? ",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                            children: [
+                              WidgetSpan(
+                                alignment: PlaceholderAlignment.middle,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => const SignupScreen(),
+                                      ),
+                                    );
+                                  },
+                                  child: const Text(
+                                    'Sign Up',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF007BFF),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 40),
                     ],
                   ),
                 ),
