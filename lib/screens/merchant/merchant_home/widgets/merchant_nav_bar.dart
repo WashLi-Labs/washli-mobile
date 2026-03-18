@@ -44,31 +44,28 @@ class MerchantNavBar extends StatelessWidget {
     final isSelected = selectedIndex == index;
     final color = isSelected ? const Color(0xFF007BFF) : Colors.grey;
 
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => onItemTapped(index),
-        behavior: HitTestBehavior.opaque,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              iconPath,
-              colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-              width: 24,
-              height: 24,
+    return GestureDetector(
+      onTap: () => onItemTapped(index),
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SvgPicture.asset(
+            iconPath,
+            colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+            width: 24,
+            height: 24,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
             ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

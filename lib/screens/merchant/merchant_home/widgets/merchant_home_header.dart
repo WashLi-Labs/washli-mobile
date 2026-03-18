@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../../../../get_location/location_service.dart';
 import '../../../home/widgets/home_top_bar.dart';
 
@@ -88,3 +88,4 @@ class _MerchantHomeHeaderState extends State<MerchantHomeHeader> {
     );
   }
 }
+
