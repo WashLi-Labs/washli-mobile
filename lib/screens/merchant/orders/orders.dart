@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../widgets/buttons/back_button.dart';
 import '../merchant_home/widgets/merchant_nav_bar.dart';
 import 'widgets/order_card.dart';
@@ -6,6 +7,7 @@ import '../merchant_activity/activities/widgets/order_details/order_popup.dart';
 import '../merchant_activity/activities/activities.dart';
 import '../dashboard/dashboard.dart';
 import '../../account/account_screen.dart';
+import 'package:washli_mobile/providers/order_provider.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -50,76 +52,68 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Custom Header matching screenshot with fix for overlap clash
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              child: Row(
-                children: [
-                  CustomBackButton(onTap: () => Navigator.pop(context)),
-                  const Expanded(
-                    child: Center(
-                      child: Text(
-                        'Orders',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2D2D3A),
+    return Consumer(
+      builder: (context, ref, child) {
+        final orderState = ref.watch(orderProvider);
+        final allOrders = [...orderState.activeOrders, ...orderState.pastOrders];
+
+        return Scaffold(
+          backgroundColor: Colors.white,
+          body: SafeArea(
+            child: Column(
+              children: [
+                // Custom Header matching screenshot with fix for overlap clash
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  child: Row(
+                    children: [
+                      CustomBackButton(onTap: () => Navigator.pop(context)),
+                      const Expanded(
+                        child: Center(
+                          child: Text(
+                            'Orders',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF2D2D3A),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                      const SizedBox(width: 32), // Balancing the back button to keep title centered
+                    ],
                   ),
-                  const SizedBox(width: 32), // Balancing the back button to keep title centered
-                ],
-              ),
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    itemCount: allOrders.length,
+                    itemBuilder: (context, index) {
+                      final order = allOrders[index];
+                      return OrderCard(
+                        orderId: order.orderId,
+                        timeAgo: order.timeAgo,
+                        orderDescription: order.orderDescription,
+                        status: order.status,
+                        onTap: () => OrderPopup.show(
+                          context, 
+                          orderId: order.id,
+                          showActions: order.status == 'Pending',
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                children: [
-                  OrderCard(
-                    orderId: '#ORD-1523',
-                    timeAgo: '2 minutes ago',
-                    orderDescription: 'Order ID - ORD1523 - RS.3500.00',
-                    status: 'Pending',
-                    onTap: () => OrderPopup.show(context, showActions: true),
-                  ),
-                  OrderCard(
-                    orderId: '#ORD-1523',
-                    timeAgo: '10 minutes ago',
-                    orderDescription: 'Order ID - ORD1523 - RS.3500.00',
-                    status: 'Pending',
-                    onTap: () => OrderPopup.show(context, showActions: true),
-                  ),
-                  OrderCard(
-                    orderId: '#ORD-1523',
-                    timeAgo: '2 minutes ago',
-                    orderDescription: 'Order ID - ORD1523 - RS.3500.00',
-                    status: 'Completed',
-                    onTap: () => OrderPopup.show(context, showActions: false),
-                  ),
-                  OrderCard(
-                    orderId: '#ORD-1523',
-                    timeAgo: '2 minutes ago',
-                    orderDescription: 'Order ID - ORD1523 - RS.3500.00',
-                    status: 'In Progress',
-                    onTap: () => OrderPopup.show(context, showActions: false),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: MerchantNavBar(
-        selectedIndex: _selectedIndex,
-        onItemTapped: _onItemTapped,
-      ),
+          ),
+          bottomNavigationBar: MerchantNavBar(
+            selectedIndex: _selectedIndex,
+            onItemTapped: _onItemTapped,
+          ),
+        );
+      },
     );
   }
 }

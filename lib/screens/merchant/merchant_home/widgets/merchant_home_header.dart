@@ -34,7 +34,7 @@ class _MerchantHomeHeaderState extends State<MerchantHomeHeader> {
 
   @override
   Widget build(BuildContext context) {
-    final height = MediaQuery.of(context).size.height * 0.40;
+    final height = MediaQuery.of(context).size.height * 0.45;
 
     return Container(
       height: height,
@@ -54,33 +54,41 @@ class _MerchantHomeHeaderState extends State<MerchantHomeHeader> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 HomeTopBar(location: _location, onLocationTap: _fetchLocation),
-                const SizedBox(height: 30),
-                Row(
+                const SizedBox(height: 100),
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        "Hello,\n${widget.merchantName}!",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          height: 1.2,
-                        ),
+                    Text(
+                      'Hello,',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: 32,
+                        fontWeight: FontWeight.w300,
+                        height: 1.1,
                       ),
                     ),
-                    // Header right image
-                    SizedBox(
-                      width: 120,
-                      height: 120,
-                      child: Image.asset(
-                        'assets/images/splash_bg.png',
-                        fit: BoxFit.contain,
+                    Text(
+                      '${widget.merchantName}!',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 36,
+                        fontWeight: FontWeight.bold,
+                        height: 1.1,
                       ),
                     ),
                   ],
                 ),
               ],
+            ),
+          ),
+          // Washing Machine Image
+          Positioned(
+            right: 0,
+            bottom: 40,
+            child: Image.asset(
+              'assets/images/splash_bg.png',
+              height: 220,
+              fit: BoxFit.contain,
             ),
           ),
         ],
