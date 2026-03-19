@@ -22,26 +22,8 @@ class ActivitiesScreen extends StatefulWidget {
   State<ActivitiesScreen> createState() => _ActivitiesScreenState();
 }
 
-class _ActivitiesScreenState extends State<ActivitiesScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _ActivitiesScreenState extends State<ActivitiesScreen> {
   int _selectedIndex = 2; // Activities tab for Merchant
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 4, vsync: this);
-    
-    // For Customer, we set selectedIndex to a value that won't highlight any tab if not present
-    if (widget.role == "Customer") {
-      _selectedIndex = -1; // Or some other logic if needed
-    }
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
 
   void _onItemTapped(int index) {
     if (index == _selectedIndex) return;
@@ -107,77 +89,85 @@ class _ActivitiesScreenState extends State<ActivitiesScreen> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              child: CustomBackButton(onTap: () => Navigator.pop(context)),
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              child: Text(
-                'Your activities',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2D2D3A),
+    // For Customer, we ensure selectedIndex is handled
+    if (widget.role == "Customer" && _selectedIndex == 2) {
+       _selectedIndex = -1;
+    }
+    
+    final int tabCount = widget.role == "Customer" ? 3 : 4;
+
+    return DefaultTabController(
+      length: tabCount,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                child: CustomBackButton(onTap: () => Navigator.pop(context)),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                child: Text(
+                  'Your activities',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2D2D3A),
+                  ),
                 ),
               ),
-            ),
-            TabBar(
-              controller: _tabController,
-              isScrollable: true,
-              tabAlignment: TabAlignment.start,
-              padding: const EdgeInsets.only(left: 8),
-              labelColor: const Color(0xFF007BFF),
-              unselectedLabelColor: Colors.grey,
-              labelStyle: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-              unselectedLabelStyle: const TextStyle(
-                fontWeight: FontWeight.normal,
-                fontSize: 14,
-              ),
-              labelPadding: const EdgeInsets.symmetric(horizontal: 16),
-              indicatorColor: const Color(0xFF007BFF),
-              indicatorWeight: 3,
-              indicatorSize: TabBarIndicatorSize.label,
-              dividerColor: Colors.transparent,
-              tabs: const [
-                Tab(text: 'Pending'),
-                Tab(text: 'In Progress'),
-                Tab(text: 'Completed'),
-                Tab(text: 'Canceled'),
-              ],
-            ),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  PendingActivities(role: widget.role),
-                  InProgressActivities(role: widget.role),
-                  CompletedActivities(role: widget.role),
-                  CanceledActivities(role: widget.role),
+              TabBar(
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                padding: const EdgeInsets.only(left: 8),
+                labelColor: const Color(0xFF007BFF),
+                unselectedLabelColor: Colors.grey,
+                labelStyle: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontWeight: FontWeight.normal,
+                  fontSize: 14,
+                ),
+                labelPadding: const EdgeInsets.symmetric(horizontal: 16),
+                indicatorColor: const Color(0xFF007BFF),
+                indicatorWeight: 3,
+                indicatorSize: TabBarIndicatorSize.label,
+                dividerColor: Colors.transparent,
+                tabs: [
+                  if (widget.role == "Merchant") const Tab(text: 'Pending'),
+                  const Tab(text: 'In Progress'),
+                  const Tab(text: 'Completed'),
+                  const Tab(text: 'Canceled'),
                 ],
               ),
-            ),
-          ],
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    if (widget.role == "Merchant") PendingActivities(role: widget.role),
+                    InProgressActivities(role: widget.role),
+                    CompletedActivities(role: widget.role),
+                    CanceledActivities(role: widget.role),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
+        bottomNavigationBar: widget.role == "Merchant"
+            ? MerchantNavBar(
+                selectedIndex: _selectedIndex,
+                onItemTapped: _onItemTapped,
+              )
+            : NavBar(
+                selectedIndex: _selectedIndex,
+                onItemTapped: _onItemTapped,
+              ),
       ),
-      bottomNavigationBar: widget.role == "Merchant"
-          ? MerchantNavBar(
-              selectedIndex: _selectedIndex,
-              onItemTapped: _onItemTapped,
-            )
-          : NavBar(
-              selectedIndex: _selectedIndex,
-              onItemTapped: _onItemTapped,
-            ),
     );
   }
 }
