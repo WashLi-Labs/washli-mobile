@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../services/database_service.dart';
+import '../../services/firebase/database_service.dart';
 import '../../widgets/buttons/back_button.dart';
 import '../../widgets/buttons/create_account_button.dart';
 import '../../widgets/input_fields/email.dart';

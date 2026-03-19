@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
+import '../../services/firebase/auth_service.dart';
 import '../../widgets/buttons/back_button.dart';
 import '../../widgets/buttons/send_otp_button.dart';
 import '../../widgets/input_fields/mobile_number.dart';

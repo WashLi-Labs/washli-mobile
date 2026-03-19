@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import '../../Auth/role.dart';
-import '../../../services/auth_service.dart';
+import '../../../services/firebase/auth_service.dart';
 import 'widgets/settings_menu_item.dart';
 import 'widgets/settings_profile_header.dart';
 import 'widgets/settings_section.dart';

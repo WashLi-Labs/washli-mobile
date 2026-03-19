@@ -20,7 +20,7 @@ import '../merchant/orders/orders.dart';
 import '../merchant/merchant_activity/activities/activities.dart';
 import '../merchant/dashboard/dashboard.dart';
 import '../merchant/merchant_home/merchant_home.dart';
-import '../../services/database_service.dart';
+import '../../services/firebase/database_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../providers/user_provider.dart';
 
