@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:washli_mobile/providers/cart_provider.dart';
 
-class CartItemCard extends StatefulWidget {
+class CartItemCard extends ConsumerStatefulWidget {
   final String title;
   final double fee;
   final String type;
@@ -18,34 +20,30 @@ class CartItemCard extends StatefulWidget {
   });
 
   @override
-  State<CartItemCard> createState() => _CartItemCardState();
+  ConsumerState<CartItemCard> createState() => _CartItemCardState();
 }
 
-class _CartItemCardState extends State<CartItemCard> {
-  late int quantity;
+class _CartItemCardState extends ConsumerState<CartItemCard> {
   String? _note;
 
   @override
-  void initState() {
-    super.initState();
-    quantity = widget.initialQuantity;
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final cart = ref.watch(cartProvider);
+    final itemIndex = cart.items.indexWhere((item) => item.title == widget.title);
+    final quantity = itemIndex != -1 ? cart.items[itemIndex].quantity : 0;
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        // Add shadow or border if needed, design shows plain white background with separators usually, currently relying on parent structure
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center, // Center vertically
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
                 widget.title,
@@ -57,7 +55,7 @@ class _CartItemCardState extends State<CartItemCard> {
               ),
               // Quantity Adjuster
               Container(
-                margin: const EdgeInsets.only(top: 4), // Push it down slightly effectively
+                margin: const EdgeInsets.only(top: 4),
                 decoration: BoxDecoration(
                   color: const Color(0xFF0062FF),
                   borderRadius: BorderRadius.circular(8),
@@ -67,7 +65,9 @@ class _CartItemCardState extends State<CartItemCard> {
                   children: [
                     GestureDetector(
                       onTap: () {
-                        if (quantity > 0) setState(() => quantity--);
+                        if (quantity > 0) {
+                          ref.read(cartProvider.notifier).updateQuantity(widget.title, quantity - 1);
+                        }
                       },
                       child: const Icon(Icons.remove, color: Colors.white, size: 16),
                     ),
@@ -82,7 +82,9 @@ class _CartItemCardState extends State<CartItemCard> {
                     ),
                     const SizedBox(width: 12),
                     GestureDetector(
-                      onTap: () => setState(() => quantity++),
+                      onTap: () {
+                        ref.read(cartProvider.notifier).updateQuantity(widget.title, quantity + 1);
+                      },
                       child: const Icon(Icons.add, color: Colors.white, size: 16),
                     ),
                   ],
@@ -90,7 +92,7 @@ class _CartItemCardState extends State<CartItemCard> {
               ),
             ],
           ),
-          const SizedBox(height: 4), // Reduced spacing
+          const SizedBox(height: 4),
           
           Row(
             children: [

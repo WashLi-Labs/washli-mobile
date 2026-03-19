@@ -1,9 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:washli_mobile/screens/explore/shop/widgets/service_popup.dart';
 import 'package:washli_mobile/widgets/buttons/add_button.dart';
+import 'package:washli_mobile/providers/cart_provider.dart';
 
-class ServiceCard extends StatelessWidget {
+class ServiceCard extends ConsumerWidget {
+  final String shopName;
   final String title;
   final String price;
   final String description;
@@ -12,6 +15,7 @@ class ServiceCard extends StatelessWidget {
 
   const ServiceCard({
     super.key,
+    required this.shopName,
     required this.title,
     required this.price,
     required this.description,
@@ -20,7 +24,12 @@ class ServiceCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cart = ref.watch(cartProvider);
+    final itemIndex = cart.items.indexWhere((item) => item.title == title);
+    final quantity = itemIndex != -1 ? cart.items[itemIndex].quantity : 0;
+    final isAdded = quantity > 0;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -52,6 +61,14 @@ class ServiceCard extends StatelessWidget {
                       ),
                     ),
                     AddButton(
+                      isCounterMode: isAdded,
+                      count: quantity,
+                      onIncrement: () {
+                        ref.read(cartProvider.notifier).updateQuantity(title, quantity + 1);
+                      },
+                      onDecrement: () {
+                        ref.read(cartProvider.notifier).updateQuantity(title, quantity - 1);
+                      },
                       onTap: () {
                         showModalBottomSheet(
                           context: context,
@@ -76,9 +93,11 @@ class ServiceCard extends StatelessWidget {
                                 Align(
                                   alignment: Alignment.bottomCenter,
                                   child: ServicePopup(
+                                    shopName: shopName,
                                     title: title,
                                     price: price,
                                     description: description,
+                                    imagePath: imagePath,
                                   ),
                                 ),
                               ],

@@ -6,14 +6,18 @@ import '../../widgets/buttons/otp_verify_button.dart';
 import '../../widgets/input_fields/otp_pinput.dart';
 import 'user_account_details.dart';
 import '../home/home_screen.dart';
+import '../merchant/merchant_home/merchant_home.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class VerifyOtpScreen extends StatefulWidget {
   final String mobileNumber;
   final String verificationId;
+  final String role;
   const VerifyOtpScreen({
     super.key,
     required this.mobileNumber,
     required this.verificationId,
+    required this.role,
   });
 
   @override
@@ -44,23 +48,40 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
       onSuccess: () async {
         if (!mounted) return;
 
-        // Check if user is fully registered
+        // ⚠️ Wait a brief moment to ensure the background Cloud Function finishes
+        await Future.delayed(const Duration(seconds: 2));
+
+        // 🔄 Force refresh the token to grab the new custom claims via AuthService
+        await _authService.refreshToken();
+
+        // Save role and sync profile
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('role', widget.role);
+
         bool isRegistered = await DatabaseService()
-            .syncUserProfileToPreferences();
+            .syncUserProfileToPreferences(role: widget.role);
 
         if (mounted) {
-          if (isRegistered) {
+          if (widget.role == "Merchant") {
             Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => const HomeScreen()),
+              MaterialPageRoute(
+                  builder: (context) => const MerchantHomeScreen()),
               (Route<dynamic> route) => false,
             );
           } else {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(
-                builder: (context) => const UserAccountDetailsScreen(),
-              ),
-              (Route<dynamic> route) => false,
-            );
+            if (isRegistered) {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+                (Route<dynamic> route) => false,
+              );
+            } else {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (context) => const UserAccountDetailsScreen(),
+                ),
+                (Route<dynamic> route) => false,
+              );
+            }
           }
         }
       },

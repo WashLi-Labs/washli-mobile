@@ -1,8 +1,11 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:washli_mobile/providers/cart_provider.dart';
 import '../../widgets/buttons/back_button.dart';
 import 'widgets/cart_toggle.dart';
 import 'choose_location/choose_location.dart';
+import 'choose_location/location_bottom_sheet.dart';
 import 'alternative_contact/alternative_contact.dart';
 import 'widgets/cart_item_card.dart';
 import 'split_my_bill/split_my_bill_section.dart';
@@ -10,19 +13,29 @@ import 'widgets/bill_summary.dart';
 import 'widgets/payment_method_selector.dart';
 import 'widgets/clear_cart_popup.dart';
 
-class CartScreen extends StatefulWidget {
+class CartScreen extends ConsumerStatefulWidget {
   const CartScreen({super.key});
 
   @override
-  State<CartScreen> createState() => _CartScreenState();
+  ConsumerState<CartScreen> createState() => _CartScreenState();
 }
 
-class _CartScreenState extends State<CartScreen> {
+class _CartScreenState extends ConsumerState<CartScreen> {
   bool _isPickup = true;
-  bool _isCartCleared = false;
+
+  void _showLocationSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const LocationBottomSheet(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final cart = ref.watch(cartProvider);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -48,56 +61,55 @@ class _CartScreenState extends State<CartScreen> {
                       color: Color(0xFF2D2D3A),
                     ),
                   ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          barrierColor: Colors.transparent,
-                          builder: (context) => Stack(
-                            children: [
-                              Positioned.fill(
-                                child: GestureDetector(
-                                  onTap: () => Navigator.pop(context),
-                                  child: BackdropFilter(
-                                    filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                                    child: Container(
-                                      color: Colors.black.withOpacity(0.3),
+                  if (cart.items.isNotEmpty)
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            barrierColor: Colors.transparent,
+                            builder: (context) => Stack(
+                              children: [
+                                Positioned.fill(
+                                  child: GestureDetector(
+                                    onTap: () => Navigator.pop(context),
+                                    child: BackdropFilter(
+                                      filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                                      child: Container(
+                                        color: Colors.black.withOpacity(0.3),
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              Align(
-                                alignment: Alignment.bottomCenter,
-                                child: ClearCartPopup(
-                                  onClearCart: () {
-                                    setState(() {
-                                      _isCartCleared = true;
-                                    });
-                                    Navigator.pop(context);
-                                  },
-                                  onSaveCart: () {
-                                    Navigator.pop(context);
-                                  },
+                                Align(
+                                  alignment: Alignment.bottomCenter,
+                                  child: ClearCartPopup(
+                                    onClearCart: () {
+                                      ref.read(cartProvider.notifier).clearCart();
+                                      Navigator.pop(context);
+                                    },
+                                    onSaveCart: () {
+                                      Navigator.pop(context);
+                                    },
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'Clear Cart',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
                           ),
-                        );
-                      },
-                      child: const Text(
-                        'Clear Cart',
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -123,24 +135,16 @@ class _CartScreenState extends State<CartScreen> {
                         LocationSelector(
                           address: 'Fld Street',
                           subAddress: 'Nugegoda, Sri Lanka',
-                          onTap: () {
-                             Navigator.of(context).push(
-                              MaterialPageRoute(builder: (context) => const ChooseLocationScreen()),
-                            );
-                          },
+                          onTap: _showLocationSheet,
                         )
                       else
                         LocationSelector(
                           address: "I'll pickup myself",
                           subAddress: '', // Empty or hide
-                          onTap: () {
-                             Navigator.of(context).push(
-                              MaterialPageRoute(builder: (context) => const ChooseLocationScreen()),
-                            );
-                          },
+                          onTap: _showLocationSheet,
                         ),
                         
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 12),
 
                       // Alternative Contact - Present in both modes based on design image
                       const AlternativeContact(),
@@ -149,20 +153,15 @@ class _CartScreenState extends State<CartScreen> {
                       const Divider(color: Color(0xFFE5E7EB), thickness: 1, height: 1),
                       const SizedBox(height: 24),
 
-                      if (!_isCartCleared) ...[
+                      if (cart.items.isNotEmpty) ...[
                         // Cart Items
-                        const CartItemCard(
-                          title: 'Shirts',
-                          fee: 400.00,
-                          type: 'Cotton',
-                          service: 'Dry and wash',
-                          initialQuantity: 2,
-                        ),
-                        // Add more items if needed, just one for now as per design
-                        
-                        // const SizedBox(height: 24),
-                        // const Divider(color: Color(0xFFE5E7EB), thickness: 1, height: 1),
-                        // const SizedBox(height: 24),
+                        ...cart.items.map((item) => CartItemCard(
+                          title: item.title,
+                          fee: item.price,
+                          type: 'Laundry', // Fixed type for now or derive from item
+                          service: item.description,
+                          initialQuantity: item.quantity,
+                        )),
                         
                         // Split Bill
                          SplitMyBillSection(onTap: () {
@@ -174,8 +173,8 @@ class _CartScreenState extends State<CartScreen> {
                         const SizedBox(height: 24),
                         
                         // Bill Summary
-                        const BillSummary(
-                          subTotal: 1200.00,
+                        BillSummary(
+                          subTotal: cart.totalAmount,
                           deliveryFee: 150.00,
                         ),
                         
@@ -219,11 +218,12 @@ class _CartScreenState extends State<CartScreen> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: cart.items.isEmpty ? null : () {
                     // Action logic
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0062FF),
+                    disabledBackgroundColor: Colors.grey[300],
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

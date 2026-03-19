@@ -4,9 +4,11 @@ import '../../widgets/buttons/back_button.dart';
 import '../../widgets/buttons/send_otp_button.dart';
 import '../../widgets/input_fields/mobile_number.dart';
 import 'verify_otp.dart';
+import 'signup.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final String role;
+  const LoginScreen({super.key, required this.role});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -60,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Fill in the details to create your account', 
+                        'Log in to your account', 
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey[600],
@@ -84,18 +86,58 @@ class _LoginScreenState extends State<LoginScreen> {
                       
                       SendOtpButton(
                         onPressed: () async {
-                          final mobile = _mobileController.text.isEmpty ? "07178889954" : _mobileController.text;
-                          final formattedMobile = mobile.startsWith('+') ? mobile : '+94${mobile.startsWith('0') ? mobile.substring(1) : mobile}';
-                          
+                          final mobile = _mobileController.text;
+                          if (mobile.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Please enter mobile number'),
+                              ),
+                            );
+                            return;
+                          }
+
+                          final formattedMobile = mobile.startsWith('+')
+                              ? mobile
+                              : '+94${mobile.startsWith('0') ? mobile.substring(1) : mobile}';
+
+                          // Show loading indicator
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) => const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+
+                          // Check if user exists in Firestore
+                          bool exists = await _authService.checkUserExists(
+                            phoneNumber: formattedMobile,
+                            role: widget.role,
+                          );
+
+                          if (!mounted) return;
+                          Navigator.of(context).pop(); // Dismiss loading
+
+                          if (!exists) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('User not registered. Please sign up'),
+                              ),
+                            );
+                            return;
+                          }
+
                           await _authService.sendOTP(
                             context: context,
                             phoneNumber: formattedMobile,
-                            onCodeSent: (String verificationId, int? resendToken) {
+                            onCodeSent:
+                                (String verificationId, int? resendToken) {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (context) => VerifyOtpScreen(
                                     mobileNumber: formattedMobile,
                                     verificationId: verificationId,
+                                    role: widget.role,
                                   ),
                                 ),
                               );
@@ -103,6 +145,43 @@ class _LoginScreenState extends State<LoginScreen> {
                           );
                         },
                       ),
+                      const SizedBox(height: 30),
+                      
+                      // Don't have an account text
+                      Center(
+                        child: RichText(
+                          text: TextSpan(
+                            text: "Don't have an account? ",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                            children: [
+                              WidgetSpan(
+                                alignment: PlaceholderAlignment.middle,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => const SignupScreen(),
+                                      ),
+                                    );
+                                  },
+                                  child: const Text(
+                                    'Sign Up',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF007BFF),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 40),
                     ],
                   ),
                 ),
