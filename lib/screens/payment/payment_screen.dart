@@ -7,6 +7,7 @@ import 'widgets/add_payment_bottom_sheet.dart';
 import 'add_card_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../providers/wallet_provider.dart';
+import '../../../providers/payment_provider.dart';
 
 class PaymentScreen extends ConsumerStatefulWidget {
   const PaymentScreen({super.key});
@@ -16,12 +17,11 @@ class PaymentScreen extends ConsumerStatefulWidget {
 }
 
 class _PaymentScreenState extends ConsumerState<PaymentScreen> {
-  int _selectedPaymentMethod = 0; // 0: Cash, 1: Points, 2: Touch, 3: LankaQR
-  final List<String> _addedCards = []; // Store nicknames of added cards
-
   @override
   Widget build(BuildContext context) {
     final wallet = ref.watch(walletProvider);
+    final payment = ref.watch(paymentProvider);
+    final paymentNotifier = ref.read(paymentProvider.notifier);
     
     return Scaffold(
       backgroundColor: Colors.white,
@@ -45,7 +45,6 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                     'Payment',
                     style: TextStyle(
                       color: Colors.black,
-                      
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
@@ -58,60 +57,46 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    PaymentOptionTile(
-                      iconPath: "assets/icons/cash_payment.svg",
-                      title: "Cash",
-                      isSelected: _selectedPaymentMethod == 0,
-                      onTap: () {
-                        setState(() {
-                          _selectedPaymentMethod = 0;
-                        });
-                      },
-                    ),
+                    // Points Option
                     PaymentOptionTile(
                       iconPath: "assets/icons/points_payment.png",
                       title: "Points",
                       subtitle: wallet.pointsBalance.toStringAsFixed(0),
                       isIconSvg: false,
-                      isSelected: _selectedPaymentMethod == 1,
+                      isSelected: payment.selectedType == PaymentType.points,
                       onTap: () {
-                        setState(() {
-                          _selectedPaymentMethod = 1;
-                        });
+                        paymentNotifier.selectMethod(PaymentType.points);
                       },
                     ),
-                     PaymentOptionTile(
+                    // Touch Option
+                    PaymentOptionTile(
                       iconPath: "assets/icons/touch_payment.png",
                       title: "Touch",
                       isIconSvg: false,
-                      isSelected: _selectedPaymentMethod == 2,
+                      isSelected: payment.selectedType == PaymentType.touch,
                       onTap: () {
-                        setState(() {
-                          _selectedPaymentMethod = 2;
-                        });
+                        paymentNotifier.selectMethod(PaymentType.touch);
                       },
                     ),
-                     PaymentOptionTile(
+                    // LankaQR Option
+                    PaymentOptionTile(
                       iconPath: "assets/icons/qr_payment.png",
                       title: "Pay with LANKAQR",
                       isIconSvg: false,
-                      isSelected: _selectedPaymentMethod == 3,
+                      isSelected: payment.selectedType == PaymentType.lankaQr,
                       onTap: () {
-                        setState(() {
-                          _selectedPaymentMethod = 3;
-                        });
+                        paymentNotifier.selectMethod(PaymentType.lankaQr);
                       },
                     ),
                     
-                    // Added Cards
-                    if (_addedCards.isNotEmpty) ...[
+                    // Saved Cards
+                    if (payment.savedCards.isNotEmpty) ...[
                       const SizedBox(height: 20),
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 24.0),
                         child: Text(
                           "Saved Cards",
                           style: TextStyle(
-                            
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: Colors.black,
@@ -119,36 +104,20 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      ..._addedCards.asMap().entries.map((entry) {
-                        final int index = entry.key;
-                        final String nickname = entry.value;
-                        // Offset selection index for added cards (0-3 are default, 4+ are added cards)
-                        final int selectionIndex = 4 + index; 
-                        
+                      ...payment.savedCards.map((nickname) {
                         return PaymentOptionTile(
-                          iconPath: "assets/icons/card_payment_icon.png", // Or card_payment.svg if available/preferred
+                          iconPath: "assets/icons/card_payment_icon.png",
                           title: nickname,
-                          subtitle: "**** **** **** ****", // Masked card placeholder
-                          isIconSvg: false, // Assuming png for now based on file list
-                          isSelected: _selectedPaymentMethod == selectionIndex,
+                          subtitle: "**** **** **** ****",
+                          isIconSvg: false,
+                          isSelected: payment.selectedType == PaymentType.card && payment.selectedCardNickname == nickname,
                           onTap: () {
-                            setState(() {
-                              _selectedPaymentMethod = selectionIndex;
-                            });
+                            paymentNotifier.selectMethod(PaymentType.card, cardNickname: nickname);
                           },
                           trailing: IconButton(
                             icon: const Icon(Icons.delete_outline, color: Colors.red),
                             onPressed: () {
-                              setState(() {
-                                _addedCards.removeAt(index);
-                                // Reset selection if the removed card was selected
-                                if (_selectedPaymentMethod == selectionIndex) {
-                                  _selectedPaymentMethod = 0; // Default to Cash
-                                } else if (_selectedPaymentMethod > selectionIndex) {
-                                    // Adjust selection index if a card before the selected one was removed
-                                    _selectedPaymentMethod--;
-                                }
-                              });
+                              paymentNotifier.removeCard(nickname);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text("Card Removed"),
@@ -175,8 +144,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                           );
 
                           if (result == "add_card") {
-                            // Check limit
-                            if (_addedCards.length >= 3) {
+                            if (payment.savedCards.length >= 3) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text("You can only add up to 3 cards."),
@@ -186,27 +154,20 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                               return;
                             }
 
-                            // Navigate to AddCardScreen
                             final newCardNickname = await Navigator.push<String>(
                               context,
                               MaterialPageRoute(builder: (context) => const AddCardScreen()),
                             );
 
                             if (newCardNickname != null && newCardNickname.isNotEmpty) {
-                              setState(() {
-                                _addedCards.add(newCardNickname);
-                              });
-                              
-                              // Success Popup/Snackbar
+                              paymentNotifier.addCard(newCardNickname);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text("Card Added Successfully"),
-                                  backgroundColor: Colors.green, // Requested green color
+                                  backgroundColor: Colors.green,
                                 ),
                               );
                             }
-                          } else if (result == "touch") {
-                            // Handle Touch addition if needed
                           }
                         },
                         child: Row(
@@ -215,7 +176,6 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                             const Text(
                               "Add Payment Method",
                               style: TextStyle(
-                                
                                 fontSize: 16,
                                 color: Color(0xFF0057E6),
                                 fontWeight: FontWeight.normal,
