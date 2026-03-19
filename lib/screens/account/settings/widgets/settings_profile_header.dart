@@ -97,19 +97,6 @@ class SettingsProfileHeader extends StatelessWidget {
             ),
           ),
 
-          // Arrow indicator
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: const Color(0x26FFFFFF), // white 15%
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              Icons.arrow_forward_ios_rounded,
-              color: Colors.white,
-              size: 14,
-            ),
-          ),
         ],
       ),
     );
