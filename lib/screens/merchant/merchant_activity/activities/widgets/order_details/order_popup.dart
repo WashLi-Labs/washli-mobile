@@ -9,19 +9,21 @@ import 'package:washli_mobile/providers/order_provider.dart';
 class OrderPopup extends ConsumerWidget {
   final bool showActions;
   final String? orderId;
+  final String role;
 
   const OrderPopup({
     super.key,
     this.showActions = false,
     this.orderId,
+    this.role = "Merchant",
   });
 
-  static void show(BuildContext context, {bool showActions = false, String? orderId}) {
+  static void show(BuildContext context, {bool showActions = false, String? orderId, String role = "Merchant"}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => OrderPopup(showActions: showActions, orderId: orderId),
+      builder: (context) => OrderPopup(showActions: showActions, orderId: orderId, role: role),
     );
   }
 
@@ -97,7 +99,7 @@ class OrderPopup extends ConsumerWidget {
                     ),
                     const SizedBox(height: 24),
                   ],
-                  const CustomerDetail(),
+                  CustomerDetail(role: role),
                   const SizedBox(height: 16),
                   const ItemDetails(),
                   const SizedBox(height: 40),

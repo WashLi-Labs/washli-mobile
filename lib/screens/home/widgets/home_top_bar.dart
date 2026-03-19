@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../widgets/buttons/notification_button.dart';
 import '../../../../widgets/buttons/activity_button.dart';
+import '../../merchant/merchant_activity/activities/activities.dart';
 
 class HomeTopBar extends StatelessWidget {
   final String location;
@@ -85,7 +86,12 @@ class HomeTopBar extends StatelessWidget {
             const SizedBox(width: 8),
             ActivityButton(
               onTap: () {
-                // TODO: Handle activity tap
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ActivitiesScreen(role: "Customer"),
+                  ),
+                );
               },
               iconColor: contentColor,
             ),
