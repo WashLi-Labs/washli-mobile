@@ -6,7 +6,8 @@ import 'package:washli_mobile/screens/merchant/merchant_activity/activities/widg
 
 
 class CanceledActivities extends ConsumerWidget {
-  const CanceledActivities({super.key});
+  final String role;
+  const CanceledActivities({super.key, this.role = "Merchant"});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,7 +28,12 @@ class CanceledActivities extends ConsumerWidget {
       itemBuilder: (context, index) {
         final order = canceledOrders[index];
         return GestureDetector(
-          onTap: () => OrderPopup.show(context, orderId: order.id, showActions: false),
+          onTap: () => OrderPopup.show(
+            context,
+            orderId: order.id,
+            showActions: false,
+            role: role,
+          ),
           child: _buildActivityCard(order),
         );
       },
