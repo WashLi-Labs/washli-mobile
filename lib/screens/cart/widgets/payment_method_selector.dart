@@ -1,31 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../providers/payment_provider.dart';
 import '../../payment/payment_screen.dart';
 
-class PaymentMethodSelector extends StatelessWidget {
+class PaymentMethodSelector extends ConsumerWidget {
   const PaymentMethodSelector({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final payment = ref.watch(paymentProvider);
+    
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
           children: [
-            // Cash Icon (Green bill)
+            // Payment Icon
              Container(
               width: 32,
               height: 24,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(4),
-                // Replace with actual asset later, using simple design for now
-                color: Colors.green.shade100, 
+                color: payment.selectedType == PaymentType.points ? Colors.orange.shade100 : Colors.blue.shade100, 
               ),
-               child: const Icon(Icons.money, color: Colors.green, size: 20),
+               child: payment.isSvg 
+                 ? const SizedBox() // Future SVG support
+                 : Image.asset(payment.iconPath, width: 20, height: 20, fit: BoxFit.contain),
             ),
              const SizedBox(width: 12),
-            const Text(
-              'Cash',
-              style: TextStyle(
+            Text(
+              payment.displayName,
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: Color(0xFF2D2D3A),
