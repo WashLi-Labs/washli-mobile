@@ -133,18 +133,11 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                       const SizedBox(height: 16),
                       
                       // Location Selector
-                      if (_isPickup)
-                        LocationSelector(
-                          address: locState.address,
-                          subAddress: locState.subAddress,
-                          onTap: _showLocationSheet,
-                        )
-                      else
-                        LocationSelector(
-                          address: "I'll pickup myself",
-                          subAddress: '', // Empty or hide
-                          onTap: _showLocationSheet,
-                        ),
+                      LocationSelector(
+                        address: locState.address,
+                        subAddress: locState.subAddress,
+                        onTap: _showLocationSheet,
+                      ),
                         
                       const SizedBox(height: 12),
 
