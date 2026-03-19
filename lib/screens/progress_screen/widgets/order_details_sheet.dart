@@ -3,12 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../providers/cart_provider.dart';
 
 class OrderDetailsSheet extends ConsumerWidget {
-  const OrderDetailsSheet({super.key});
+  final bool isPickup;
+  const OrderDetailsSheet({super.key, this.isPickup = true});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cart = ref.watch(cartProvider);
-    final deliveryFee = 150.00;
+    final deliveryFee = isPickup ? 150.00 : 0.00;
     final finalTotal = cart.totalAmount + deliveryFee;
 
     return DraggableScrollableSheet(
@@ -175,8 +176,10 @@ class OrderDetailsSheet extends ConsumerWidget {
                 // Dynamic Invoice Details
                 _buildInvoiceRow('Sub Total', '+ LKR ${cart.totalAmount.toStringAsFixed(2)}'),
                 const SizedBox(height: 12),
-                _buildInvoiceRow('Delivery Fee', '+ LKR ${deliveryFee.toStringAsFixed(2)}'),
-                const SizedBox(height: 12),
+                if (isPickup) ...[
+                  _buildInvoiceRow('Delivery Fee', '+ LKR ${deliveryFee.toStringAsFixed(2)}'),
+                  const SizedBox(height: 12),
+                ],
                 _buildInvoiceRow('High Demand Surge', '+ LKR 0.00'),
                 const SizedBox(height: 16),
                 
