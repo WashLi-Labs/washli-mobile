@@ -2,6 +2,36 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 
 class LocationService {
+  Future<Position?> getPosition() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return null;
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) return null;
+    }
+    if (permission == LocationPermission.deniedForever) return null;
+
+    return await Geolocator.getCurrentPosition();
+  }
+
+  Future<Map<String, String>> getAddressFromLatLng(double lat, double lng) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks[0];
+        String address = place.street ?? place.name ?? 'Selected Location';
+        String subAddress = [place.locality, place.administrativeArea, place.country]
+            .where((e) => e != null && e.isNotEmpty)
+            .join(', ');
+        return {'address': address, 'subAddress': subAddress};
+      }
+    } catch (e) {
+      // Ignored
+    }
+    return {'address': 'Unknown Location', 'subAddress': ''};
+  }
   Future<String?> getCurrentLocation() async {
     bool serviceEnabled;
     LocationPermission permission;

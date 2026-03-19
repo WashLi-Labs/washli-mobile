@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:washli_mobile/providers/cart_provider.dart';
+import 'package:washli_mobile/providers/location_provider.dart';
 import '../../widgets/buttons/back_button.dart';
 import 'widgets/cart_toggle.dart';
 import 'choose_location/choose_location.dart';
@@ -35,6 +36,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   @override
   Widget build(BuildContext context) {
     final cart = ref.watch(cartProvider);
+    final locState = ref.watch(locationProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -133,8 +135,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                       // Location Selector
                       if (_isPickup)
                         LocationSelector(
-                          address: 'Fld Street',
-                          subAddress: 'Nugegoda, Sri Lanka',
+                          address: locState.address,
+                          subAddress: locState.subAddress,
                           onTap: _showLocationSheet,
                         )
                       else

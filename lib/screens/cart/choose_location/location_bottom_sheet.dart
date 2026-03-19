@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../widgets/input_fields/custom_search_bar.dart';
 import 'widgets/location_option_row.dart';
 import 'widgets/add_address_row.dart';
 import 'choose_location.dart';
+import '../../../providers/location_provider.dart';
+import '../../../get_location/location_service.dart';
 
-class LocationBottomSheet extends StatelessWidget {
+class LocationBottomSheet extends ConsumerWidget {
   const LocationBottomSheet({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.only(top: 8, left: 24, right: 24, bottom: 30),
       decoration: const BoxDecoration(
@@ -50,9 +54,24 @@ class LocationBottomSheet extends StatelessWidget {
           LocationOptionRow(
             iconPath: 'assets/icons/current_location.svg',
             title: 'Your Current Location',
-            onTap: () {
+            onTap: () async {
               Navigator.pop(context); // Close sheet
-              // Handle current location selection
+              
+              final position = await LocationService().getPosition();
+              if (position != null) {
+                final latLng = LatLng(position.latitude, position.longitude);
+                final addressData = await LocationService().getAddressFromLatLng(position.latitude, position.longitude);
+                
+                ref.read(locationProvider.notifier).updateLocation(
+                  coordinates: latLng,
+                  address: addressData['address'],
+                  subAddress: addressData['subAddress'],
+                );
+              }
+              
+              if (context.mounted) {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const ChooseLocationScreen()));
+              }
             },
           ),
           
