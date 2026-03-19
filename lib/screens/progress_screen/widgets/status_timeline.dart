@@ -2,12 +2,19 @@ import 'package:flutter/material.dart';
 
 class StatusTimeline extends StatelessWidget {
   final int currentStageIndex;
+  final bool isPickup;
 
-  const StatusTimeline({super.key, required this.currentStageIndex});
+  const StatusTimeline({
+    super.key, 
+    required this.currentStageIndex,
+    this.isPickup = true,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final stages = ['Accepted', 'Picked-up', 'Handed-over', 'Ready', 'Delivered'];
+    final stages = isPickup 
+        ? ['Accepted', 'Picked-up', 'Handed-over', 'Ready', 'Delivered']
+        : ['Accepted', 'Handed-over', 'Ready', 'Delivered'];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),

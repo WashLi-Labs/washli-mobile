@@ -172,7 +172,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                         // Bill Summary
                         BillSummary(
                           subTotal: cart.totalAmount,
-                          deliveryFee: 150.00,
+                          deliveryFee: _isPickup ? 150.00 : 0.00,
                         ),
                         
                         const SizedBox(height: 24),
@@ -235,7 +235,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                _isPickup ? 'Delivering to' : 'Picking up from',
+                                _isPickup ? 'Picking from' : 'Delivering from',
                                 style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
@@ -278,7 +278,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                         // Proceed to Progress Screen
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const ProgressScreen()),
+                          MaterialPageRoute(builder: (context) => ProgressScreen(isPickup: _isPickup)),
                         );
                       },
                       style: ElevatedButton.styleFrom(
