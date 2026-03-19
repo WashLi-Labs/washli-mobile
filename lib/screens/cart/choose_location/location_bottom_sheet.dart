@@ -54,24 +54,15 @@ class LocationBottomSheet extends ConsumerWidget {
           LocationOptionRow(
             iconPath: 'assets/icons/current_location.svg',
             title: 'Your Current Location',
-            onTap: () async {
+            onTap: () {
+              // Clear current provider state so the map fetches the GPS location on init
+              ref.read(locationProvider.notifier).updateLocation(
+                coordinates: null, 
+                address: 'Loading location...', 
+                subAddress: ''
+              );
               Navigator.pop(context); // Close sheet
-              
-              final position = await LocationService().getPosition();
-              if (position != null) {
-                final latLng = LatLng(position.latitude, position.longitude);
-                final addressData = await LocationService().getAddressFromLatLng(position.latitude, position.longitude);
-                
-                ref.read(locationProvider.notifier).updateLocation(
-                  coordinates: latLng,
-                  address: addressData['address'],
-                  subAddress: addressData['subAddress'],
-                );
-              }
-              
-              if (context.mounted) {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const ChooseLocationScreen()));
-              }
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const ChooseLocationScreen()));
             },
           ),
           

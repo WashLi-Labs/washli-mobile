@@ -10,8 +10,10 @@ import '../account/account_screen.dart';
 // import '../payment/payment_screen.dart';
 import '../cart/cart_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../providers/user_provider.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   final String userName;
 
   const HomeScreen({
@@ -20,10 +22,10 @@ class HomeScreen extends StatefulWidget {
   });
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _selectedIndex = 0;
   String? _firstName;
 
@@ -35,9 +37,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadUserName() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _firstName = prefs.getString('firstName');
-    });
+    final firstName = prefs.getString('firstName');
+    
+    if (firstName != null && mounted) {
+      ref.read(userProvider.notifier).updateProfile(name: firstName);
+    }
   }
 
   void _onItemTapped(int index) {
@@ -87,6 +91,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(userProvider);
+    
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -95,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Column(
               children: [
                 // Header
-                HomeHeader(userName: _firstName ?? widget.userName),
+                HomeHeader(userName: user.name ?? widget.userName),
                 
                 // Spacing for Action Card intersection
                 const SizedBox(height: 60), 
