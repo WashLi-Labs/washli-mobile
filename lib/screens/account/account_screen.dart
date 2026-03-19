@@ -21,16 +21,18 @@ import '../merchant/merchant_activity/activities/activities.dart';
 import '../merchant/dashboard/dashboard.dart';
 import '../merchant/merchant_home/merchant_home.dart';
 import '../../services/database_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../providers/user_provider.dart';
 
-class AccountScreen extends StatefulWidget {
+class AccountScreen extends ConsumerStatefulWidget {
   final String role;
   const AccountScreen({super.key, this.role = "Customer"});
 
   @override
-  State<AccountScreen> createState() => _AccountScreenState();
+  ConsumerState<AccountScreen> createState() => _AccountScreenState();
 }
 
-class _AccountScreenState extends State<AccountScreen> {
+class _AccountScreenState extends ConsumerState<AccountScreen> {
   int _selectedIndex = 4;
   String _firstName = "";
   String _lastName = "";
@@ -59,11 +61,19 @@ class _AccountScreenState extends State<AccountScreen> {
     }
 
     if (mounted) {
+      final fName = prefs.getString('firstName') ?? (widget.role == "Merchant" ? "Merchant" : "Sam");
+      final lName = prefs.getString('lastName') ?? (widget.role == "Merchant" ? "" : "William");
+      final mail = prefs.getString('email') ?? (widget.role == "Merchant" ? "merchant@email.com" : "sam@email.com");
+      final fullName = lName.isNotEmpty ? "$fName $lName" : fName;
+      
+      // Sync to Riverpod Provider
+      ref.read(userProvider.notifier).login(
+        uid: prefs.getString('uid') ?? "local",
+        name: fullName,
+        email: mail,
+      );
+
       setState(() {
-        _firstName = prefs.getString('firstName') ?? (widget.role == "Merchant" ? "Merchant" : "Sam");
-        _lastName = prefs.getString('lastName') ?? (widget.role == "Merchant" ? "" : "William");
-        _email = prefs.getString('email') ?? (widget.role == "Merchant" ? "merchant@email.com" : "sam@email.com");
-        
         String? imagePath = prefs.getString('profileImagePath');
         if (imagePath != null && imagePath.isNotEmpty) {
           _profileImage = File(imagePath);
@@ -138,6 +148,8 @@ class _AccountScreenState extends State<AccountScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(userProvider);
+    
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -178,8 +190,8 @@ class _AccountScreenState extends State<AccountScreen> {
                         children: [
                           const SizedBox(height: 10),
                           ProfileCard(
-                            name: _lastName.isNotEmpty ? "$_firstName $_lastName" : _firstName,
-                            email: _email,
+                            name: user.name ?? "Loading...",
+                            email: user.email ?? "Loading...",
                             imageProvider: _profileImage != null
                                 ? FileImage(_profileImage!) as ImageProvider
                                 : const AssetImage("assets/images/profile1.png"),

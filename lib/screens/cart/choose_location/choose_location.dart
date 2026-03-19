@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../widgets/buttons/back_button.dart';
+import '../../../providers/location_provider.dart';
+import '../../../get_location/location_service.dart';
 
 // The Widget displayed on Cart Screen
 class LocationSelector extends StatelessWidget {
@@ -18,6 +21,7 @@ class LocationSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -77,23 +81,68 @@ class LocationSelector extends StatelessWidget {
 }
 
 // The Screen navigated to for choosing location
-class ChooseLocationScreen extends StatefulWidget {
+class ChooseLocationScreen extends ConsumerStatefulWidget {
   const ChooseLocationScreen({super.key});
 
   @override
-  State<ChooseLocationScreen> createState() => _ChooseLocationScreenState();
+  ConsumerState<ChooseLocationScreen> createState() => _ChooseLocationScreenState();
 }
 
-class _ChooseLocationScreenState extends State<ChooseLocationScreen> {
-  static const LatLng _initialPosition = LatLng(6.8649, 79.8997); // Nugegoda approx
+class _ChooseLocationScreenState extends ConsumerState<ChooseLocationScreen> {
+  LatLng _currentLocation = const LatLng(6.8649, 79.8997); // Nugegoda approx
+  String _currentAddress = 'Fld Street';
+  String _currentSubAddress = 'Nugegoda, Sri Lanka';
   GoogleMapController? _mapController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize from provider synchronously before map render
+    final locState = ref.read(locationProvider);
+    if (locState.coordinates != null) {
+      _currentLocation = locState.coordinates!;
+      _currentAddress = locState.address;
+      _currentSubAddress = locState.subAddress;
+    } else {
+      // If no coordinates in provider, fetch actual location to show
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _goToCurrentGpsLocation();
+      });
+    }
+  }
 
   void _onMapCreated(GoogleMapController controller) {
     _mapController = controller;
   }
 
+  void _updateLocationState(LatLng latLng) async {
+    setState(() {
+      _currentLocation = latLng;
+      _currentAddress = 'Loading...';
+      _currentSubAddress = '';
+    });
+    final addressData = await LocationService().getAddressFromLatLng(latLng.latitude, latLng.longitude);
+    if (mounted) {
+      setState(() {
+        _currentAddress = addressData['address']!;
+        _currentSubAddress = addressData['subAddress']!;
+      });
+    }
+  }
+
+  void _goToCurrentGpsLocation() async {
+    final position = await LocationService().getPosition();
+    if (position != null) {
+      final latLng = LatLng(position.latitude, position.longitude);
+      _mapController?.animateCamera(CameraUpdate.newLatLng(latLng));
+      _updateLocationState(latLng);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final displayAddress = _currentSubAddress.isEmpty ? _currentAddress : '$_currentAddress, $_currentSubAddress';
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -111,21 +160,55 @@ class _ChooseLocationScreenState extends State<ChooseLocationScreen> {
           // Map
           GoogleMap(
             onMapCreated: _onMapCreated,
-            initialCameraPosition: const CameraPosition(
-              target: _initialPosition,
+            padding: const EdgeInsets.only(bottom: 280),
+            initialCameraPosition: CameraPosition(
+              target: _currentLocation,
               zoom: 15.0,
             ),
             myLocationEnabled: true,
             myLocationButtonEnabled: false,
             zoomControlsEnabled: false,
-            markers: {
-              const Marker(
-                markerId: MarkerId('selected_location'),
-                position: _initialPosition,
-              ),
+            onCameraMove: (CameraPosition position) {
+              _currentLocation = position.target;
+            },
+            onCameraIdle: () {
+              _updateLocationState(_currentLocation);
             },
           ),
           
+          // Center Fixed Marker
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            bottom: 280,
+            child: const Center(
+              child: Padding(
+                padding: EdgeInsets.only(bottom: 22), // Offset so the pin tip is at exact center
+                child: Icon(
+                  Icons.location_on,
+                  color: Color(0xFFEA4335), // Google Maps Red
+                  size: 44,
+                ),
+              ),
+            ),
+          ),
+          
+          // Current Location FAB
+          Positioned(
+            bottom: 300,
+            right: 16,
+            child: FloatingActionButton(
+              heroTag: 'currentLocationFab',
+              backgroundColor: Colors.white,
+              onPressed: _goToCurrentGpsLocation,
+              child: SvgPicture.asset(
+                'assets/icons/current_location.svg',
+                colorFilter: const ColorFilter.mode(Color(0xFF0062FF), BlendMode.srcIn),
+              ),
+            ),
+          ),
+
           // Bottom Card
           Align(
             alignment: Alignment.bottomCenter,
@@ -183,10 +266,10 @@ class _ChooseLocationScreenState extends State<ChooseLocationScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        const Expanded(
+                        Expanded(
                           child: Text(
-                            'Fld Street, Nugegoda, Sri Lanka',
-                            style: TextStyle(
+                            displayAddress,
+                            style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                               color: Color(0xFF2D2D3A),
@@ -205,6 +288,11 @@ class _ChooseLocationScreenState extends State<ChooseLocationScreen> {
                     child: ElevatedButton(
                       onPressed: () {
                         // Confirm location logic
+                        ref.read(locationProvider.notifier).updateLocation(
+                          coordinates: _currentLocation,
+                          address: _currentAddress,
+                          subAddress: _currentSubAddress,
+                        );
                         Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
@@ -236,4 +324,3 @@ class _ChooseLocationScreenState extends State<ChooseLocationScreen> {
     );
   }
 }
-

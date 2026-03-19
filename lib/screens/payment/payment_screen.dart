@@ -5,20 +5,24 @@ import 'widgets/payment_option_tile.dart';
 import 'widgets/add_payment_bottom_sheet.dart';
 
 import 'add_card_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../providers/wallet_provider.dart';
 
-class PaymentScreen extends StatefulWidget {
+class PaymentScreen extends ConsumerStatefulWidget {
   const PaymentScreen({super.key});
 
   @override
-  State<PaymentScreen> createState() => _PaymentScreenState();
+  ConsumerState<PaymentScreen> createState() => _PaymentScreenState();
 }
 
-class _PaymentScreenState extends State<PaymentScreen> {
+class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   int _selectedPaymentMethod = 0; // 0: Cash, 1: Points, 2: Touch, 3: LankaQR
   final List<String> _addedCards = []; // Store nicknames of added cards
 
   @override
   Widget build(BuildContext context) {
+    final wallet = ref.watch(walletProvider);
+    
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -67,7 +71,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     PaymentOptionTile(
                       iconPath: "assets/icons/points_payment.png",
                       title: "Points",
-                      subtitle: "0",
+                      subtitle: wallet.pointsBalance.toStringAsFixed(0),
                       isIconSvg: false,
                       isSelected: _selectedPaymentMethod == 1,
                       onTap: () {
