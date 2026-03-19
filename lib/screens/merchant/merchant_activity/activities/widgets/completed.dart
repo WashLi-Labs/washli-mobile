@@ -5,7 +5,8 @@ import 'package:washli_mobile/providers/order_provider.dart';
 import 'package:washli_mobile/screens/merchant/merchant_activity/activities/widgets/empty_state_widget.dart';
 
 class CompletedActivities extends ConsumerWidget {
-  const CompletedActivities({super.key});
+  final String role;
+  const CompletedActivities({super.key, this.role = "Merchant"});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -26,7 +27,12 @@ class CompletedActivities extends ConsumerWidget {
       itemBuilder: (context, index) {
         final order = completedOrders[index];
         return GestureDetector(
-          onTap: () => OrderPopup.show(context, orderId: order.id, showActions: false),
+          onTap: () => OrderPopup.show(
+            context,
+            orderId: order.id,
+            showActions: false,
+            role: role,
+          ),
           child: _buildActivityCard(order),
         );
       },

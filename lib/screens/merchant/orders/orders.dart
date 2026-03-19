@@ -100,6 +100,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           context, 
                           orderId: order.id,
                           showActions: order.status == 'Pending',
+                          role: "Merchant",
                         ),
                       );
                     },

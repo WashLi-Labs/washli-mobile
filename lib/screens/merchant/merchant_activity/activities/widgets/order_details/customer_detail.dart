@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
 class CustomerDetail extends StatelessWidget {
-  const CustomerDetail({super.key});
+  final String role;
+  const CustomerDetail({super.key, this.role = "Merchant"});
 
   @override
   Widget build(BuildContext context) {
+    final bool isCustomer = role.toLowerCase() == "customer";
+    
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -32,20 +35,24 @@ class CustomerDetail extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Divider(),
-          const Text(
-            'Customer Details',
-            style: TextStyle(
+          Text(
+            isCustomer ? 'Order Details' : 'Customer Details',
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Color(0xFF2D2D3A),
             ),
           ),
           const SizedBox(height: 12),
-          _buildDetailRow('Name', 'Amal Silva'),
+          _buildDetailRow('Name', isCustomer ? 'Fresh Wash Laundry' : 'Amal Silva'),
           const Divider(),
           _buildDetailRow('Mobile Number', '+9471 6545 334'),
           const Divider(),
           _buildDetailRow('Address', 'No 69, Main Road, Nugegoda'),
+          if (isCustomer) ...[
+            const Divider(),
+            _buildDetailRow('Price', 'LKR.3500.00'),
+          ],
         ],
       ),
     );
