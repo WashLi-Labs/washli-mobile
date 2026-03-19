@@ -100,7 +100,7 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
                 MerchantHomeHeader(merchantName: _merchantName),
 
                 // Spacing for Action Card intersection
-                const SizedBox(height: 50),
+                const SizedBox(height: 60),
 
                 // Orders Section
                 Padding(
@@ -171,10 +171,9 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
 
             // Action Card Positioning
             Positioned(
-              top: MediaQuery.of(context).size.height * 0.40 - 40,
-              left:
-                  (MediaQuery.of(context).size.width -
-                      (MediaQuery.of(context).size.width * 0.75)) /
+              top: MediaQuery.of(context).size.height * 0.45 - 40,
+              left: (MediaQuery.of(context).size.width -
+                      (MediaQuery.of(context).size.width * 0.85)) /
                   2,
               child: MerchantActionCard(
                 onTap: () {

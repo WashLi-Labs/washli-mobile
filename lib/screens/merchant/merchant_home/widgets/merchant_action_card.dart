@@ -11,8 +11,8 @@ class MerchantActionCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.75,
-        height: 70,
+        width: MediaQuery.of(context).size.width * 0.85,
+        height: 80,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(24),
@@ -25,31 +25,34 @@ class MerchantActionCard extends StatelessWidget {
             ),
           ],
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE3F2FD), // Light blue tint
-                borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE3F2FD), // Light blue tint
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: SvgPicture.asset(
+                  'assets/home-icons/Promo logo.svg',
+                  width: 24,
+                  height: 24,
+                ),
               ),
-              child: SvgPicture.asset(
-                'assets/home-icons/Promo logo.svg',
-                width: 24,
-                height: 24,
+              const SizedBox(width: 16),
+              const Text(
+                'Add Promotions Here',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
               ),
-            ),
-            const SizedBox(width: 16),
-            const Text(
-              'Add Promotions Here',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
