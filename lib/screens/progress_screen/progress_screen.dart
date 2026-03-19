@@ -8,7 +8,8 @@ import 'widgets/progress_map.dart';
 import 'widgets/order_details_sheet.dart';
 
 class ProgressScreen extends ConsumerStatefulWidget {
-  const ProgressScreen({super.key});
+  final bool isPickup;
+  const ProgressScreen({super.key, this.isPickup = true});
 
   @override
   ConsumerState<ProgressScreen> createState() => _ProgressScreenState();
@@ -27,7 +28,7 @@ class _ProgressScreenState extends ConsumerState<ProgressScreen> {
             const ProgressHeader(orderId: '175062474'),
             
             // Timeline
-            const StatusTimeline(currentStageIndex: 0),
+            StatusTimeline(currentStageIndex: 0, isPickup: widget.isPickup),
             
             // Time Estimation Text
             const TimeEstimation(),
@@ -36,8 +37,8 @@ class _ProgressScreenState extends ConsumerState<ProgressScreen> {
             Expanded(
               child: Stack(
                 children: [
-                  const ProgressMap(),
-                  const OrderDetailsSheet(),
+                  ProgressMap(isPickup: widget.isPickup),
+                  OrderDetailsSheet(isPickup: widget.isPickup),
                 ],
               ),
             ),
