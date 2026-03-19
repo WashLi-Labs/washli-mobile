@@ -4,12 +4,6 @@ import 'widgets/merchant_home_header.dart';
 import 'widgets/merchant_action_card.dart';
 import 'widgets/order_stats_card.dart';
 import 'widgets/recent_activity_card.dart';
-import '../merchant_activity/activities/activities.dart';
-import '../orders/orders.dart';
-import '../add_promotion/promotion.dart';
-import '../dashboard/dashboard.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../account/account_screen.dart';
 
 class MerchantHomeScreen extends StatefulWidget {
   const MerchantHomeScreen({super.key});
@@ -20,67 +14,8 @@ class MerchantHomeScreen extends StatefulWidget {
 
 class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
   int _selectedIndex = 0;
-  String _merchantName = "Fresh Wash\nLaundry";
-
-  @override
-  void initState() {
-    super.initState();
-    _loadMerchantName();
-  }
-
-  Future<void> _loadMerchantName() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _merchantName = prefs.getString('firstName') ?? "Fresh Wash\nLaundry";
-    });
-  }
 
   void _onItemTapped(int index) {
-    if (index == 1) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const OrdersScreen()),
-      ).then((_) {
-        setState(() {
-          _selectedIndex = 0;
-        });
-      });
-      return;
-    }
-    if (index == 2) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const ActivitiesScreen()),
-      ).then((_) {
-        // Reset index to Home when returning from Activities if desired
-        setState(() {
-          _selectedIndex = 0;
-        });
-      });
-      return;
-    }
-    if (index == 3) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const DashboardScreen()),
-      ).then((_) {
-        setState(() {
-          _selectedIndex = 0;
-        });
-      });
-      return;
-    }
-    if (index == 4) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => AccountScreen(role: "Merchant")),
-      ).then((_) {
-        setState(() {
-          _selectedIndex = 0;
-        });
-      });
-      return;
-    }
     setState(() {
       _selectedIndex = index;
     });
@@ -97,10 +32,10 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header
-                MerchantHomeHeader(merchantName: _merchantName),
+                const MerchantHomeHeader(merchantName: "Fresh Wash\nLaundry"),
 
                 // Spacing for Action Card intersection
-                const SizedBox(height: 60),
+                const SizedBox(height: 50),
 
                 // Orders Section
                 Padding(
@@ -125,34 +60,30 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
                         crossAxisSpacing: 16,
                         mainAxisSpacing: 16,
                         childAspectRatio: 1.45, // Adjust for card proportions
-                        children: [
+                        children: const [
                           OrderStatsCard(
                             title: 'Pending Orders',
                             count: '5',
                             subtitle: 'Awaiting confirmation',
                             dotColor: Colors.orange,
-                            onTap: () => _onItemTapped(1),
                           ),
                           OrderStatsCard(
                             title: 'In Progress',
                             count: '2',
                             subtitle: 'Being washing and Drying',
                             dotColor: Colors.blue,
-                            onTap: () => _onItemTapped(1),
                           ),
                           OrderStatsCard(
                             title: 'Completed',
                             count: '4',
                             subtitle: 'Delivered Successfully',
                             dotColor: Colors.green,
-                            onTap: () => _onItemTapped(1),
                           ),
                           OrderStatsCard(
                             title: 'Canceled',
                             count: '2',
                             subtitle: 'Marked as canceled',
                             dotColor: Colors.red,
-                            onTap: () => _onItemTapped(1),
                           ),
                         ],
                       ),
@@ -171,18 +102,12 @@ class _MerchantHomeScreenState extends State<MerchantHomeScreen> {
 
             // Action Card Positioning
             Positioned(
-              top: MediaQuery.of(context).size.height * 0.45 - 40,
-              left: (MediaQuery.of(context).size.width -
-                      (MediaQuery.of(context).size.width * 0.85)) /
+              top: MediaQuery.of(context).size.height * 0.40 - 40,
+              left:
+                  (MediaQuery.of(context).size.width -
+                      (MediaQuery.of(context).size.width * 0.75)) /
                   2,
-              child: MerchantActionCard(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const PromotionScreen()),
-                  );
-                },
-              ),
+              child: const MerchantActionCard(),
             ),
           ],
         ),
