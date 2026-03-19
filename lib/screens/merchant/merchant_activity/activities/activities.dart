@@ -89,6 +89,8 @@ class _ActivitiesScreenState extends State<ActivitiesScreen> with SingleTickerPr
             TabBar(
               controller: _tabController,
               isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              padding: const EdgeInsets.only(left: 8),
               labelColor: const Color(0xFF007BFF),
               unselectedLabelColor: Colors.grey,
               labelStyle: const TextStyle(

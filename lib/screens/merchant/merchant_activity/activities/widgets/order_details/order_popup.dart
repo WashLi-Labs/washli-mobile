@@ -1,28 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'customer_detail.dart';
 import 'item_details.dart';
 import '../../../../orders/widgets/order_accept_btn.dart';
 import '../../../../orders/widgets/order_cancel_btn.dart';
+import 'package:washli_mobile/providers/order_provider.dart';
 
-class OrderPopup extends StatelessWidget {
+class OrderPopup extends ConsumerWidget {
   final bool showActions;
+  final String? orderId;
 
   const OrderPopup({
     super.key,
     this.showActions = false,
+    this.orderId,
   });
 
-  static void show(BuildContext context, {bool showActions = false}) {
+  static void show(BuildContext context, {bool showActions = false, String? orderId}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => OrderPopup(showActions: showActions),
+      builder: (context) => OrderPopup(showActions: showActions, orderId: orderId),
     );
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.9,
       decoration: const BoxDecoration(
@@ -73,12 +77,22 @@ class OrderPopup extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 children: [
-                  if (showActions) ...[
+                  if (showActions && orderId != null) ...[
                     Row(
                       children: [
-                        OrderCancelButton(onTap: () => Navigator.pop(context)),
+                        OrderCancelButton(
+                          onTap: () {
+                            ref.read(orderProvider.notifier).updateOrderStatus(orderId!, 'Canceled');
+                            Navigator.pop(context);
+                          },
+                        ),
                         const SizedBox(width: 16),
-                        OrderAcceptButton(onTap: () => Navigator.pop(context)),
+                        OrderAcceptButton(
+                          onTap: () {
+                            ref.read(orderProvider.notifier).updateOrderStatus(orderId!, 'In Progress');
+                            Navigator.pop(context);
+                          },
+                        ),
                       ],
                     ),
                     const SizedBox(height: 24),

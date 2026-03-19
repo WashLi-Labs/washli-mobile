@@ -1,24 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'order_details/order_popup.dart';
+import 'package:washli_mobile/providers/order_provider.dart';
+import 'package:washli_mobile/screens/merchant/merchant_activity/activities/widgets/empty_state_widget.dart';
 
-class CompletedActivities extends StatelessWidget {
+class CompletedActivities extends ConsumerWidget {
   const CompletedActivities({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final orderState = ref.watch(orderProvider);
+    final completedOrders = orderState.pastOrders.where((o) => o.status == 'Completed').toList();
+
+    if (completedOrders.isEmpty) {
+      return const EmptyStateWidget(
+        icon: Icons.check_circle_outline,
+        title: 'No completed activities',
+        subtitle: 'Once an order is completed, you can find it here.',
+      );
+    }
+
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      itemCount: 2,
+      itemCount: completedOrders.length,
       itemBuilder: (context, index) {
+        final order = completedOrders[index];
         return GestureDetector(
-          onTap: () => OrderPopup.show(context),
-          child: _buildActivityCard('Completed'),
+          onTap: () => OrderPopup.show(context, orderId: order.id, showActions: false),
+          child: _buildActivityCard(order),
         );
       },
     );
   }
 
-  Widget _buildActivityCard(String status) {
+  Widget _buildActivityCard(OrderModel order) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -29,30 +44,30 @@ class CompletedActivities extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '#ORD-1523',
-                  style: TextStyle(
+                  order.orderId,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF2D2D3A),
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  '2 minutes ago',
-                  style: TextStyle(
+                  order.timeAgo,
+                  style: const TextStyle(
                     fontSize: 12,
                     color: Colors.grey,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  'Order ID - ORD1523 - RS.3500.00',
-                  style: TextStyle(
+                  order.orderDescription,
+                  style: const TextStyle(
                     fontSize: 12,
                     color: Colors.grey,
                   ),
