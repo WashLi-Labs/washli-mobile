@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../providers/cart_provider.dart';
+import '../../../../providers/payment_provider.dart';
 
 class OrderDetailsSheet extends ConsumerWidget {
   final bool isPickup;
@@ -9,6 +10,7 @@ class OrderDetailsSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cart = ref.watch(cartProvider);
+    final payment = ref.watch(paymentProvider);
     final deliveryFee = isPickup ? 150.00 : 0.00;
     final finalTotal = cart.totalAmount + deliveryFee;
 
@@ -53,7 +55,7 @@ class OrderDetailsSheet extends ConsumerWidget {
                   children: [
                     const CircleAvatar(
                       radius: 30,
-                      backgroundImage: AssetImage('assets/images/placeholder_merchant.png'), // Use standard placeholder if exists or network image
+                      backgroundImage: AssetImage('assets/images/placeholder_merchant.png'),
                       backgroundColor: Colors.grey,
                     ),
                     const SizedBox(width: 16),
@@ -141,7 +143,7 @@ class OrderDetailsSheet extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 
-                // Order Items bound to actual cart state
+                // Order Items
                 if (cart.items.isEmpty)
                   const Text('No items in order', style: TextStyle(color: Colors.grey))
                 else
@@ -201,22 +203,24 @@ class OrderDetailsSheet extends ConsumerWidget {
                 const Divider(color: Color(0xFFE5E7EB)),
                 const SizedBox(height: 16),
                 
-                // Defaulting Payment Method to 'Cash' as selected in CartScreen mockup
+                // Dynamic Payment Method from Provider
                 Row(
                   children: [
                     Container(
                       width: 32,
                       height: 24,
                       decoration: BoxDecoration(
-                        color: Colors.green.shade100,
+                        color: payment.selectedType == PaymentType.points ? Colors.orange.shade100 : Colors.blue.shade100,
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Icon(Icons.money, color: Colors.green, size: 20),
+                      child: payment.isSvg 
+                        ? const SizedBox() 
+                        : Image.asset(payment.iconPath, width: 20, height: 20, fit: BoxFit.contain),
                     ),
                     const SizedBox(width: 12),
-                    const Text(
-                      'Cash',
-                      style: TextStyle(
+                    Text(
+                      payment.displayName,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: Color(0xFF2D2D3A),
