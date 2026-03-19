@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
-import '../../services/database_service.dart';
+import '../../services/firebase/auth_service.dart';
+import '../../services/firebase/database_service.dart';
 import '../../widgets/buttons/back_button.dart';
 import '../../widgets/buttons/otp_verify_button.dart';
 import '../../widgets/input_fields/otp_pinput.dart';

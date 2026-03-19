@@ -17,7 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import '../../merchant/merchant_home/merchant_home.dart';
 import '../../merchant/merchant_home/widgets/merchant_nav_bar.dart';
-import '../../../services/database_service.dart';
+import '../../../services/firebase/database_service.dart';
 import '../../merchant/orders/orders.dart';
 import '../../merchant/merchant_activity/activities/activities.dart';
 import '../../merchant/dashboard/dashboard.dart';
