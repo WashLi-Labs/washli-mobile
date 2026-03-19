@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'order_details/order_popup.dart';
 import 'package:washli_mobile/providers/order_provider.dart';
-import 'package:washli_mobile/widgets/empty_state_widget.dart';
+import 'package:washli_mobile/screens/merchant/merchant_activity/activities/widgets/empty_state_widget.dart';
+
 
 class CanceledActivities extends ConsumerWidget {
   const CanceledActivities({super.key});
