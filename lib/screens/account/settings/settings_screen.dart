@@ -6,6 +6,8 @@ import '../../../services/auth_service.dart';
 import 'widgets/settings_menu_item.dart';
 import 'widgets/settings_profile_header.dart';
 import 'widgets/settings_section.dart';
+import 'add_home/add_home_screen.dart';
+import '../../../widgets/buttons/back_button.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -41,57 +43,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
-  Future<void> _signOut() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text(
-          'Sign Out',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        content: const Text('Are you sure you want to sign out?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: Color(0xFF007DFC)),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFE53935),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text(
-              'Sign Out',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && mounted) {
-      // Clear preferences and sign out from Firebase
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
-      await AuthService().signOut();
-
-      if (mounted) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const RoleScreen()),
-          (route) => false,
-        );
-      }
-    }
-  }
-
   void _showComingSoon(String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -119,28 +70,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: Row(
                 children: [
-                  InkWell(
-                    onTap: () => Navigator.pop(context),
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0x0F000000), // black 6%
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        size: 18,
-                        color: Color(0xFF1A1A2E),
-                      ),
-                    ),
+                  CustomBackButton(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
                   ),
                   const SizedBox(width: 14),
                   const Text(
@@ -204,18 +137,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ],
                     ),
 
-                    // ── Account Section ──
-                    SettingsSection(
-                      title: 'ACCOUNT',
-                      items: [
-                        SettingsMenuItem(
-                          icon: Icons.logout_rounded,
-                          title: 'Sign Out',
-                          isDestructive: true,
-                          onTap: _signOut,
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),
