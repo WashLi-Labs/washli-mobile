@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:washli_mobile/providers/cart_provider.dart';
 import 'package:washli_mobile/providers/location_provider.dart';
@@ -13,6 +14,7 @@ import 'split_my_bill/split_my_bill_section.dart';
 import 'widgets/bill_summary.dart';
 import 'widgets/payment_method_selector.dart';
 import 'widgets/clear_cart_popup.dart';
+import '../progress_screen/progress_screen.dart';
 
 class CartScreen extends ConsumerStatefulWidget {
   const CartScreen({super.key});
@@ -207,32 +209,97 @@ class _CartScreenState extends ConsumerState<CartScreen> {
             ),
             
             // Bottom Action
-            Padding(
+            Container(
               padding: const EdgeInsets.all(24.0),
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: cart.items.isEmpty ? null : () {
-                    // Action logic
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0062FF),
-                    disabledBackgroundColor: Colors.grey[300],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              decoration: const BoxDecoration(
+                color: Color(0xFFEAEFF3), // Aligning with location styling palette
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Bound Location Preview Row
+                  GestureDetector(
+                    onTap: _showLocationSheet,
+                    child: Row(
+                      children: [
+                        SvgPicture.asset(
+                          'assets/icons/location_pin.svg',
+                          width: 20,
+                          height: 20,
+                          colorFilter: const ColorFilter.mode(Color(0xFF2D2D3A), BlendMode.srcIn),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _isPickup ? 'Delivering to' : 'Picking up from',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF2D2D3A),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                locState.subAddress.isEmpty ? locState.address : '${locState.address}, ${locState.subAddress}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[700],
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.black54),
+                      ],
                     ),
-                    elevation: 0,
                   ),
-                  child: Text(
-                    _isPickup ? 'Confirm Delivery Location' : 'Self Pickup Your Order',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                  
+                  const SizedBox(height: 16),
+                  
+                  // ORIGINAL Confirm Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: cart.items.isEmpty ? null : () {
+                        if (locState.address == 'Select Location' || locState.address == 'Loading location...') {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please select a valid delivery/pickup location.')),
+                          );
+                          return;
+                        }
+                        
+                        // Proceed to Progress Screen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const ProgressScreen()),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0062FF),
+                        disabledBackgroundColor: Colors.grey[300],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        _isPickup ? 'Place Order' : 'Self Deliver Your Order',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
           ],
