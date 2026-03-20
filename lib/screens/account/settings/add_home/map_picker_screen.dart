@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import '../../../../widgets/buttons/back_button.dart';
 
 class MapPickerScreen extends StatefulWidget {
   const MapPickerScreen({super.key});
@@ -12,7 +12,7 @@ class MapPickerScreen extends StatefulWidget {
 }
 
 class _MapPickerScreenState extends State<MapPickerScreen> {
-  final MapController _mapController = MapController();
+  GoogleMapController? _mapController;
   
   // Default to Colombo, Sri Lanka
   LatLng _center = const LatLng(6.9271, 79.8612);
@@ -44,8 +44,10 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
       final position = await Geolocator.getCurrentPosition();
       setState(() {
         _center = LatLng(position.latitude, position.longitude);
-        _mapController.move(_center, 15.0);
       });
+      _mapController?.animateCamera(
+        CameraUpdate.newLatLngZoom(_center, 15.0),
+      );
       _updateAddress(_center);
     } catch (e) {
       // Ignore
@@ -53,6 +55,9 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
   }
 
   Future<void> _updateAddress(LatLng position) async {
+    setState(() {
+      _currentAddress = "Loading...";
+    });
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(
         position.latitude,
@@ -71,6 +76,10 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
             _currentAddress = p.country ?? "Unknown location";
           }
         });
+      } else {
+        setState(() {
+          _currentAddress = "Unknown location";
+        });
       }
     } catch (e) {
       setState(() {
@@ -81,52 +90,35 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
 
   void _onDone() async {
     setState(() => _isLoading = true);
-    
-    // Reverse geocode final center position
-    final center = _mapController.camera.center;
-    
-    try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        center.latitude,
-        center.longitude,
-      );
-      if (placemarks.isNotEmpty) {
-        final p = placemarks.first;
-        final address = [p.street, p.subLocality, p.locality].where((e) => e != null && e.isNotEmpty).join(', ');
-        if (mounted) Navigator.pop(context, address);
-        return;
-      }
-    } catch (e) {
-       // Fallback
-    }
-
-    if (mounted) Navigator.pop(context, "Selected Location");
+    if (mounted) Navigator.pop(context, _currentAddress);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF5F7FB),
       body: Stack(
         children: [
-          // Background Map
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: _center,
-              initialZoom: 15.0,
-              onPositionChanged: (pos, hasGesture) {
-                if (hasGesture) {
-                  _updateAddress(pos.center);
-                }
-              },
+          // Background Google Map
+          GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: _center,
+              zoom: 15.0,
             ),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.washli.washli_mobile',
-              ),
-            ],
+            onMapCreated: (GoogleMapController controller) {
+              _mapController = controller;
+            },
+            onCameraMove: (CameraPosition position) {
+              _center = position.target;
+            },
+            onCameraIdle: () {
+              _updateAddress(_center);
+            },
+            myLocationEnabled: true,
+            myLocationButtonEnabled: false,
+            zoomControlsEnabled: false,
+            mapToolbarEnabled: false,
+            compassEnabled: false,
           ),
 
           // Fixed Center Pin
@@ -136,73 +128,68 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
               child: Icon(
                 Icons.location_on,
                 size: 44,
-                color: Color(0xFF1A1A2E), // Match dark grey pin from design
+                color: Color(0xFF007DFC), // WashLi primary blue
               ),
             ),
           ),
 
-          // Top Back button
+          // Top Header (Back + Title/Search placeholder)
           Positioned(
             top: MediaQuery.of(context).padding.top + 10,
             left: 16,
-            child: SafeArea(
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(color: Colors.black12, blurRadius: 8),
-                  ],
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  color: const Color(0xFF1A1A2E),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ),
-            ),
-          ),
-
-          // Search bar overlay (top)
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 10,
-            left: 64,
             right: 16,
-            child: SafeArea(
-              child: Container(
-                height: 48,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1A1A2E).withAlpha(220),
-                  borderRadius: BorderRadius.circular(8),
+            child: Row(
+              children: [
+                CustomBackButton(
+                  onTap: () => Navigator.pop(context),
                 ),
-                alignment: Alignment.centerLeft,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: const Text(
-                  'Search location',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 15,
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Container(
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x0A000000), // black 4%
+                          blurRadius: 10,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.centerLeft,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: const Text(
+                      'Search location',
+                      style: TextStyle(
+                        color: Color(0xFF9CA3AF),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
           ),
 
           // Bottom Sheet / Done Button
           Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
+            bottom: 30,
+            left: 20,
+            right: 20,
             child: Container(
-              padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).padding.bottom + 20),
-              decoration: const BoxDecoration(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(24),
-                  topRight: Radius.circular(24),
-                ),
-                boxShadow: [
-                  BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -2))
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x14000000), // black 8%
+                    blurRadius: 20,
+                    offset: Offset(0, 8),
+                  )
                 ],
               ),
               child: Column(
@@ -210,40 +197,63 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Address preview
-                  Text(
-                    _currentAddress,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      color: Color(0xFF1A1A2E),
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFF0F6FF),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.my_location_rounded,
+                          color: Color(0xFF007DFC),
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          _currentAddress,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: Color(0xFF1A1A2E),
+                            fontWeight: FontWeight.w600,
+                            height: 1.3,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: _isLoading ? null : _onDone,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFE5E7EB), // Light grey "Done" button per screenshot
-                      foregroundColor: const Color(0xFF1A1A2E),
+                      backgroundColor: const Color(0xFF007DFC), // App primary blue
+                      foregroundColor: Colors.white,
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16), // Rounded button
                       ),
                     ),
                     child: _isLoading
                         ? const SizedBox(
                             width: 20,
                             height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
                           )
                         : const Text(
-                            'Done',
+                            'Confirm Location',
                             style: TextStyle(
                               fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
                             ),
                           ),
                   ),
