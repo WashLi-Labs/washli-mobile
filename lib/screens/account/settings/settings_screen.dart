@@ -8,6 +8,7 @@ import 'widgets/settings_profile_header.dart';
 import 'widgets/settings_section.dart';
 import 'add_home/add_home_screen.dart';
 import 'add_work/add_work_screen.dart';
+import 'legal/legal_screen.dart';
 import '../../../widgets/buttons/back_button.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -175,7 +176,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           icon: Icons.gavel_rounded,
                           title: 'Legal',
                           subtitle: 'Terms, Privacy & Policies',
-                          onTap: () => _showComingSoon('Legal'),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const LegalScreen(),
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
