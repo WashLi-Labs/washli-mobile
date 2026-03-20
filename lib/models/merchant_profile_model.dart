@@ -192,8 +192,8 @@ class MerchantProfileModel {
     final rawHours = map['operatingHours'];
     if (rawHours is List) {
       for (final item in rawHours) {
-        if (item is Map<String, dynamic>) {
-          hours.add(DayOperatingHours.fromMap(item));
+        if (item is Map) {
+          hours.add(DayOperatingHours.fromMap(Map<String, dynamic>.from(item)));
         }
       }
     }
@@ -201,8 +201,8 @@ class MerchantProfileModel {
     // Parse location sub-map
     MerchantLocation? loc;
     final rawLoc = map['location'];
-    if (rawLoc is Map<String, dynamic>) {
-      loc = MerchantLocation.fromMap(rawLoc);
+    if (rawLoc is Map) {
+      loc = MerchantLocation.fromMap(Map<String, dynamic>.from(rawLoc));
     }
 
     // Safely parse itemImages — handle String, List, or null

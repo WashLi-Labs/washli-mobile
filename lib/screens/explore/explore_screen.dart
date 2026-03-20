@@ -53,6 +53,16 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
       'statusColor': Colors.red,
       'address': m.outletAddress,
       'menuDocument': m.menuDocument ?? '',
+      'logo': m.outletLogo,
+      'lat': m.location?.lat,
+      'lng': m.location?.lng,
+      'phone': m.managerPhone,
+      'operatingHours': m.operatingHours.map((h) => {
+        'day': h.day,
+        'isOpen': h.isOpen,
+        'openTime': h.openTime,
+        'closeTime': h.closeTime,
+      }).toList(),
       'services': const <Map<String, dynamic>>[],
     };
   }
