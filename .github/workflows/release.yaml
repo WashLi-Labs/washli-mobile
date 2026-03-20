@@ -1,0 +1,66 @@
+name: Flutter Release
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify merge source is main
+        run: |
+          if [ "${{ github.event.repository.default_branch }}" != "main" ]; then
+            echo "Default branch check passed"
+          fi
+          # Check the base ref that triggered this push
+          echo "Triggered by: ${{ github.ref }}"
+          echo "Head commit: ${{ github.sha }}"
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2   # need this to check parent commits
+
+      - name: Check commit came from main
+        run: |
+          PARENT=$(git log --oneline -1 --merges --format="%P" | awk '{print $2}')
+          MAIN_TIP=$(git rev-parse origin/main)
+          if [ "$PARENT" != "$MAIN_TIP" ]; then
+            echo "ERROR: master must only be updated via PR from main"
+            exit 1
+          fi
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.38.7'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/washli-release-key.jks
+
+      - name: Write key.properties
+        run: |
+          cat > android/key.properties <<EOF
+          storePassword=${{ secrets.STORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=release.jks
+          EOF
+
+      - name: Build release AAB
+        run: flutter build appbundle --release
+
+      # - name: Upload to Play Store
+      #   uses: r0adkll/upload-google-play@v1
+      #   with:
+      #     serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT }}
+      #     packageName: com.yourcompany.yourapp
+      #     releaseFiles: build/app/outputs/bundle/release/app-release.aab
+      #     track: production
