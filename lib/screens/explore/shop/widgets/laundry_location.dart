@@ -2,15 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class LaundryLocationMap extends StatefulWidget {
-  const LaundryLocationMap({super.key});
+  final double? lat;
+  final double? lng;
+
+  const LaundryLocationMap({super.key, this.lat, this.lng});
 
   @override
   State<LaundryLocationMap> createState() => _LaundryLocationMapState();
 }
 
 class _LaundryLocationMapState extends State<LaundryLocationMap> {
-  // Coordinates for Maharagama based on the static data
-  static const LatLng _initialPosition = LatLng(6.8480, 79.9265);
+  // Fallback coordinates for Maharagama
+  static const LatLng _fallbackPosition = LatLng(6.8480, 79.9265);
+
+  LatLng get _targetPosition => (widget.lat != null && widget.lng != null)
+      ? LatLng(widget.lat!, widget.lng!)
+      : _fallbackPosition;
 
   @override
   Widget build(BuildContext context) {
@@ -23,14 +30,14 @@ class _LaundryLocationMapState extends State<LaundryLocationMap> {
       ),
       clipBehavior: Clip.hardEdge,
       child: GoogleMap(
-        initialCameraPosition: const CameraPosition(
-          target: _initialPosition,
+        initialCameraPosition: CameraPosition(
+          target: _targetPosition,
           zoom: 14.0,
         ),
         markers: {
-          const Marker(
-            markerId: MarkerId('laundry_location'),
-            position: _initialPosition,
+          Marker(
+            markerId: const MarkerId('laundry_location'),
+            position: _targetPosition,
           ),
         },
         myLocationButtonEnabled: false,

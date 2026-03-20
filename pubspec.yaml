@@ -52,6 +52,8 @@ dependencies:
   url_launcher: ^6.3.2
   flutter_riverpod: ^3.3.1
   google_maps_flutter: ^2.15.0
+  http: ^1.2.2
+  excel: ^4.0.6
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -79,6 +81,7 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/home-icons/
+    - assets/laundry_items/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -9,21 +9,36 @@ class ShopHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double imageHeight = MediaQuery.of(context).size.height * 0.28;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Banner Image
+        // Banner Image — responsive height (28% of screen)
         Stack(
           clipBehavior: Clip.none,
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(0),
-              child: Image.asset(
-                laundry['image'] ?? 'assets/images/laundry shop.png',
-                width: double.infinity,
-                height: 250,
-                fit: BoxFit.cover,
-              ),
+              child: laundry['isNetworkImage'] == true
+                  ? Image.network(
+                      laundry['image'] as String,
+                      width: double.infinity,
+                      height: imageHeight,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Image.asset(
+                        'assets/images/laundry shop.png',
+                        width: double.infinity,
+                        height: imageHeight,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  : Image.asset(
+                      laundry['image'] ?? 'assets/images/laundry shop.png',
+                      width: double.infinity,
+                      height: imageHeight,
+                      fit: BoxFit.cover,
+                    ),
             ),
             Positioned(
               bottom: -15,
@@ -70,26 +85,24 @@ class ShopHeader extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // Delivery & Fee Row
+              // Delivery options row
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      _buildIconText(Icons.local_shipping_outlined, "Delivery"),
-                      const SizedBox(width: 16),
-                      _buildIconText(Icons.directions_walk, "Self Pickup"),
-                    ],
-                  ),
-                  Text(
-                    'Fee : ${laundry['fee']}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2D2D3A),
-                    ),
-                  ),
+                  _buildIconText(Icons.local_shipping_outlined, "Delivery"),
+                  const SizedBox(width: 16),
+                  _buildIconText(Icons.directions_walk, "Self Pickup"),
                 ],
+              ),
+              const SizedBox(height: 8),
+
+              // Fee on its own line
+              Text(
+                'Fee : ${laundry['fee']}',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2D2D3A),
+                ),
               ),
               const SizedBox(height: 16),
 

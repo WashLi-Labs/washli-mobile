@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../widgets/buttons/back_button.dart';
 import 'widgets/laundry_location.dart';
 
@@ -31,12 +32,25 @@ class MoreInfoScreen extends StatelessWidget {
                 clipBehavior: Clip.none,
                 children: [
                   // Cover Image
-                  Image.asset(
-                    laundry['image'] ?? 'assets/images/laundry shop.png',
-                    width: double.infinity,
-                    height: 200,
-                    fit: BoxFit.cover,
-                  ),
+                  laundry['isNetworkImage'] == true
+                      ? Image.network(
+                          laundry['image'] as String,
+                          width: double.infinity,
+                          height: 200,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Image.asset(
+                            'assets/images/laundry shop.png',
+                            width: double.infinity,
+                            height: 200,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : Image.asset(
+                          laundry['image'] ?? 'assets/images/laundry shop.png',
+                          width: double.infinity,
+                          height: 200,
+                          fit: BoxFit.cover,
+                        ),
                   // Profile Picture
                   Positioned(
                     bottom: -30,
@@ -45,14 +59,32 @@ class MoreInfoScreen extends StatelessWidget {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: Colors.white, width: 4),
-                        image: DecorationImage(
-                          image: AssetImage(
-                            laundry['profile'] ?? 'assets/images/profile1.png', 
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
                           ),
-                          fit: BoxFit.cover,
-                        ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: laundry['logo'] != null && (laundry['logo'] as String).isNotEmpty
+                            ? Image.network(
+                                laundry['logo'] as String,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Image.asset(
+                                  'assets/images/profile1.png',
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : Image.asset(
+                                'assets/images/profile1.png',
+                                fit: BoxFit.cover,
+                              ),
                       ),
                     ),
                   ),
@@ -67,26 +99,28 @@ class MoreInfoScreen extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          laundry['name'] ?? 'Wijesinghe Laundry',
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF2D2D3A),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            laundry['name'] ?? 'Laundry',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF2D2D3A),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Colombo', // fallback static value
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
+                          const SizedBox(height: 4),
+                          Text(
+                            laundry['city'] ?? 'Colombo',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     _buildCircleIcon(Icons.phone_outlined),
                   ],
@@ -148,32 +182,49 @@ class MoreInfoScreen extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            laundry['address'] ?? 'No 24, Dehiwala Road, Maharagama',
+                            laundry['address'] ?? 'No Address Provided',
                             style: const TextStyle(
                               fontSize: 14,
                               color: Color(0xFF2D2D3A),
                             ),
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.directions_off_outlined, size: 16, color: Colors.grey[600]), // using somewhat matched icon
-                              const SizedBox(width: 4),
-                              Text(
-                                'Direction',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
+                        GestureDetector(
+                          onTap: () async {
+                            final lat = laundry['lat'];
+                            final lng = laundry['lng'];
+                            if (lat != null && lng != null) {
+                              final url = 'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng';
+                              final uri = Uri.parse(url);
+                              // ignore: deprecated_member_use
+                              if (await canLaunchUrl(uri)) {
+                                // ignore: deprecated_member_use
+                                await launchUrl(uri, mode: LaunchMode.externalApplication);
+                              } else {
+                                debugPrint('Could not launch directions URL: $url');
+                              }
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.directions_outlined, size: 16, color: Colors.grey[600]),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Direction',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -199,9 +250,27 @@ class MoreInfoScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    _buildInfoRow('Monday - Friday', '10.00 AM - 10.00 PM'),
-                    const SizedBox(height: 8),
-                    _buildInfoRow('Saturday', '10.00 AM - 10.00 PM'),
+                    if (laundry['operatingHours'] != null && (laundry['operatingHours'] as List).isNotEmpty)
+                      ...(laundry['operatingHours'] as List).map((h) {
+                        final hours = h as Map<String, dynamic>;
+                        final day = hours['day'] ?? '—';
+                        final isOpen = hours['isOpen'] == true;
+                        final openTime = hours['openTime'] ?? '';
+                        final closeTime = hours['closeTime'] ?? '';
+                        
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: _buildInfoRow(
+                            day, 
+                            isOpen ? '$openTime - $closeTime' : 'Closed'
+                          ),
+                        );
+                      })
+                    else
+                      const Text(
+                        'Not specified',
+                        style: TextStyle(color: Colors.grey),
+                      ),
                   ],
                 ),
               ),
@@ -223,7 +292,10 @@ class MoreInfoScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const LaundryLocationMap(),
+                    LaundryLocationMap(
+                      lat: laundry['lat'] as double?,
+                      lng: laundry['lng'] as double?,
+                    ),
                     const SizedBox(height: 16),
                     _buildIconInfoRow(Icons.access_time_outlined, 'Estimated delivery time', 'Est : 50 mins'),
                     const SizedBox(height: 8),
@@ -260,7 +332,14 @@ class MoreInfoScreen extends StatelessWidget {
                             color: Color(0xFF2D2D3A),
                           ),
                         ),
-                        _buildCircleIcon(Icons.phone_outlined),
+                        Text(
+                          laundry['phone'] ?? '—',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF2D2D3A),
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
