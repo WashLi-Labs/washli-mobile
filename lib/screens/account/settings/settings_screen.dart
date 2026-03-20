@@ -7,6 +7,7 @@ import 'widgets/settings_menu_item.dart';
 import 'widgets/settings_profile_header.dart';
 import 'widgets/settings_section.dart';
 import 'add_home/add_home_screen.dart';
+import 'add_work/add_work_screen.dart';
 import '../../../widgets/buttons/back_button.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -22,6 +23,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _email = '';
   String _phone = '';
   File? _profileImage;
+  String _homeAddress = '';
+  String _workAddress = '';
 
   @override
   void initState() {
@@ -36,6 +39,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _lastName = prefs.getString('lastName') ?? '';
       _email = prefs.getString('email') ?? '';
       _phone = prefs.getString('phone') ?? '';
+      _homeAddress = prefs.getString('homeAddress') ?? '';
+      _workAddress = prefs.getString('workAddress') ?? '';
       final path = prefs.getString('profileImagePath');
       if (path != null && path.isNotEmpty) {
         _profileImage = File(path);
@@ -110,16 +115,54 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       items: [
                         SettingsMenuItem(
                           icon: Icons.home_rounded,
-                          title: 'Add Home',
-                          subtitle: 'Set your home address',
-                          onTap: () => _showComingSoon('Add Home'),
+                          title: _homeAddress.isEmpty ? 'Add Home' : 'Home',
+                          subtitle: _homeAddress.isEmpty ? 'Set your home address' : _homeAddress,
+                          onTap: () async {
+                            final result = await Navigator.push<String>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const AddHomeScreen(),
+                              ),
+                            );
+                            if (result != null && result.isNotEmpty && mounted) {
+                              setState(() {
+                                _homeAddress = result;
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Home address updated successfully!'),
+                                  backgroundColor: Color(0xFF007DFC),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          },
                         ),
                         const SizedBox(height: 4),
                         SettingsMenuItem(
                           icon: Icons.work_rounded,
-                          title: 'Add Work',
-                          subtitle: 'Set your work address',
-                          onTap: () => _showComingSoon('Add Work'),
+                          title: _workAddress.isEmpty ? 'Add Work' : 'Work',
+                          subtitle: _workAddress.isEmpty ? 'Set your work address' : _workAddress,
+                          onTap: () async {
+                            final result = await Navigator.push<String>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const AddWorkScreen(),
+                              ),
+                            );
+                            if (result != null && result.isNotEmpty && mounted) {
+                              setState(() {
+                                _workAddress = result;
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Work address updated successfully!'),
+                                  backgroundColor: Color(0xFF007DFC),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          },
                         ),
                       ],
                     ),

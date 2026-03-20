@@ -1,41 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'map_picker_screen.dart';
-import 'widgets/recent_place_tile.dart';
+import '../add_home/map_picker_screen.dart';
+import '../add_home/widgets/recent_place_tile.dart';
 import '../../../../widgets/buttons/back_button.dart';
 
-class AddHomeScreen extends StatefulWidget {
-  const AddHomeScreen({super.key});
+class AddWorkScreen extends StatefulWidget {
+  const AddWorkScreen({super.key});
 
   @override
-  State<AddHomeScreen> createState() => _AddHomeScreenState();
+  State<AddWorkScreen> createState() => _AddWorkScreenState();
 }
 
-class _AddHomeScreenState extends State<AddHomeScreen> {
+class _AddWorkScreenState extends State<AddWorkScreen> {
   final TextEditingController _searchController = TextEditingController();
 
-  // Mock recent data
+  // Mock recent data for work locations
   final List<Map<String, String>> _recentPlaces = [
     {
-      'name': 'NETWORXX (Pvt) Ltd..',
-      'address': '22/5 Sujatha Ave, Dehiwala-Mount Lavinia',
-      'distance': '2.8 mi',
+      'name': 'WTC Colombo',
+      'address': 'Echelon Square, Colombo 01',
+      'distance': '1.2 mi',
     },
     {
-      'name': 'DSSC - Club House',
-      'address': 'WV59+8CF, Vidya Mawatha, Colombo',
-      'distance': '1.7 mi',
+      'name': 'Dialog Axiata PLC',
+      'address': 'Union Place, Colombo 02',
+      'distance': '2.4 mi',
     },
     {
-      'name': 'LOLC Technologies Ltd',
-      'address': '137 Rajagiriya Rd, Sri Jayawardenepura Kotte',
-      'distance': '3.9 mi',
+      'name': 'Hatch Works',
+      'address': '14 Sir Baron Jayatilaka Mawatha, Colombo',
+      'distance': '1.5 mi',
     },
   ];
 
   Future<void> _saveLocationAndPop(String address) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('homeAddress', address);
+    await prefs.setString('workAddress', address);
     if (mounted) {
       Navigator.pop(context, address);
     }
@@ -75,7 +75,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                         controller: _searchController,
                         autofocus: true,
                         decoration: const InputDecoration(
-                          hintText: 'Enter home location',
+                          hintText: 'Enter work location',
                           hintStyle: TextStyle(
                             color: Color(0xFF9CA3AF),
                             fontSize: 15,
