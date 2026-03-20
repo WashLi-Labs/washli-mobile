@@ -1,42 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../models/merchant_profile_model.dart';
+import '../../../providers/merchants_list_provider.dart';
+import '../../../services/firebase/merchant_firebase_service.dart';
 import '../../explore/explore_screen.dart';
 
-class NearbyLaundryCard extends StatelessWidget {
+class NearbyLaundryCard extends ConsumerWidget {
   const NearbyLaundryCard({super.key});
 
-  final List<Map<String, String>> laundries = const [
-    {
-      'name': 'Wijerama Laundry',
-      'address': 'No.07, Wijerama Junction, Nugegoda',
-      'distance': '3km away',
-      'image': 'assets/images/shop1.jpg',
-    },
-    {
-      'name': 'Clean & Shine',
-      'address': '12/A, High Level Road, Nugegoda',
-      'distance': '1.2km away',
-      'image': 'assets/images/shop1.jpg', // Placeholder
-    },
-    {
-      'name': 'Quick Wash Hub',
-      'address': 'No.45, Pagoda Road, Nugegoda',
-      'distance': '2.5km away',
-      'image': 'assets/images/shop1.jpg', // Placeholder
-    },
-    {
-      'name': 'City Laundromat',
-      'address': '88, Stanley Tilakaratne Mawatha',
-      'distance': '0.8km away',
-      'image': 'assets/images/shop1.jpg', // Placeholder
-    },
-  ];
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final merchantsAsync = ref.watch(nearbyMerchantsProvider);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Section header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -49,80 +30,182 @@ class NearbyLaundryCard extends StatelessWidget {
                 ),
               ),
               TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const ExploreScreen()),
-                  );
-                },
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ExploreScreen()),
+                ),
                 child: const Text('See all'),
               ),
             ],
           ),
+
           const SizedBox(height: 8),
-          ...laundries.map((laundry) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Container(
-              height: 100,
-              decoration: BoxDecoration(
-                color: const Color(0xFFE3F2FD).withOpacity(0.4), // Very light blue background
-                borderRadius: BorderRadius.circular(20),
+
+          merchantsAsync.when(
+            loading: () => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (_, __) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: Column(
+                  children: [
+                    const Text('Could not load laundries.',
+                        style: TextStyle(color: Colors.grey)),
+                    TextButton(
+                      onPressed: () => ref.invalidate(nearbyMerchantsProvider),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
               ),
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          laundry['name']!,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF2D2D3A),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          laundry['address']!,
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey[700],
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                         const SizedBox(height: 2),
-                         Text(
-                          laundry['distance']!,
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                      ],
-                    ),
+            ),
+            data: (items) {
+              if (items.isEmpty) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Center(
+                    child: Text('No laundries available yet.',
+                        style: TextStyle(color: Colors.grey)),
                   ),
-                   Expanded(
-                    flex: 2,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.asset(
-                        laundry['image']!,
-                        height: double.infinity,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
+                );
+              }
+              // Show up to 4 nearest on home screen
+              final preview = items.take(4).toList();
+              return Column(
+                children: preview
+                    .map((item) => _LaundryRow(item: item))
+                    .toList(),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Individual row card
+// ─────────────────────────────────────────────────────────────
+
+class _LaundryRow extends StatelessWidget {
+  final MerchantWithDistance item;
+  const _LaundryRow({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final MerchantProfileModel m = item.merchant;
+    final bool hasNetworkImage =
+        m.outletLogo != null && m.outletLogo!.isNotEmpty;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Container(
+        height: 100,
+        decoration: BoxDecoration(
+          color: const Color(0xFFE3F2FD).withOpacity(0.4),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            // ── Text info ──
+            Expanded(
+              flex: 3,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    m.outletName.isNotEmpty ? m.outletName : 'Laundry',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2D2D3A),
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    m.outletAddress.isNotEmpty ? m.outletAddress : m.city,
+                    style: TextStyle(fontSize: 10, color: Colors.grey[700]),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 3),
+                  Row(
+                    children: [
+                      // Distance badge
+                      if (item.distanceLabel.isNotEmpty) ...[
+                        const Icon(Icons.near_me,
+                            size: 10, color: Color(0xFF2688EA)),
+                        const SizedBox(width: 2),
+                        Flexible(
+                          child: Text(
+                            item.distanceLabel,
+                            style: const TextStyle(
+                                fontSize: 10, color: Color(0xFF2688EA)),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      // Open/closed badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: m.isActive
+                              ? Colors.green.withOpacity(0.12)
+                              : Colors.red.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          m.isActive ? 'Open' : 'Closed',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: m.isActive ? Colors.green : Colors.red,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-          )),
-        ],
+
+            // ── Thumbnail ──
+            Expanded(
+              flex: 2,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: hasNetworkImage
+                    ? Image.network(
+                        m.outletLogo!,
+                        height: double.infinity,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Image.asset(
+                          'assets/images/shop1.jpg',
+                          height: double.infinity,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : Image.asset(
+                        'assets/images/shop1.jpg',
+                        height: double.infinity,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
