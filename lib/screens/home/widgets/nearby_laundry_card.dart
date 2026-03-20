@@ -4,6 +4,7 @@ import '../../../models/merchant_profile_model.dart';
 import '../../../providers/merchants_list_provider.dart';
 import '../../../services/firebase/merchant_firebase_service.dart';
 import '../../explore/explore_screen.dart';
+import '../../explore/shop/shop_details_screen.dart';
 
 class NearbyLaundryCard extends ConsumerWidget {
   const NearbyLaundryCard({super.key});
@@ -84,6 +85,36 @@ class NearbyLaundryCard extends ConsumerWidget {
       ),
     );
   }
+
+  /// Converts a [MerchantWithDistance] to the format expected by ShopDetailsScreen.
+  Map<String, dynamic> _toShopCardMap(MerchantWithDistance item) {
+    final m = item.merchant;
+    return {
+      'name': m.outletName.isNotEmpty ? m.outletName : 'Laundry',
+      'image': m.outletLogo?.isNotEmpty == true
+          ? m.outletLogo
+          : 'assets/images/laundry shop.png',
+      'isNetworkImage': m.outletLogo?.isNotEmpty == true,
+      'fee': 'Contact for pricing',
+      'time': item.distanceLabel.isNotEmpty ? item.distanceLabel : 'Varies',
+      'likes': m.city.isNotEmpty ? m.city : '—',
+      'status': m.isActive ? null : 'Closed',
+      'statusColor': Colors.red,
+      'address': m.outletAddress,
+      'menuDocument': m.menuDocument ?? '',
+      'logo': m.outletLogo,
+      'lat': m.location?.lat,
+      'lng': m.location?.lng,
+      'phone': m.managerPhone,
+      'operatingHours': m.operatingHours.map((h) => {
+            'day': h.day,
+            'isOpen': h.isOpen,
+            'openTime': h.openTime,
+            'closeTime': h.closeTime,
+          }).toList(),
+      'services': const <Map<String, dynamic>>[],
+    };
+  }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -108,103 +139,118 @@ class _LaundryRow extends StatelessWidget {
           color: const Color(0xFFE3F2FD).withOpacity(0.4),
           borderRadius: BorderRadius.circular(20),
         ),
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            // ── Text info ──
-            Expanded(
-              flex: 3,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    m.outletName.isNotEmpty ? m.outletName : 'Laundry',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2D2D3A),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    m.outletAddress.isNotEmpty ? m.outletAddress : m.city,
-                    style: TextStyle(fontSize: 10, color: Colors.grey[700]),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 3),
-                  Row(
+        child: InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ShopDetailsScreen(
+                  laundry: NearbyLaundryCard()._toShopCardMap(item),
+                ),
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                // ── Text info ──
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Distance badge
-                      if (item.distanceLabel.isNotEmpty) ...[
-                        const Icon(Icons.near_me,
-                            size: 10, color: Color(0xFF2688EA)),
-                        const SizedBox(width: 2),
-                        Flexible(
-                          child: Text(
-                            item.distanceLabel,
-                            style: const TextStyle(
-                                fontSize: 10, color: Color(0xFF2688EA)),
-                            overflow: TextOverflow.ellipsis,
+                      Text(
+                        m.outletName.isNotEmpty ? m.outletName : 'Laundry',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2D2D3A),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        m.outletAddress.isNotEmpty ? m.outletAddress : m.city,
+                        style: TextStyle(fontSize: 10, color: Colors.grey[700]),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          // Distance badge
+                          if (item.distanceLabel.isNotEmpty) ...[
+                            const Icon(Icons.near_me,
+                                size: 10, color: Color(0xFF2688EA)),
+                            const SizedBox(width: 2),
+                            Flexible(
+                              child: Text(
+                                item.distanceLabel,
+                                style: const TextStyle(
+                                    fontSize: 10, color: Color(0xFF2688EA)),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                          // Open/closed badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: m.isActive
+                                  ? Colors.green.withOpacity(0.12)
+                                  : Colors.red.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              m.isActive ? 'Open' : 'Closed',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: m.isActive ? Colors.green : Colors.red,
+                              ),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                      ],
-                      // Open/closed badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: m.isActive
-                              ? Colors.green.withOpacity(0.12)
-                              : Colors.red.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          m.isActive ? 'Open' : 'Closed',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: m.isActive ? Colors.green : Colors.red,
-                          ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
+                ),
 
-            // ── Thumbnail ──
-            Expanded(
-              flex: 2,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: hasNetworkImage
-                    ? Image.network(
-                        m.outletLogo!,
-                        height: double.infinity,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Image.asset(
-                          'assets/images/shop1.jpg',
-                          height: double.infinity,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    : Image.asset(
-                        'assets/images/shop1.jpg',
-                        height: double.infinity,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
-              ),
+                // ── Thumbnail ──
+                Expanded(
+                  flex: 2,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: hasNetworkImage
+                        ? Image.network(
+                            m.outletLogo!,
+                            height: double.infinity,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Image.asset(
+                              'assets/images/shop1.jpg',
+                              height: double.infinity,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : Image.asset(
+                            'assets/images/shop1.jpg',
+                            height: double.infinity,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

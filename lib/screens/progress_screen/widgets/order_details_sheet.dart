@@ -3,16 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../providers/cart_provider.dart';
 import '../../../../providers/payment_provider.dart';
 
+import '../../../../models/order_model.dart';
+
 class OrderDetailsSheet extends ConsumerWidget {
-  final bool isPickup;
-  const OrderDetailsSheet({super.key, this.isPickup = true});
+  final OrderModel order;
+  const OrderDetailsSheet({super.key, required this.order});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cart = ref.watch(cartProvider);
-    final payment = ref.watch(paymentProvider);
-    final deliveryFee = isPickup ? 150.00 : 0.00;
-    final finalTotal = cart.totalAmount + deliveryFee;
+    final isPickup = order.isPickup ?? true;
+    final deliveryFee = order.deliveryFee ?? 0.0;
+    final finalTotal = order.total ?? 0.0;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.35,
@@ -55,7 +56,7 @@ class OrderDetailsSheet extends ConsumerWidget {
                   children: [
                     const CircleAvatar(
                       radius: 30,
-                      backgroundImage: AssetImage('assets/images/placeholder_merchant.png'),
+                      backgroundImage: AssetImage('assets/images/profile1.png'),
                       backgroundColor: Colors.grey,
                     ),
                     const SizedBox(width: 16),
@@ -63,12 +64,12 @@ class OrderDetailsSheet extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Wijesinghe Laundry',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF2D2D3A)),
+                          Text(
+                            order.shopName ?? 'Unknown Shop',
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF2D2D3A)),
                           ),
                           Text(
-                            'Colombo',
+                            'Colombo', // Placeholder or derive from shop address if available
                             style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                           ),
                           Row(
@@ -127,9 +128,12 @@ class OrderDetailsSheet extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Pakistan Darbar (Dehiwala)',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF2D2D3A)),
+                    Expanded(
+                      child: Text(
+                        order.address ?? 'No address provided',
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF2D2D3A)),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                     Container(
                       padding: const EdgeInsets.all(6),
@@ -144,10 +148,10 @@ class OrderDetailsSheet extends ConsumerWidget {
                 const SizedBox(height: 16),
                 
                 // Order Items
-                if (cart.items.isEmpty)
+                if (order.items == null || order.items!.isEmpty)
                   const Text('No items in order', style: TextStyle(color: Colors.grey))
                 else
-                  ...cart.items.map((item) => Padding(
+                  ...order.items!.map((item) => Padding(
                         padding: const EdgeInsets.only(bottom: 8.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -176,7 +180,7 @@ class OrderDetailsSheet extends ConsumerWidget {
                 const SizedBox(height: 16),
                 
                 // Dynamic Invoice Details
-                _buildInvoiceRow('Sub Total', '+ LKR ${cart.totalAmount.toStringAsFixed(2)}'),
+                _buildInvoiceRow('Sub Total', '+ LKR ${(order.subTotal ?? 0.0).toStringAsFixed(2)}'),
                 const SizedBox(height: 12),
                 if (isPickup) ...[
                   _buildInvoiceRow('Delivery Fee', '+ LKR ${deliveryFee.toStringAsFixed(2)}'),
@@ -203,23 +207,22 @@ class OrderDetailsSheet extends ConsumerWidget {
                 const Divider(color: Color(0xFFE5E7EB)),
                 const SizedBox(height: 16),
                 
-                // Dynamic Payment Method from Provider
+                // Dynamic Payment Method from OrderModel
                 Row(
                   children: [
                     Container(
                       width: 32,
                       height: 24,
                       decoration: BoxDecoration(
-                        color: payment.selectedType == PaymentType.points ? Colors.orange.shade100 : Colors.blue.shade100,
+                        color: (order.paymentMethod ?? 'Points') == 'Points' ? Colors.orange.shade100 : Colors.blue.shade100,
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: payment.isSvg 
-                        ? const SizedBox() 
-                        : Image.asset(payment.iconPath, width: 20, height: 20, fit: BoxFit.contain),
+                      // Since we don't store the icon path in Firestore, we can just show the name or a default icon
+                      child: const Icon(Icons.payment, size: 16, color: Colors.blueGrey),
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      payment.displayName,
+                      order.paymentMethod ?? 'Points',
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
