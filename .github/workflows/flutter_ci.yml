@@ -2,20 +2,18 @@ name: Flutter CI
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
       - uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          channel: stable
           flutter-version: '3.38.7'
-          # cache: true 
 
       - name: Install dependencies
         run: flutter pub get
@@ -26,5 +24,5 @@ jobs:
       # - name: Run tests
       #   run: flutter test
 
-      - name: Build APK
+      - name: Build APK (debug)
         run: flutter build apk --debug
