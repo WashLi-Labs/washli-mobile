@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../merchant_home/widgets/merchant_nav_bar.dart';
 import '../../../widgets/buttons/back_button.dart';
 import '../orders/orders.dart';
@@ -8,50 +9,66 @@ import 'widgets/sales_summery/complete_orders.dart';
 import 'widgets/sales_summery/earnings.dart';
 import 'widgets/sales_summery/customer_review.dart';
 import '../../account/account_screen.dart';
+import '../../../providers/merchant_provider.dart';
 
-class DashboardScreen extends StatefulWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   int _selectedIndex = 3;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (ref.read(merchantProvider).merchant == null) {
+        ref.read(merchantProvider.notifier).loadMerchantProfile();
+      }
+    });
+  }
+
   void _onItemTapped(int index) {
-    if (index == _selectedIndex) return; // Already on Dashboard
+    if (index == _selectedIndex) return;
 
     if (index == 0) {
-      // Home tab - pop back to MerchantHomeScreen
       Navigator.of(context).popUntil((route) => route.isFirst);
     } else if (index == 1) {
-      // Orders tab
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => OrdersScreen()),
+        MaterialPageRoute(builder: (context) => const OrdersScreen()),
       );
     } else if (index == 2) {
-      // Activities tab
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => ActivitiesScreen()),
+        MaterialPageRoute(builder: (context) => const ActivitiesScreen()),
       );
     } else if (index == 4) {
-      // Account tab
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const AccountScreen(role: "Merchant")),
+        MaterialPageRoute(
+            builder: (context) => const AccountScreen(role: 'Merchant')),
       );
     } else {
-      setState(() {
-        _selectedIndex = index;
-      });
+      setState(() => _selectedIndex = index);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Listen for errors and display as SnackBar
+    ref.listen<MerchantState>(merchantProvider, (_, next) {
+      if (next.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.errorMessage!)),
+        );
+        ref.read(merchantProvider.notifier).clearError();
+      }
+    });
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -76,7 +93,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 40), // Balance the back button space
+                  const SizedBox(width: 40),
                 ],
               ),
               const SizedBox(height: 30),
@@ -132,19 +149,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: const [
-                        Text('Mon', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                        Text('Tue', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                        Text('Wed', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                        Text('Thu', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                        Text('Fri', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                        Text('Sat', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                        Text('Sun', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        Text('Mon',
+                            style:
+                                TextStyle(color: Colors.grey, fontSize: 12)),
+                        Text('Tue',
+                            style:
+                                TextStyle(color: Colors.grey, fontSize: 12)),
+                        Text('Wed',
+                            style:
+                                TextStyle(color: Colors.grey, fontSize: 12)),
+                        Text('Thu',
+                            style:
+                                TextStyle(color: Colors.grey, fontSize: 12)),
+                        Text('Fri',
+                            style:
+                                TextStyle(color: Colors.grey, fontSize: 12)),
+                        Text('Sat',
+                            style:
+                                TextStyle(color: Colors.grey, fontSize: 12)),
+                        Text('Sun',
+                            style:
+                                TextStyle(color: Colors.grey, fontSize: 12)),
                       ],
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 120), // Extra space for navbar
+              const SizedBox(height: 120),
             ],
           ),
         ),
@@ -173,19 +204,18 @@ class LineChartPainter extends CustomPainter {
 
     // Draw horizontal grid lines
     for (int i = 0; i <= 4; i++) {
-        double y = size.height * i / 4;
-        canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
-        
-        // Draw labels
-        final textPainter = TextPainter(
-          text: TextSpan(
-            text: '${400 - (i * 100)}',
-            style: const TextStyle(color: Colors.grey, fontSize: 10),
-          ),
-          textDirection: TextDirection.ltr,
-        );
-        textPainter.layout();
-        textPainter.paint(canvas, Offset(-25, y - 6));
+      double y = size.height * i / 4;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: '${400 - (i * 100)}',
+          style: const TextStyle(color: Colors.grey, fontSize: 10),
+        ),
+        textDirection: TextDirection.ltr,
+      );
+      textPainter.layout();
+      textPainter.paint(canvas, Offset(-25, y - 6));
     }
 
     final path = Path();
@@ -205,7 +235,14 @@ class LineChartPainter extends CustomPainter {
       final p2 = points[i + 1];
       final controlPoint1 = Offset(p1.dx + (p2.dx - p1.dx) / 2, p1.dy);
       final controlPoint2 = Offset(p1.dx + (p2.dx - p1.dx) / 2, p2.dy);
-      path.cubicTo(controlPoint1.dx, controlPoint1.dy, controlPoint2.dx, controlPoint2.dy, p2.dx, p2.dy);
+      path.cubicTo(
+        controlPoint1.dx,
+        controlPoint1.dy,
+        controlPoint2.dx,
+        controlPoint2.dy,
+        p2.dx,
+        p2.dy,
+      );
     }
 
     canvas.drawPath(path, paint);

@@ -100,7 +100,7 @@ class ShopDetailsScreen extends ConsumerWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const SizedBox(height: 24),
+                                const SizedBox(height: 12),
                                 
                                 // Search Bar
                                 const CustomSearchBar(
