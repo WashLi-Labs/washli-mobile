@@ -22,6 +22,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _email = '';
   String _phone = '';
   File? _profileImage;
+  String _homeAddress = '';
 
   @override
   void initState() {
@@ -36,6 +37,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _lastName = prefs.getString('lastName') ?? '';
       _email = prefs.getString('email') ?? '';
       _phone = prefs.getString('phone') ?? '';
+      _homeAddress = prefs.getString('homeAddress') ?? '';
       final path = prefs.getString('profileImagePath');
       if (path != null && path.isNotEmpty) {
         _profileImage = File(path);
@@ -110,9 +112,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       items: [
                         SettingsMenuItem(
                           icon: Icons.home_rounded,
-                          title: 'Add Home',
-                          subtitle: 'Set your home address',
-                          onTap: () => _showComingSoon('Add Home'),
+                          title: _homeAddress.isEmpty ? 'Add Home' : 'Home',
+                          subtitle: _homeAddress.isEmpty ? 'Set your home address' : _homeAddress,
+                          onTap: () async {
+                            final result = await Navigator.push<String>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const AddHomeScreen(),
+                              ),
+                            );
+                            if (result != null && result.isNotEmpty && mounted) {
+                              setState(() {
+                                _homeAddress = result;
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Home address updated successfully!'),
+                                  backgroundColor: Color(0xFF007DFC),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          },
                         ),
                         const SizedBox(height: 4),
                         SettingsMenuItem(

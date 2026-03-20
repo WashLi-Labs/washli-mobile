@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'map_picker_screen.dart';
 import 'widgets/recent_place_tile.dart';
+import '../../../../widgets/buttons/back_button.dart';
 
 class AddHomeScreen extends StatefulWidget {
   const AddHomeScreen({super.key});
@@ -43,26 +44,32 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF5F7FB),
       body: SafeArea(
         child: Column(
           children: [
             // Header (Back + Search)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
               child: Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () => Navigator.pop(context),
+                  CustomBackButton(
+                    onTap: () => Navigator.pop(context),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Container(
-                      height: 48,
+                      height: 50,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF3F4F6),
-                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x0A000000), // black 4%
+                            blurRadius: 10,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: TextField(
                         controller: _searchController,
@@ -72,6 +79,12 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                           hintStyle: TextStyle(
                             color: Color(0xFF9CA3AF),
                             fontSize: 15,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.search_rounded,
+                            color: Color(0xFF007DFC),
+                            size: 22,
                           ),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.symmetric(
@@ -85,68 +98,90 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                 ],
               ),
             ),
-            
-            const Divider(height: 1, color: Color(0xFFE5E7EB)),
 
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 children: [
-                  // Recent Places
-                  ..._recentPlaces.map((place) => Column(
-                    children: [
-                      RecentPlaceTile(
-                        name: place['name']!,
-                        address: place['address']!,
-                        distance: place['distance']!,
-                        onTap: () => _saveLocationAndPop(place['address']!),
-                      ),
-                      const Divider(height: 1, indent: 70, endIndent: 20, color: Color(0xFFE5E7EB)),
-                    ],
-                  )),
-
-                  // Set Location on Map Option
-                  InkWell(
-                    onTap: () async {
-                      final selectedAddress = await Navigator.push<String>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MapPickerScreen(),
+                  // List Container
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x05000000), // black 2%
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
                         ),
-                      );
-                      
-                      if (selectedAddress != null && selectedAddress.isNotEmpty && mounted) {
-                        _saveLocationAndPop(selectedAddress);
-                      }
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFF3F4F6),
-                              shape: BoxShape.circle,
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        // Recent Places
+                        ..._recentPlaces.map((place) => Column(
+                          children: [
+                            RecentPlaceTile(
+                              name: place['name']!,
+                              address: place['address']!,
+                              distance: place['distance']!,
+                              onTap: () => _saveLocationAndPop(place['address']!),
                             ),
-                            child: const Icon(
-                              Icons.location_on_outlined,
-                              color: Color(0xFF1A1A2E),
-                              size: 20,
+                            const Divider(height: 1, indent: 64, endIndent: 20, color: Color(0xFFF3F4F6)),
+                          ],
+                        )),
+
+                        // Set Location on Map Option
+                        InkWell(
+                          onTap: () async {
+                            final selectedAddress = await Navigator.push<String>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const MapPickerScreen(),
+                              ),
+                            );
+                            
+                            if (selectedAddress != null && selectedAddress.isNotEmpty && mounted) {
+                              _saveLocationAndPop(selectedAddress);
+                            }
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFF0F6FF),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.location_on_outlined,
+                                    color: Color(0xFF007DFC),
+                                    size: 22,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                const Text(
+                                  'Set location on map',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF1A1A2E), // Primary dark color
+                                  ),
+                                ),
+                                const Spacer(),
+                                const Icon(
+                                  Icons.arrow_forward_ios_rounded,
+                                  color: Color(0xFFD1D5DB),
+                                  size: 16,
+                                )
+                              ],
                             ),
                           ),
-                          const SizedBox(width: 16),
-                          const Text(
-                            'Set location on map',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF1A1A2E),
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
