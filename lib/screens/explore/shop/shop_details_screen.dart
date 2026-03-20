@@ -6,6 +6,7 @@ import 'package:washli_mobile/screens/cart/cart_screen.dart';
 import 'package:washli_mobile/screens/cart/widgets/clear_cart_popup.dart';
 import '../../../widgets/buttons/back_button.dart';
 import '../../../widgets/input_fields/custom_search_bar.dart';
+import '../../../services/menu_items_service.dart';
 import 'widgets/service_card.dart';
 import 'widgets/shop_header.dart';
 
@@ -94,58 +95,37 @@ class ShopDetailsScreen extends ConsumerWidget {
                         children: [
                           // Shop Header (Image + Details)
                           ShopHeader(laundry: laundry),
-                          
+
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 24.0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const SizedBox(height: 12),
-                                
+
                                 // Search Bar
                                 const CustomSearchBar(
                                   hintText: 'Search',
                                 ),
-                                
+
                                 const SizedBox(height: 24),
-                                
-                                // Services Header
+
+                                // Items Header
                                 const Text(
-                                  'Services',
+                                  'Items',
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFF2D2D3A),
                                   ),
                                 ),
-                                
+
                                 const SizedBox(height: 16),
-                                
-                                // Services List
-                                if (laundry['services'] != null)
-                                  ...(laundry['services'] as List).map((service) {
-                                    return ServiceCard(
-                                      shopName: shopName,
-                                      title: service['title'] ?? '',
-                                      price: service['price'] ?? '',
-                                      description: service['description'] ?? '',
-                                      imagePath: service['image'] ?? 'assets/images/laundry 1.png',
-                                    );
-                                  })
-                                else
-                                  const Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 20),
-                                    child: Center(
-                                      child: Text(
-                                        "No services available\n(Please Hot Restart the App to load new data)",
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(color: Colors.grey),
-                                      ),
-                                    ),
-                                  ),
-                                
-                                // Add bottom padding for better scrolling experience
-                                const SizedBox(height: 100), 
+
+                                // Items loaded from Excel menuDocument
+                                _MenuItemsList(laundry: laundry),
+
+                                const SizedBox(height: 100),
                               ],
                             ),
                           ),
@@ -241,6 +221,116 @@ class ShopDetailsScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Menu items loaded from the Excel menuDocument
+// ─────────────────────────────────────────────────────────────
+
+class _MenuItemsList extends StatefulWidget {
+  final Map<String, dynamic> laundry;
+  const _MenuItemsList({required this.laundry});
+
+  @override
+  State<_MenuItemsList> createState() => _MenuItemsListState();
+}
+
+class _MenuItemsListState extends State<_MenuItemsList> {
+  late final Future<List<String>> _itemsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    final url = widget.laundry['menuDocument'] as String? ?? '';
+    _itemsFuture = url.isNotEmpty
+        ? MenuItemsService.fetchItemNames(url)
+        : Future.value([]);
+  }
+
+  String _getItemImage(String name) {
+    final lowerName = name.toLowerCase();
+    
+    if (lowerName.contains('shirt')) {
+      if (lowerName.contains('formal')) return 'assets/laundry_items/Formal Shirt.jpeg';
+      return 'assets/laundry_items/shirt.jpg';
+    }
+    if (lowerName.contains('t shirt') || lowerName.contains('t-shirt')) {
+      return 'assets/laundry_items/t shirts.jpg';
+    }
+    if (lowerName.contains('trousers') || lowerName.contains('trouser')) {
+      if (lowerName.contains('2')) return 'assets/laundry_items/trouser 2.jpg';
+      return 'assets/laundry_items/Trousers.jpg';
+    }
+    if (lowerName.contains('jeans')) return 'assets/laundry_items/jeans.jpg';
+    if (lowerName.contains('shorts')) return 'assets/laundry_items/Shorts.jpg';
+    if (lowerName.contains('suit')) {
+      if (lowerName.contains('s')) return 'assets/laundry_items/Suits.jpg';
+      return 'assets/laundry_items/Suit.avif';
+    }
+    if (lowerName.contains('saree')) {
+      if (lowerName.contains('2')) return 'assets/laundry_items/saree (2).jpg';
+      return 'assets/laundry_items/Saree.jpg';
+    }
+    if (lowerName.contains('frock')) {
+      if (lowerName.contains('2')) return 'assets/laundry_items/frock 2.jpg';
+      if (lowerName.contains('3')) return 'assets/laundry_items/frock 3.jpg';
+      return 'assets/laundry_items/frock 1.jpg';
+    }
+    if (lowerName.contains('bedsheet') || lowerName.contains('bed sheet')) {
+      return 'assets/laundry_items/Bedsheet.jpg';
+    }
+    if (lowerName.contains('jacket')) return 'assets/laundry_items/jacket.jpg';
+    if (lowerName.contains('under')) return 'assets/laundry_items/Underclothes.jpeg';
+
+    // Default fallback
+    return 'assets/images/laundry 1.png';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final shopName = widget.laundry['name'] as String? ?? 'Laundry';
+
+    return FutureBuilder<List<String>>(
+      future: _itemsFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 32),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final items = snapshot.data ?? [];
+
+        if (items.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(
+              child: Text(
+                'No items available for this laundry.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+          );
+        }
+
+        return Column(
+          children: items
+              .map(
+                (itemName) => ServiceCard(
+                  shopName: shopName,
+                  title: itemName,
+                  price: 'Contact for pricing',
+                  description: '',
+                  imagePath: _getItemImage(itemName),
+                ),
+              )
+              .toList(),
+        );
+      },
     );
   }
 }

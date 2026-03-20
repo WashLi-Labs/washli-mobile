@@ -52,6 +52,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
       'status': m.isActive ? null : 'Closed',
       'statusColor': Colors.red,
       'address': m.outletAddress,
+      'menuDocument': m.menuDocument ?? '',
       'services': const <Map<String, dynamic>>[],
     };
   }
