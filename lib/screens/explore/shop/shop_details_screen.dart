@@ -238,18 +238,19 @@ class _MenuItemsList extends StatefulWidget {
 }
 
 class _MenuItemsListState extends State<_MenuItemsList> {
-  late final Future<List<String>> _itemsFuture;
+  late final Future<List<Map<String, String>>> _itemsFuture;
 
   @override
   void initState() {
     super.initState();
     final url = widget.laundry['menuDocument'] as String? ?? '';
     _itemsFuture = url.isNotEmpty
-        ? MenuItemsService.fetchItemNames(url)
+        ? MenuItemsService.fetchMenuItems(url)
         : Future.value([]);
   }
 
   String _getItemImage(String name) {
+    // ... no changes to _getItemImage ...
     final lowerName = name.toLowerCase();
     
     if (lowerName.contains('shirt')) {
@@ -292,7 +293,7 @@ class _MenuItemsListState extends State<_MenuItemsList> {
   Widget build(BuildContext context) {
     final shopName = widget.laundry['name'] as String? ?? 'Laundry';
 
-    return FutureBuilder<List<String>>(
+    return FutureBuilder<List<Map<String, String>>>(
       future: _itemsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -320,12 +321,12 @@ class _MenuItemsListState extends State<_MenuItemsList> {
         return Column(
           children: items
               .map(
-                (itemName) => ServiceCard(
+                (item) => ServiceCard(
                   shopName: shopName,
-                  title: itemName,
-                  price: 'Contact for pricing',
+                  title: item['name'] ?? 'Item',
+                  price: item['price'] ?? 'Contact for pricing',
                   description: '',
-                  imagePath: _getItemImage(itemName),
+                  imagePath: _getItemImage(item['name'] ?? ''),
                 ),
               )
               .toList(),

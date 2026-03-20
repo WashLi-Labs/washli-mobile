@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../widgets/buttons/back_button.dart';
 import 'widgets/laundry_location.dart';
 
@@ -188,25 +189,42 @@ class MoreInfoScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.directions_outlined, size: 16, color: Colors.grey[600]),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Direction',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
+                        GestureDetector(
+                          onTap: () async {
+                            final lat = laundry['lat'];
+                            final lng = laundry['lng'];
+                            if (lat != null && lng != null) {
+                              final url = 'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng';
+                              final uri = Uri.parse(url);
+                              // ignore: deprecated_member_use
+                              if (await canLaunchUrl(uri)) {
+                                // ignore: deprecated_member_use
+                                await launchUrl(uri, mode: LaunchMode.externalApplication);
+                              } else {
+                                debugPrint('Could not launch directions URL: $url');
+                              }
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.directions_outlined, size: 16, color: Colors.grey[600]),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Direction',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ],
