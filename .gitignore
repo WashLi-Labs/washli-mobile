@@ -46,3 +46,4 @@ app.*.map.json
 
 # Keystore
 washli-release-key.jks
+key.properties
