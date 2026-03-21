@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../models/merchant_profile_model.dart';
+import '../../../models/merchant/merchant_profile_model.dart';
 import '../../../providers/merchants_list_provider.dart';
 import '../../../services/firebase/merchant_firebase_service.dart';
 import '../../explore/explore_screen.dart';
@@ -90,6 +90,8 @@ class NearbyLaundryCard extends ConsumerWidget {
   Map<String, dynamic> _toShopCardMap(MerchantWithDistance item) {
     final m = item.merchant;
     return {
+      'id': m.uid,
+      'merchantId': m.merchantId,
       'name': m.outletName.isNotEmpty ? m.outletName : 'Laundry',
       'image': m.outletLogo?.isNotEmpty == true
           ? m.outletLogo

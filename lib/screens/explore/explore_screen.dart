@@ -41,6 +41,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   Map<String, dynamic> _toShopCardMap(MerchantWithDistance item) {
     final m = item.merchant;
     return {
+      'id': m.uid,
+      'merchantId': m.merchantId,
       'name': m.outletName.isNotEmpty ? m.outletName : 'Laundry',
       'image': m.outletLogo?.isNotEmpty == true
           ? m.outletLogo

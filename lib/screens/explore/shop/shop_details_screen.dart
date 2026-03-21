@@ -6,18 +6,32 @@ import 'package:washli_mobile/screens/cart/cart_screen.dart';
 import 'package:washli_mobile/screens/cart/widgets/clear_cart_popup.dart';
 import '../../../widgets/buttons/back_button.dart';
 import '../../../widgets/input_fields/custom_search_bar.dart';
-import '../../../services/menu_items_service.dart';
 import 'widgets/service_card.dart';
 import 'widgets/shop_header.dart';
 
-class ShopDetailsScreen extends ConsumerWidget {
+import '../../../models/cart/cart_item_request.dart';
+import '../../../models/cart/batch_cart_request.dart';
+import '../../../services/api/api_exception.dart';
+import '../../../data/temp_catalog.dart';
+
+class ShopDetailsScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> laundry;
 
   const ShopDetailsScreen({super.key, required this.laundry});
 
-  void _handleBack(BuildContext context, WidgetRef ref) {
-    final cart = ref.read(cartProvider);
-    if (cart.items.isNotEmpty) {
+  @override
+  ConsumerState<ShopDetailsScreen> createState() => _ShopDetailsScreenState();
+}
+
+class _ShopDetailsScreenState extends ConsumerState<ShopDetailsScreen> {
+  final Map<String, int> selectedQuantities = {};
+  bool _initialized = false;
+
+  void _handleBack(BuildContext context) {
+    final cartState = ref.read(cartProvider);
+    final hasItems = cartState.value?.items.isNotEmpty == true;
+
+    if (hasItems) {
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -39,7 +53,7 @@ class ShopDetailsScreen extends ConsumerWidget {
               alignment: Alignment.bottomCenter,
               child: ClearCartPopup(
                 onClearCart: () {
-                  ref.read(cartProvider.notifier).clearCart();
+                  ref.read(cartProvider.notifier).reset();
                   Navigator.pop(context); // Close popup
                   Navigator.pop(context); // Go back
                 },
@@ -57,16 +71,71 @@ class ShopDetailsScreen extends ConsumerWidget {
     }
   }
 
+  String _errorMessage(Object err) {
+    if (err is UnauthenticatedException) return 'Session expired. Please log in again.';
+    if (err is ForbiddenException)       return 'Access denied.';
+    if (err is NetworkException)         return 'No internet connection. Please retry.';
+    if (err is ServerException)          return 'Server error. Please try again later.';
+    if (err is ConflictException)        return 'Something went wrong. Please retry.';
+    if (err is ValidationException)      return err.message;
+    return 'Something went wrong. Please retry.';
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final cart = ref.watch(cartProvider);
-    final shopName = laundry['name'] ?? 'Laundry';
+  Widget build(BuildContext context) {
+    final shopName = widget.laundry['name'] ?? 'Laundry';
+    final merchantId = widget.laundry['id'] ?? widget.laundry['merchantId'] ?? 'test-merchant';
+
+    ref.listen<AsyncValue<void>>(addToCartProvider, (previous, next) {
+      next.when(
+        data: (_) {
+          if (previous is AsyncLoading) {
+            Navigator.push(context, MaterialPageRoute(
+              builder: (_) => CartScreen(
+                merchantId: merchantId,
+                merchantName: shopName,
+              )
+            ));
+            ref.read(addToCartProvider.notifier).reset();
+          }
+        },
+        error: (err, _) {
+          if (previous is AsyncLoading) {
+            final message = _errorMessage(err);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(message), backgroundColor: Colors.red)
+            );
+          }
+        },
+        loading: () {},
+      );
+    });
+
+    final cartState = ref.watch(cartProvider);
+
+    if (!_initialized) {
+      if (cartState.value != null && cartState.value!.merchantId == merchantId) {
+        for (final item in cartState.value!.items) {
+          selectedQuantities[item.catalogItemId] = item.quantity;
+        }
+      }
+      _initialized = true;
+    }
+
+    final isLoading = ref.watch(addToCartProvider) is AsyncLoading;
+    final selectedItemsCount = selectedQuantities.values.fold(0, (sum, q) => sum + q);
+    final totalAmount = kTempCatalogItems.fold(0.0, (sum, item) {
+      final catalogItemId = item['catalogItemId'] as String;
+      final quantity = selectedQuantities[catalogItemId] ?? 0;
+      final unitPrice = item['unitPrice'] as double;
+      return sum + (unitPrice * quantity);
+    });
 
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        _handleBack(context, ref);
+        _handleBack(context);
       },
       child: Scaffold(
         backgroundColor: Colors.white,
@@ -76,13 +145,13 @@ class ShopDetailsScreen extends ConsumerWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header with Back Button (Fixed)
+                  // Header with Back Button
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10.0),
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: CustomBackButton(
-                        onTap: () => _handleBack(context, ref),
+                        onTap: () => _handleBack(context),
                       ),
                     ),
                   ),
@@ -93,8 +162,7 @@ class ShopDetailsScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Shop Header (Image + Details)
-                          ShopHeader(laundry: laundry),
+                          ShopHeader(laundry: widget.laundry),
 
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -102,15 +170,8 @@ class ShopDetailsScreen extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const SizedBox(height: 12),
-
-                                // Search Bar
-                                const CustomSearchBar(
-                                  hintText: 'Search',
-                                ),
-
+                                const CustomSearchBar(hintText: 'Search'),
                                 const SizedBox(height: 24),
-
-                                // Items Header
                                 const Text(
                                   'Items',
                                   style: TextStyle(
@@ -119,11 +180,41 @@ class ShopDetailsScreen extends ConsumerWidget {
                                     color: Color(0xFF2D2D3A),
                                   ),
                                 ),
-
                                 const SizedBox(height: 16),
 
-                                // Items loaded from Excel menuDocument
-                                _MenuItemsList(laundry: laundry),
+                                // Items from Temp Catalog using native ServiceCard
+                                ...kTempCatalogItems.map((item) {
+                                  final catalogItemId = item['catalogItemId'] as String;
+                                  final itemName = item['itemName'] as String;
+                                  final unitPrice = item['unitPrice'] as double;
+                                  final washType = item['washType'] as String;
+                                  final quantity = selectedQuantities[catalogItemId] ?? 0;
+
+                                  return ServiceCard(
+                                    shopName: shopName,
+                                    title: itemName,
+                                    price: 'Rs. ${unitPrice.toStringAsFixed(2)}',
+                                    description: washType,
+                                    // Map wash type to right image
+                                    imagePath: _getItemImage(itemName),
+                                    quantity: quantity,
+                                    onIncrement: () {
+                                      setState(() {
+                                        selectedQuantities[catalogItemId] = quantity + 1;
+                                      });
+                                    },
+                                    onDecrement: quantity > 0 ? () {
+                                      setState(() {
+                                        selectedQuantities[catalogItemId] = quantity - 1;
+                                      });
+                                    } : null,
+                                    onSetQuantity: (val) {
+                                      setState(() {
+                                        selectedQuantities[catalogItemId] = val;
+                                      });
+                                    },
+                                  );
+                                }),
 
                                 const SizedBox(height: 100),
                               ],
@@ -137,7 +228,7 @@ class ShopDetailsScreen extends ConsumerWidget {
               ),
               
               // View Cart Bottom Bar
-              if (cart.items.isNotEmpty)
+              if (selectedItemsCount > 0)
                 Align(
                   alignment: Alignment.bottomCenter,
                   child: Padding(
@@ -166,14 +257,14 @@ class ShopDetailsScreen extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  '${cart.totalItems} items',
+                                  '$selectedItemsCount items',
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 12,
                                   ),
                                 ),
                                 Text(
-                                  'LKR ${cart.totalAmount.toStringAsFixed(2)}',
+                                  'LKR ${totalAmount.toStringAsFixed(2)}',
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 16,
@@ -183,10 +274,29 @@ class ShopDetailsScreen extends ConsumerWidget {
                               ],
                             ),
                             ElevatedButton(
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (context) => const CartScreen()),
+                              onPressed: isLoading ? null : () {
+                                final selectedItems = kTempCatalogItems
+                                    .where((item) => (selectedQuantities[item['catalogItemId']] ?? 0) > 0)
+                                    .toList();
+
+                                final requests = selectedItems.map((item) {
+                                  return CartItemRequest(
+                                    merchantName: shopName,
+                                    catalogItemId: item['catalogItemId'],
+                                    itemName: item['itemName'],
+                                    washType: item['washType'],
+                                    unitPrice: item['unitPrice'],
+                                    quantity: selectedQuantities[item['catalogItemId']]!,
+                                  );
+                                }).toList();
+
+                                final batchRequest = BatchCartRequest(
+                                  merchantName: shopName,
+                                  items: requests,
                                 );
+                                
+                                // Wipe and Sync overrides the entire cart!
+                                ref.read(addToCartProvider.notifier).syncItems(merchantId, batchRequest);
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF0062FF),
@@ -197,7 +307,13 @@ class ShopDetailsScreen extends ConsumerWidget {
                                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                                 elevation: 0,
                               ),
-                              child: const Row(
+                              child: isLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                  )
+                                : const Row(
                                 children: [
                                   Text(
                                     'View Cart',
@@ -223,36 +339,9 @@ class ShopDetailsScreen extends ConsumerWidget {
       ),
     );
   }
-}
-
-// ─────────────────────────────────────────────────────────────
-// Menu items loaded from the Excel menuDocument
-// ─────────────────────────────────────────────────────────────
-
-class _MenuItemsList extends StatefulWidget {
-  final Map<String, dynamic> laundry;
-  const _MenuItemsList({required this.laundry});
-
-  @override
-  State<_MenuItemsList> createState() => _MenuItemsListState();
-}
-
-class _MenuItemsListState extends State<_MenuItemsList> {
-  late final Future<List<Map<String, String>>> _itemsFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    final url = widget.laundry['menuDocument'] as String? ?? '';
-    _itemsFuture = url.isNotEmpty
-        ? MenuItemsService.fetchMenuItems(url)
-        : Future.value([]);
-  }
 
   String _getItemImage(String name) {
-    // ... no changes to _getItemImage ...
     final lowerName = name.toLowerCase();
-    
     if (lowerName.contains('shirt')) {
       if (lowerName.contains('formal')) return 'assets/laundry_items/Formal Shirt.jpeg';
       return 'assets/laundry_items/shirt.jpg';
@@ -284,56 +373,6 @@ class _MenuItemsListState extends State<_MenuItemsList> {
     }
     if (lowerName.contains('jacket')) return 'assets/laundry_items/jacket.jpg';
     if (lowerName.contains('under')) return 'assets/laundry_items/Underclothes.jpeg';
-
-    // Default fallback
     return 'assets/images/laundry 1.png';
   }
-
-  @override
-  Widget build(BuildContext context) {
-    final shopName = widget.laundry['name'] as String? ?? 'Laundry';
-
-    return FutureBuilder<List<Map<String, String>>>(
-      future: _itemsFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 32),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        final items = snapshot.data ?? [];
-
-        if (items.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Center(
-              child: Text(
-                'No items available for this laundry.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
-              ),
-            ),
-          );
-        }
-
-        return Column(
-          children: items
-              .map(
-                (item) => ServiceCard(
-                  shopName: shopName,
-                  title: item['name'] ?? 'Item',
-                  price: item['price'] ?? 'Contact for pricing',
-                  description: '',
-                  imagePath: _getItemImage(item['name'] ?? ''),
-                ),
-              )
-              .toList(),
-        );
-      },
-    );
-  }
 }
-
-

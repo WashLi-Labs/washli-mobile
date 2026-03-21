@@ -1,17 +1,18 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:washli_mobile/screens/explore/shop/widgets/service_popup.dart';
 import 'package:washli_mobile/widgets/buttons/add_button.dart';
-import 'package:washli_mobile/providers/cart_provider.dart';
 
-class ServiceCard extends ConsumerWidget {
+class ServiceCard extends StatelessWidget {
   final String shopName;
   final String title;
   final String price;
   final String description;
   final String imagePath;
-  final VoidCallback? onAdd;
+  final int quantity;
+  final VoidCallback? onIncrement;
+  final VoidCallback? onDecrement;
+  final ValueChanged<int>? onSetQuantity;
 
   const ServiceCard({
     super.key,
@@ -20,14 +21,14 @@ class ServiceCard extends ConsumerWidget {
     required this.price,
     required this.description,
     required this.imagePath,
-    this.onAdd,
+    this.quantity = 0,
+    this.onIncrement,
+    this.onDecrement,
+    this.onSetQuantity,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final cart = ref.watch(cartProvider);
-    final itemIndex = cart.items.indexWhere((item) => item.title == title);
-    final quantity = itemIndex != -1 ? cart.items[itemIndex].quantity : 0;
+  Widget build(BuildContext context) {
     final isAdded = quantity > 0;
 
     return Container(
@@ -63,12 +64,8 @@ class ServiceCard extends ConsumerWidget {
                     AddButton(
                       isCounterMode: isAdded,
                       count: quantity,
-                      onIncrement: () {
-                        ref.read(cartProvider.notifier).updateQuantity(title, quantity + 1);
-                      },
-                      onDecrement: () {
-                        ref.read(cartProvider.notifier).updateQuantity(title, quantity - 1);
-                      },
+                      onIncrement: onIncrement ?? () {},
+                      onDecrement: onDecrement ?? () {},
                       onTap: () {
                         showModalBottomSheet(
                           context: context,
@@ -98,6 +95,8 @@ class ServiceCard extends ConsumerWidget {
                                     price: price,
                                     description: description,
                                     imagePath: imagePath,
+                                    initialQuantity: quantity,
+                                    onQuantityChanged: onSetQuantity,
                                   ),
                                 ),
                               ],
@@ -132,3 +131,4 @@ class ServiceCard extends ConsumerWidget {
     );
   }
 }
+

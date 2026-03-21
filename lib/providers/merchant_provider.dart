@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../models/merchant_profile_model.dart';
+import '../models/merchant/merchant_profile_model.dart';
 import '../services/firebase/merchant_firebase_service.dart';
 
 // ──────────────────────────────────────────────────────────────

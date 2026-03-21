@@ -17,3 +17,5 @@ samples, guidance on mobile development, and a full API reference.
 
 flutter build appbundle --release
 # Output: build/app/outputs/bundle/release/app-release.aab
+
+keytool -genkey -v -keystore washli-release-key.jks -alias washli-key -keyalg RSA -keysize 2048 -validity 10000

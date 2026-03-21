@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/order_model.dart';
+import '../models/order/order_model.dart';
 import '../services/firebase/order_service.dart';
 
 // Export the model so merchant widgets can find it without extra imports
-export '../models/order_model.dart';
+export '../models/order/order_model.dart';
 
 // NEW PROVIDERS FOR CUSTOMER
 final orderService = Provider((ref) => OrderService());

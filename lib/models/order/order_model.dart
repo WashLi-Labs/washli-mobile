@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../providers/cart_provider.dart';
+import '../../providers/cart_provider.dart';
 
 class OrderModel {
   final String id;
@@ -125,4 +125,20 @@ class OrderModel {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+}
+
+class CartItem {
+  final String title;
+  final double price;
+  final int quantity;
+  final String description;
+  final String imagePath;
+
+  CartItem({
+    required this.title,
+    required this.price,
+    required this.quantity,
+    required this.description,
+    required this.imagePath,
+  });
 }
