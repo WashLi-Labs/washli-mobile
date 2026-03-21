@@ -20,6 +20,7 @@ import '../../providers/order_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/order/order_model.dart';
 import '../../services/firebase/order_service.dart';
+import '../explore/explore_screen.dart';
 
 class CartScreen extends ConsumerStatefulWidget {
   final String merchantId;
@@ -137,9 +138,18 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                     Align(
                                       alignment: Alignment.bottomCenter,
                                       child: ClearCartPopup(
-                                        onClearCart: () {
-                                          ref.read(cartProvider.notifier).reset();
-                                          Navigator.pop(context);
+                                        onClearCart: () async {
+                                          try {
+                                            await ref.read(cartProvider.notifier).clearCart(widget.merchantId);
+                                          } catch (e) { /* ignore */ }
+                                          if (context.mounted) {
+                                            Navigator.pop(context); // close popup
+                                            Navigator.pushAndRemoveUntil(
+                                              context,
+                                              MaterialPageRoute(builder: (context) => const ExploreScreen()),
+                                              (route) => route.isFirst,
+                                            );
+                                          }
                                         },
                                         onSaveCart: () {
                                           Navigator.pop(context);
@@ -199,11 +209,58 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                           if (hasCart) ...[
                             // Cart Items mapped locally via CartItemCard parameters
                             ...cart.items.map((item) => CartItemCard(
+                              cartItemId: item.id,
                               title: item.itemName,
                               fee: item.unitPrice,
                               type: 'Laundry',
                               service: item.washType,
                               initialQuantity: item.quantity,
+                              onRemoveRequested: () {
+                                if (cart.items.length == 1) {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    barrierColor: Colors.transparent,
+                                    builder: (context) => Stack(
+                                      children: [
+                                        Positioned.fill(
+                                          child: GestureDetector(
+                                            onTap: () => Navigator.pop(context),
+                                            child: BackdropFilter(
+                                              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                                              child: Container(color: Colors.black.withOpacity(0.3)),
+                                            ),
+                                          ),
+                                        ),
+                                        Align(
+                                          alignment: Alignment.bottomCenter,
+                                          child: ClearCartPopup(
+                                            onClearCart: () async {
+                                              try {
+                                                await ref.read(cartProvider.notifier).clearCart(widget.merchantId);
+                                              } catch (e) { /* ignore */ }
+                                              if (context.mounted) {
+                                                Navigator.pop(context); // close popup
+                                                Navigator.pushAndRemoveUntil(
+                                                  context,
+                                                  MaterialPageRoute(builder: (context) => const ExploreScreen()),
+                                                  (route) => route.isFirst,
+                                                );
+                                              }
+                                            },
+                                            onSaveCart: () {
+                                              Navigator.pop(context);
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                } else {
+                                  ref.read(cartProvider.notifier).deleteItem(item.id);
+                                }
+                              },
                             )),
                             
                             SplitMyBillSection(onTap: () {

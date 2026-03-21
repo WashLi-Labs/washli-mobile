@@ -96,6 +96,55 @@ class CartNotifier extends AsyncNotifier<CartResponse?> {
   void reset() {
     state = const AsyncData(null);
   }
+
+  Future<void> clearCart(String merchantId) async {
+    try {
+      await _cartApiService.clearCart(merchantId);
+      state = const AsyncData(null);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> deleteItem(String cartItemId) async {
+    final currentCart = state.value;
+    if (currentCart == null) return;
+    
+    try {
+      await _cartApiService.deleteItem(cartItemId);
+      await loadCart(currentCart.merchantId);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> updateItemQuantity(String cartItemId, int quantity) async {
+    final currentCart = state.value;
+    if (currentCart == null) return;
+    
+    try {
+      final updatedItem = await _cartApiService.updateItemQuantity(cartItemId, quantity);
+      
+      final updatedItems = currentCart.items.map((item) {
+        return item.id == cartItemId ? updatedItem : item;
+      }).toList();
+      
+      final newTotal = updatedItems.fold<double>(0, (sum, item) => sum + item.subtotal);
+      
+      state = AsyncData(CartResponse(
+        id: currentCart.id,
+        merchantId: currentCart.merchantId,
+        merchantName: currentCart.merchantName,
+        status: currentCart.status,
+        itemsTotal: newTotal,
+        items: updatedItems,
+      ));
+    } catch (e) {
+      // Intentionally swallow UI exceptions here to allow optimistic fallback 
+      // or optionally rethrow to handle in UI. For now, leave state as is on failure.
+      rethrow;
+    }
+  }
 }
 
 final cartProvider = AsyncNotifierProvider<CartNotifier, CartResponse?>(CartNotifier.new);

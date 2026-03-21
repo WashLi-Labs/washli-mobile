@@ -106,6 +106,41 @@ class ApiClient {
     }
   }
 
+  Future<dynamic> put(String url, {Map<String, dynamic>? body, String accept = 'application/json'}) async {
+    try {
+      var headers = await _getHeaders(accept: accept);
+      final bodyStr = body != null ? jsonEncode(body) : null;
+      print('==============================');
+      print('=> OUTGOING REQUEST [PUT] $url');
+      print('=> PAYLOAD BODY: $bodyStr');
+      print('==============================');
+      var response = await http.put(
+        Uri.parse(url),
+        headers: headers,
+        body: bodyStr,
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 401) {
+        final newToken = await TokenManager.refreshToken();
+        headers['Authorization'] = 'Bearer $newToken';
+        response = await http.put(
+          Uri.parse(url),
+          headers: headers,
+          body: bodyStr,
+        ).timeout(const Duration(seconds: 10));
+      }
+
+      return _handleResponse(response);
+    } on SocketException {
+      throw const NetworkException('No internet connection or server unreachable');
+    } on TimeoutException {
+      throw const NetworkException('Connection timed out');
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw NetworkException(e.toString());
+    }
+  }
+
   dynamic _handleResponse(http.Response response) {
     print('==============================');
     print('API RESPONSE [${response.request?.method}] ${response.request?.url}');
