@@ -4,19 +4,23 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:washli_mobile/providers/cart_provider.dart';
 
 class CartItemCard extends ConsumerStatefulWidget {
+  final String cartItemId;
   final String title;
   final double fee;
   final String type;
   final String service;
   final int initialQuantity;
+  final VoidCallback? onRemoveRequested;
 
   const CartItemCard({
     super.key,
+    required this.cartItemId,
     required this.title,
     required this.fee,
     required this.type,
     required this.service,
     this.initialQuantity = 0,
+    this.onRemoveRequested,
   });
 
   @override
@@ -31,6 +35,14 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
   void initState() {
     super.initState();
     _quantity = widget.initialQuantity;
+  }
+
+  @override
+  void didUpdateWidget(CartItemCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialQuantity != widget.initialQuantity) {
+      _quantity = widget.initialQuantity;
+    }
   }
 
   @override
@@ -68,11 +80,15 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                   children: [
                     GestureDetector(
                       onTap: () {
-                        if (_quantity > 0) {
+                        if (_quantity == 1) {
+                          widget.onRemoveRequested?.call();
+                        } else if (_quantity > 1) {
                           setState(() => _quantity--);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Cart updates are sync-limited from this page for now.'))
-                          );
+                          try {
+                            ref.read(cartProvider.notifier).updateItemQuantity(widget.cartItemId, _quantity);
+                          } catch (e) {
+                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update: $e')));
+                          }
                         }
                       },
                       child: const Icon(Icons.remove, color: Colors.white, size: 16),
@@ -90,9 +106,11 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                     GestureDetector(
                       onTap: () {
                         setState(() => _quantity++);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Cart updates are sync-limited from this page for now.'))
-                        );
+                        try {
+                          ref.read(cartProvider.notifier).updateItemQuantity(widget.cartItemId, _quantity);
+                        } catch (e) {
+                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update: $e')));
+                        }
                       },
                       child: const Icon(Icons.add, color: Colors.white, size: 16),
                     ),

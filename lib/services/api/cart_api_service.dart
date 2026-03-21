@@ -27,6 +27,17 @@ class CartApiService {
         .toList();
   }
 
+  Future<CartItemResponse> updateItemQuantity(String cartItemId, int quantity) async {
+    final url = '$kBaseUrl$kOrderPath/carts/items/$cartItemId';
+    final response = await _client.put(url, body: {'quantity': quantity}, accept: '*/*');
+    return CartItemResponse.fromJson(response as Map<String, dynamic>);
+  }
+
+  Future<void> deleteItem(String cartItemId) async {
+    final url = '$kBaseUrl$kOrderPath/carts/items/$cartItemId';
+    await _client.delete(url, accept: '*/*');
+  }
+
   Future<CartResponse> getCart(String merchantId) async {
     final url = '$kBaseUrl$kOrderPath/carts/$merchantId';
     final response = await _client.get(url);
