@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../providers/cart_provider.dart';
-import '../../../../providers/payment_provider.dart';
+import '../../../../models/order/place_order_response.dart';
 
-import '../../../../models/order/order_model.dart';
+class OrderDetailsSheet extends StatelessWidget {
+  final PlaceOrderResponse order;
 
-class OrderDetailsSheet extends ConsumerWidget {
-  final OrderModel order;
   const OrderDetailsSheet({super.key, required this.order});
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isPickup = order.isPickup ?? true;
-    final deliveryFee = order.deliveryFee ?? 0.0;
-    final finalTotal = order.total ?? 0.0;
+  /// Takes "No 41/3 Chithara Lane, Bernard Soysa Mawatha, Colombo 5"
+  /// and returns "Bernard Soysa Mawatha, Colombo 5" (everything after 2nd comma).
+  String _shortAddress(String full) {
+    final parts = full.split(',');
+    if (parts.length > 2) {
+      return parts.sublist(2).join(',').trim();
+    }
+    return full;
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return DraggableScrollableSheet(
       initialChildSize: 0.35,
       minChildSize: 0.35,
@@ -38,7 +41,7 @@ class OrderDetailsSheet extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Minimal Drag Handle
+                // ── Drag Handle ──────────────────────────────────
                 Center(
                   child: Container(
                     width: 40,
@@ -50,8 +53,8 @@ class OrderDetailsSheet extends ConsumerWidget {
                     ),
                   ),
                 ),
-                
-                // Driver/Merchant Info Row
+
+                // ── Merchant Info Row ────────────────────────────
                 Row(
                   children: [
                     const CircleAvatar(
@@ -65,74 +68,61 @@ class OrderDetailsSheet extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            order.shopName ?? 'Unknown Shop',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF2D2D3A)),
+                            order.merchantName,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF2D2D3A),
+                            ),
                           ),
                           Text(
-                            'Colombo', // Placeholder or derive from shop address if available
+                            _shortAddress(order.merchantAddress),
                             style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                          ),
-                          Row(
-                            children: [
-                              const Icon(Icons.star, color: Colors.orange, size: 14),
-                              const SizedBox(width: 4),
-                              Text(
-                                '4.98',
-                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey[800]),
-                              ),
-                            ],
                           ),
                         ],
                       ),
                     ),
-                    Column(
+                    // Action buttons (static UI kept as-is)
+                    Row(
                       children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.grey[300]!),
-                              ),
-                              child: const Icon(Icons.phone, size: 16, color: Colors.black54),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.grey[300]!),
-                              ),
-                              child: const Icon(Icons.chat_bubble_outline, size: 16, color: Colors.black54),
-                            ),
-                          ],
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.grey[300]!),
+                          ),
+                          child: const Icon(Icons.phone, size: 16, color: Colors.black54),
                         ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'BCE 051',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black),
-                        ),
-                        Text(
-                          'WEGO',
-                          style: TextStyle(fontSize: 10, color: Colors.grey[500]),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.grey[300]!),
+                          ),
+                          child: const Icon(Icons.chat_bubble_outline, size: 16, color: Colors.black54),
                         ),
                       ],
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 24),
-                
-                // Store Pick/Drop Info
+
+                // ── Pickup Address ───────────────────────────────
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
                       child: Text(
-                        order.address ?? 'No address provided',
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF2D2D3A)),
+                        order.merchantAddress,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF2D2D3A),
+                        ),
                         overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
                       ),
                     ),
                     Container(
@@ -145,19 +135,20 @@ class OrderDetailsSheet extends ConsumerWidget {
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 16),
-                
-                // Order Items
-                if (order.items == null || order.items!.isEmpty)
+
+                // ── Order Items ──────────────────────────────────
+                if (order.items.isEmpty)
                   const Text('No items in order', style: TextStyle(color: Colors.grey))
                 else
-                  ...order.items!.map((item) => Padding(
+                  ...order.items.map((item) => Padding(
                         padding: const EdgeInsets.only(bottom: 8.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              item.title,
+                              item.itemName,
                               style: TextStyle(fontSize: 14, color: Colors.grey[700]),
                             ),
                             Container(
@@ -174,56 +165,61 @@ class OrderDetailsSheet extends ConsumerWidget {
                           ],
                         ),
                       )),
-                
+
                 const SizedBox(height: 16),
                 const Divider(color: Color(0xFFE5E7EB)),
                 const SizedBox(height: 16),
-                
-                // Dynamic Invoice Details
-                _buildInvoiceRow('Sub Total', '+ LKR ${(order.subTotal ?? 0.0).toStringAsFixed(2)}'),
+
+                // ── Invoice ──────────────────────────────────────
+                _invoiceRow('Sub Total', '+ LKR ${order.itemsTotal.toStringAsFixed(2)}'),
                 const SizedBox(height: 12),
-                if (isPickup) ...[
-                  _buildInvoiceRow('Delivery Fee', '+ LKR ${deliveryFee.toStringAsFixed(2)}'),
-                  const SizedBox(height: 12),
-                ],
-                _buildInvoiceRow('High Demand Surge', '+ LKR 0.00'),
+                _invoiceRow('Pickup Delivery Fee', '+ LKR ${order.pickupDeliveryFee.toStringAsFixed(2)}'),
+                const SizedBox(height: 12),
+                _invoiceRow('Service Fee', '+ LKR ${order.serviceFee.toStringAsFixed(2)}'),
                 const SizedBox(height: 16),
-                
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
                       'Total',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF2D2D3A)),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF2D2D3A),
+                      ),
                     ),
                     Text(
-                      'LKR ${finalTotal.toStringAsFixed(2)}',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0062FF)),
+                      'LKR ${order.grandTotal.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0062FF),
+                      ),
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 24),
                 const Divider(color: Color(0xFFE5E7EB)),
                 const SizedBox(height: 16),
-                
-                // Dynamic Payment Method from OrderModel
+
+                // ── Payment Method ───────────────────────────────
                 Row(
                   children: [
                     Container(
                       width: 32,
                       height: 24,
                       decoration: BoxDecoration(
-                        color: (order.paymentMethod ?? 'Points') == 'Points' ? Colors.orange.shade100 : Colors.blue.shade100,
+                        color: Colors.orange.shade100,
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      // Since we don't store the icon path in Firestore, we can just show the name or a default icon
                       child: const Icon(Icons.payment, size: 16, color: Colors.blueGrey),
                     ),
                     const SizedBox(width: 12),
-                    Text(
-                      order.paymentMethod ?? 'Points',
-                      style: const TextStyle(
+                    const Text(
+                      'Points',
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: Color(0xFF2D2D3A),
@@ -239,18 +235,12 @@ class OrderDetailsSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildInvoiceRow(String title, String amount) {
+  Widget _invoiceRow(String title, String amount) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          title,
-          style: TextStyle(fontSize: 13, color: Colors.grey[700]),
-        ),
-        Text(
-          amount,
-          style: TextStyle(fontSize: 13, color: Colors.grey[800]),
-        ),
+        Text(title, style: TextStyle(fontSize: 13, color: Colors.grey[700])),
+        Text(amount, style: TextStyle(fontSize: 13, color: Colors.grey[800])),
       ],
     );
   }
