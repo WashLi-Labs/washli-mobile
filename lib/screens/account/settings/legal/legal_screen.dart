@@ -5,8 +5,8 @@ import '../../../../widgets/buttons/back_button.dart';
 class LegalScreen extends StatelessWidget {
   const LegalScreen({super.key});
 
-  Future<void> _launchWashliWebsite(BuildContext context) async {
-    final Uri url = Uri.parse('https://washli.lk');
+  Future<void> _launchWashliWebsite(BuildContext context, String urlString) async {
+    final Uri url = Uri.parse(urlString);
     try {
       if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
         if (context.mounted) {
@@ -62,9 +62,9 @@ class LegalScreen extends StatelessWidget {
                 physics: const BouncingScrollPhysics(),
                 padding: EdgeInsets.zero,
                 children: [
-                  _buildLegalItem(context, 'Refund Policy'),
-                  _buildLegalItem(context, 'Privacy Policy'),
-                  _buildLegalItem(context, 'Terms & Conditions'),
+                  _buildLegalItem(context, 'Refund Policy', 'https://washli.lk/refund'),
+                  _buildLegalItem(context, 'Privacy Policy', 'https://washli.lk/privacy'),
+                  _buildLegalItem(context, 'Terms & Conditions', 'https://washli.lk/terms'),
                 ],
               ),
             ),
@@ -74,9 +74,9 @@ class LegalScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLegalItem(BuildContext context, String title) {
+  Widget _buildLegalItem(BuildContext context, String title, String url) {
     return InkWell(
-      onTap: () => _launchWashliWebsite(context),
+      onTap: () => _launchWashliWebsite(context, url),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
         child: Text(
