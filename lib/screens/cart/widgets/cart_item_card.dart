@@ -25,13 +25,16 @@ class CartItemCard extends ConsumerStatefulWidget {
 
 class _CartItemCardState extends ConsumerState<CartItemCard> {
   String? _note;
+  late int _quantity;
+
+  @override
+  void initState() {
+    super.initState();
+    _quantity = widget.initialQuantity;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final cart = ref.watch(cartProvider);
-    final itemIndex = cart.items.indexWhere((item) => item.title == widget.title);
-    final quantity = itemIndex != -1 ? cart.items[itemIndex].quantity : 0;
-
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
@@ -65,15 +68,18 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                   children: [
                     GestureDetector(
                       onTap: () {
-                        if (quantity > 0) {
-                          ref.read(cartProvider.notifier).updateQuantity(widget.title, quantity - 1);
+                        if (_quantity > 0) {
+                          setState(() => _quantity--);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Cart updates are sync-limited from this page for now.'))
+                          );
                         }
                       },
                       child: const Icon(Icons.remove, color: Colors.white, size: 16),
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      '$quantity',
+                      '$_quantity',
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
@@ -83,7 +89,10 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
                     const SizedBox(width: 12),
                     GestureDetector(
                       onTap: () {
-                        ref.read(cartProvider.notifier).updateQuantity(widget.title, quantity + 1);
+                        setState(() => _quantity++);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Cart updates are sync-limited from this page for now.'))
+                        );
                       },
                       child: const Icon(Icons.add, color: Colors.white, size: 16),
                     ),
@@ -115,10 +124,11 @@ class _CartItemCardState extends ConsumerState<CartItemCard> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Service : ${widget.service}',
+            'Subtotal : LKR ${(widget.fee * _quantity).toStringAsFixed(2)}',
              style: TextStyle(
               fontSize: 12,
               color: Colors.grey[700],
+              fontWeight: FontWeight.w600,
             ),
           ),
           

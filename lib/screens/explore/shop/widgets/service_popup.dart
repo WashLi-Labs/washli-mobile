@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:washli_mobile/widgets/buttons/add_button.dart';
-import 'package:washli_mobile/providers/cart_provider.dart';
 
-class ServicePopup extends ConsumerStatefulWidget {
+class ServicePopup extends StatefulWidget {
   final String shopName;
   final String title;
   final String price;
   final String description;
   final String imagePath;
+  final int initialQuantity;
+  final ValueChanged<int>? onQuantityChanged;
 
   const ServicePopup({
     super.key,
@@ -17,52 +17,34 @@ class ServicePopup extends ConsumerStatefulWidget {
     required this.price,
     required this.description,
     this.imagePath = 'assets/images/service image.png',
+    this.initialQuantity = 0,
+    this.onQuantityChanged,
   });
 
   @override
-  ConsumerState<ServicePopup> createState() => _ServicePopupState();
+  State<ServicePopup> createState() => _ServicePopupState();
 }
 
-class _ServicePopupState extends ConsumerState<ServicePopup> {
-  int _count = 1;
-  bool isAddedState = false;
+class _ServicePopupState extends State<ServicePopup> {
+  late int _count;
+  late bool isAddedState;
 
   @override
   void initState() {
     super.initState();
-    // Check if item already in cart
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final cart = ref.read(cartProvider);
-      final index = cart.items.indexWhere((item) => item.title == widget.title);
-      if (index != -1) {
-        setState(() {
-          _count = cart.items[index].quantity;
-          isAddedState = true;
-        });
-      }
-    });
+    _count = widget.initialQuantity > 0 ? widget.initialQuantity : 1;
+    isAddedState = widget.initialQuantity > 0;
   }
 
-  void _updateCart(int count) {
-    if (count > 0) {
-      ref.read(cartProvider.notifier).addItem(
-        shopName: widget.shopName,
-        title: widget.title,
-        priceStr: widget.price,
-        imagePath: widget.imagePath,
-        description: widget.description,
-        quantity: count,
-      );
-    } else {
-      ref.read(cartProvider.notifier).removeItem(widget.title);
-    }
+  void _updateParent(int count) {
+    widget.onQuantityChanged?.call(count);
   }
 
   void _increment() {
     setState(() {
       _count++;
     });
-    _updateCart(_count);
+    _updateParent(_count);
   }
 
   void _decrement() {
@@ -70,13 +52,13 @@ class _ServicePopupState extends ConsumerState<ServicePopup> {
       setState(() {
         _count--;
       });
-      _updateCart(_count);
+      _updateParent(_count);
     } else {
       setState(() {
         isAddedState = false;
         _count = 0;
       });
-      _updateCart(0);
+      _updateParent(0);
     }
   }
 
@@ -173,9 +155,8 @@ class _ServicePopupState extends ConsumerState<ServicePopup> {
           isAddedState = true;
           _count = 1;
         });
-        _updateCart(1);
+        _updateParent(1);
       },
     );
   }
 }
-

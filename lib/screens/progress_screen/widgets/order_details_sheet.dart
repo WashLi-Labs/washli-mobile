@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../providers/cart_provider.dart';
 import '../../../../providers/payment_provider.dart';
 
-import '../../../../models/order_model.dart';
+import '../../../../models/order/order_model.dart';
 
 class OrderDetailsSheet extends ConsumerWidget {
   final OrderModel order;

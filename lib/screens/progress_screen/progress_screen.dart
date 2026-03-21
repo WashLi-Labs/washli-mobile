@@ -8,7 +8,7 @@ import 'widgets/progress_map.dart';
 import 'widgets/order_details_sheet.dart';
 
 import '../../providers/order_provider.dart';
-import '../../models/order_model.dart';
+import '../../models/order/order_model.dart';
 
 class ProgressScreen extends ConsumerStatefulWidget {
   final String orderId;
