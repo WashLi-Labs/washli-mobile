@@ -4,14 +4,15 @@ import 'widgets/category_list.dart';
 import 'widgets/home_header.dart'; 
 import 'widgets/nav_bar.dart'; 
 import 'widgets/nearby_laundry_card.dart'; 
+import 'widgets/active_order_card.dart'; // Import ActiveOrderCard
 import '../search/search_screen.dart'; 
 import '../explore/explore_screen.dart'; 
 import '../account/account_screen.dart'; 
-// import '../payment/payment_screen.dart'; 
 import '../cart/cart_screen.dart'; 
 import 'package:shared_preferences/shared_preferences.dart'; 
 import 'package:flutter_riverpod/flutter_riverpod.dart'; 
 import '../../../providers/user_provider.dart'; 
+import '../../../providers/active_order_provider.dart'; // Import activeOrderProvider
 
 class HomeScreen extends ConsumerStatefulWidget { 
  final String userName; 
@@ -53,6 +54,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
  setState(() { 
  _selectedIndex = 0; 
  }); 
+ ref.invalidate(activeOrderProvider); // Refresh active order
  }); 
  } else if (index == 2) { 
  Navigator.push( 
@@ -62,6 +64,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
  setState(() { 
  _selectedIndex = 0; 
  }); 
+ ref.invalidate(activeOrderProvider); // Refresh active order
  }); 
  } else if (index == 3) { 
  Navigator.push( 
@@ -71,6 +74,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
  setState(() { 
  _selectedIndex = 0; 
  }); 
+ ref.invalidate(activeOrderProvider); // Refresh active order
  }); 
  } else if (index == 4) { 
  Navigator.push( 
@@ -81,6 +85,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
  _selectedIndex = 0; 
  }); 
  _loadUserName(); 
+ ref.invalidate(activeOrderProvider); // Refresh active order
  }); 
  } else { 
  setState(() { 
@@ -92,6 +97,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
  @override 
  Widget build(BuildContext context) { 
  final user = ref.watch(userProvider); 
+ final activeOrderAsync = ref.watch(activeOrderProvider); // Watch active order
  final headerHeight = MediaQuery.of(context).size.height * 0.45; 
 
  return Scaffold( 
@@ -107,6 +113,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
  // Categories 
  const CategoryList(), 
+
+ const SizedBox(height: 20),
+
+ // Active Order Card (Conditional)
+ activeOrderAsync.when(
+   data: (order) => order != null 
+     ? Padding(
+         padding: const EdgeInsets.symmetric(horizontal: 24),
+         child: ActiveOrderCard(order: order),
+       )
+     : const SizedBox.shrink(),
+   loading: () => const SizedBox.shrink(), // Or a small loading indicator
+   error: (_, __) => const SizedBox.shrink(),
+ ),
 
  const SizedBox(height: 30), 
 
