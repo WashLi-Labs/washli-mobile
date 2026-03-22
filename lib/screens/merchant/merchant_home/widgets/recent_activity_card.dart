@@ -25,7 +25,7 @@ class RecentActivityCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final pendingOrdersAsync = ref.watch(merchantOrdersProvider('PLACED'));
+    final pendingOrdersAsync = ref.watch(merchantPendingOrdersProvider);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),

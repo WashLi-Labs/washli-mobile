@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../widgets/buttons/back_button.dart';
 import '../../merchant_home/widgets/merchant_nav_bar.dart';
 import 'widgets/pending.dart';
@@ -13,21 +14,39 @@ import '../../../search/search_screen.dart';
 import '../../../explore/explore_screen.dart';
 import '../../../cart/cart_screen.dart';
 import '../../../home/widgets/nav_bar.dart';
+import '../../../../providers/merchant/merchant_order_provider.dart';
 
-class ActivitiesScreen extends StatefulWidget {
+class ActivitiesScreen extends ConsumerStatefulWidget {
   final String role;
-  const ActivitiesScreen({super.key, this.role = "Merchant"});
+  final int initialIndex;
+  const ActivitiesScreen({
+    super.key, 
+    this.role = "Merchant",
+    this.initialIndex = 0,
+  });
 
   @override
-  State<ActivitiesScreen> createState() => _ActivitiesScreenState();
+  ConsumerState<ActivitiesScreen> createState() => _ActivitiesScreenState();
 }
 
-class _ActivitiesScreenState extends State<ActivitiesScreen> {
+class _ActivitiesScreenState extends ConsumerState<ActivitiesScreen> {
   int _selectedIndex = 2; // Activities tab for Merchant
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshOrders();
+    });
+  }
+
+  void _refreshOrders() {
+    ref.invalidate(merchantAllActiveOrdersProvider);
+  }
 
   void _onItemTapped(int index) {
     if (index == _selectedIndex) return;
-    
+
     if (widget.role == "Merchant") {
       if (index == 0) {
         // Home tab - pop back to MerchantHomeScreen
@@ -48,7 +67,7 @@ class _ActivitiesScreenState extends State<ActivitiesScreen> {
         // Account tab
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const AccountScreen(role: "Merchant")),
+          MaterialPageRoute(builder: (context) => const AccountScreen()),
         );
       } else {
         setState(() {
@@ -97,6 +116,7 @@ class _ActivitiesScreenState extends State<ActivitiesScreen> {
     final int tabCount = widget.role == "Customer" ? 3 : 4;
 
     return DefaultTabController(
+      initialIndex: widget.initialIndex,
       length: tabCount,
       child: Scaffold(
         backgroundColor: Colors.white,

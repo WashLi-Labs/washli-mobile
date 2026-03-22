@@ -13,9 +13,17 @@ class MerchantApiService {
     return [];
   }
 
-  Future<void> updateOrderStatus(String orderId, String status) async {
-    await _apiClient.put(
-      '$kBaseUrl$kOrderPath/orders/$orderId/status?status=$status',
+  Future<void> confirmOrder(String orderId) async {
+    await _apiClient.post(
+      '$kBaseUrl$kOrderPath/merchant/orders/$orderId/confirm',
+      accept: '*/*',
+    );
+  }
+
+  Future<void> cancelOrder(String orderId, String reason) async {
+    await _apiClient.post(
+      '$kBaseUrl$kOrderPath/merchant/orders/$orderId/cancel',
+      body: {'reason': reason},
       accept: '*/*',
     );
   }
