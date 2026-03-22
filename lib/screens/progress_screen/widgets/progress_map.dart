@@ -1,15 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../../../models/order/place_order_response.dart';
+import '../../../providers/order_placement_provider.dart';
 
-class ProgressMap extends StatelessWidget {
-  final String status;
-  final bool isPickup;
+class ProgressMap extends ConsumerWidget {
+  final PlaceOrderResponse? order;
+  final String? manualStatus;
+  final bool? manualIsPickup;
 
-  const ProgressMap({super.key, required this.status, this.isPickup = true});
+  const ProgressMap({
+    super.key,
+    this.order,
+    this.manualStatus,
+    this.manualIsPickup,
+  });
 
   @override
-  Widget build(BuildContext context) {
-    final isConfirmed = status.toUpperCase() == 'CONFIRMED';
+  Widget build(BuildContext context, WidgetRef ref) {
+    final status = (order?.status ?? manualStatus ?? '').toUpperCase();
+    final isConfirmed = status == 'CONFIRMED' || status == 'PICKED_UP';
 
     // Show pending illustration until confirmed
     if (!isConfirmed) {
@@ -21,22 +31,58 @@ class ProgressMap extends StatelessWidget {
       );
     }
 
-    const laundryPosition = LatLng(6.8480, 79.9265);
-    const pickupDefault = LatLng(6.8649, 79.8997);
+    final customerLocation = LatLng(order?.latitude ?? 6.8860, order?.longitude ?? 79.8655);
+    
+    // Find pickup delivery for driver location
+    final pickupDelivery = order?.deliveries.where((d) => d.tripType == 'PICKUP').firstOrNull;
+    final driverLocation = pickupDelivery?.latitude != null && pickupDelivery?.longitude != null
+        ? LatLng(pickupDelivery!.latitude!, pickupDelivery!.longitude!)
+        : null;
+
+    final markers = <Marker>{
+      Marker(
+        markerId: const MarkerId('customer_location'),
+        position: customerLocation,
+        infoWindow: const InfoWindow(title: 'Your Location'),
+      ),
+    };
+
+    if (driverLocation != null) {
+      markers.add(
+        Marker(
+          markerId: const MarkerId('driver_location'),
+          position: driverLocation,
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+          infoWindow: const InfoWindow(title: 'Delivery Partner'),
+        ),
+      );
+    }
+
+    final polylines = <Polyline>{};
+    if (driverLocation != null) {
+      final routeAsync = ref.watch(directionProvider(RouteRequest(driverLocation, customerLocation)));
+      final routePoints = routeAsync.value?.points ?? [driverLocation, customerLocation];
+
+      polylines.add(
+        Polyline(
+          polylineId: const PolylineId('driver_to_customer'),
+          points: routePoints,
+          color: const Color(0xFF0062FF),
+          width: 5,
+          jointType: JointType.round,
+          startCap: Cap.roundCap,
+          endCap: Cap.roundCap,
+        ),
+      );
+    }
 
     return GoogleMap(
       initialCameraPosition: CameraPosition(
-        target: isPickup ? pickupDefault : laundryPosition,
-        zoom: 14.0,
+        target: driverLocation ?? customerLocation,
+        zoom: 14.5,
       ),
-      markers: isPickup
-          ? {}
-          : {
-              const Marker(
-                markerId: MarkerId('laundry_location'),
-                position: laundryPosition,
-              ),
-            },
+      markers: markers,
+      polylines: polylines,
       myLocationEnabled: true,
       myLocationButtonEnabled: false,
       zoomControlsEnabled: false,
