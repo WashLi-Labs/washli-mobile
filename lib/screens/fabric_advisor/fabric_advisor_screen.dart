@@ -1,37 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../widgets/buttons/back_button.dart';
-import '../../widgets/buttons/upload_button.dart';
-import '../../widgets/buttons/submit_button.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 
-class FabricAdvisorScreen extends StatefulWidget {
+import '../../widgets/buttons/back_button.dart';
+import '../../widgets/buttons/upload_button.dart';
+import '../../widgets/buttons/submit_button.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_typography.dart';
+import '../../providers/fabric_advisor_provider.dart';
+import 'widgets/fabric_prediction_result_view.dart';
+
+class FabricAdvisorScreen extends ConsumerStatefulWidget {
   const FabricAdvisorScreen({super.key});
 
   @override
-  State<FabricAdvisorScreen> createState() => _FabricAdvisorScreenState();
+  ConsumerState<FabricAdvisorScreen> createState() => _FabricAdvisorScreenState();
 }
 
-class _FabricAdvisorScreenState extends State<FabricAdvisorScreen> {
+class _FabricAdvisorScreenState extends ConsumerState<FabricAdvisorScreen> {
   File? _image;
   final ImagePicker _picker = ImagePicker();
+  final TextEditingController _descriptionController = TextEditingController();
+
+  @override
+  void dispose() {
+    _descriptionController.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     final XFile? pickedFile = await _picker.pickImage(source: source);
-
     if (pickedFile != null) {
       setState(() {
         _image = File(pickedFile.path);
       });
+      // Optionally reset previous results if image changes
+      ref.read(fabricAdvisorProvider.notifier).reset();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final advisorState = ref.watch(fabricAdvisorProvider);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,13 +74,9 @@ class _FabricAdvisorScreenState extends State<FabricAdvisorScreen> {
                     children: [
                       // Header Title (Scrolls with content)
                       const SizedBox(height: 10),
-                      const Text(
+                      Text(
                         'AI Fabric Advisor',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2D2D3A),
-                        ),
+                        style: AppTextStyles.heading,
                       ),
                       
                       const SizedBox(height: 24),
@@ -77,7 +88,7 @@ class _FabricAdvisorScreenState extends State<FabricAdvisorScreen> {
                           width: double.infinity,
                           height: 250,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE8F0FE), // Light blueish background
+                            color: AppColors.surfaceBlueLight,
                             borderRadius: BorderRadius.circular(20),
                             image: _image != null
                                 ? DecorationImage(
@@ -95,17 +106,14 @@ class _FabricAdvisorScreenState extends State<FabricAdvisorScreen> {
                                       width: 60,
                                       height: 60,
                                       colorFilter: const ColorFilter.mode(
-                                        Color(0xFF4285F4), // Blue icon color
+                                        AppColors.primaryBlue,
                                         BlendMode.srcIn,
                                       ),
                                     ),
                                     const SizedBox(height: 16),
-                                    const Text(
+                                    Text(
                                       'Take a photo of item',
-                                      style: TextStyle(
-                                        color: Color(0xFF5F6368),
-                                        fontSize: 14,
-                                      ),
+                                      style: AppTextStyles.body,
                                     ),
                                   ],
                                 )
@@ -119,16 +127,17 @@ class _FabricAdvisorScreenState extends State<FabricAdvisorScreen> {
                                           setState(() {
                                             _image = null;
                                           });
+                                          ref.read(fabricAdvisorProvider.notifier).reset();
                                         },
                                         child: Container(
                                           padding: const EdgeInsets.all(8),
                                           decoration: const BoxDecoration(
-                                            color: Colors.white,
+                                            color: AppColors.white,
                                             shape: BoxShape.circle,
                                           ),
                                           child: const Icon(
                                             Icons.delete,
-                                            color: Colors.red,
+                                            color: AppColors.error,
                                             size: 24,
                                           ),
                                         ),
@@ -146,70 +155,65 @@ class _FabricAdvisorScreenState extends State<FabricAdvisorScreen> {
                         onTap: () => _pickImage(ImageSource.gallery),
                       ),
                       const SizedBox(height: 16),
+                      
+                      // Description Text Area
+                      TextField(
+                        controller: _descriptionController,
+                        maxLength: 50,
+                        maxLines: 3,
+                        decoration: InputDecoration(
+                          hintText: 'Add description (Optional)',
+                          hintStyle: AppTextStyles.body,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: AppColors.primaryBlue),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      
                       SubmitButton(
-                        isEnabled: _image != null,
+                        isEnabled: _image != null && !advisorState.isLoading,
                         onTap: () {
-                          // Handle submit
+                          if (_image == null) return;
+                          ref.read(fabricAdvisorProvider.notifier).predict(
+                            _image!,
+                            _descriptionController.text,
+                          );
                         },
-                        text: 'Submit',
+                        text: advisorState.isLoading ? 'Predicting...' : 'Submit',
                       ),
       
                       const SizedBox(height: 32),
       
                       // AI Detection Result
-                      const Text(
+                      Text(
                         'AI Detection Result',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2D2D3A),
-                        ),
+                        style: AppTextStyles.heading.copyWith(fontSize: 18),
                       ),
                       const SizedBox(height: 16),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F3F4), // Light grey background
-                          borderRadius: BorderRadius.circular(12),
+                      
+                      if (advisorState.isLoading)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 20),
+                          child: Center(child: CircularProgressIndicator()),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildResultRow('Fabric Type'),
-                            const SizedBox(height: 12),
-                            _buildResultRow('Wash Type'),
-                            const SizedBox(height: 12),
-                            _buildResultRow('Wash Cycle'),
-                            
-                            const SizedBox(height: 24),
-                            
-                            SizedBox(
-                              width: double.infinity,
-                              height: 50,
-                              child: ElevatedButton(
-                                onPressed: null, // Disabled state visual
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFFD9D9D9),
-                                  disabledBackgroundColor: const Color(0xFFD9D9D9),
-                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: Text(
-                                  'Use AI Suggestions',
-                                  style: TextStyle(
-                                    color: Colors.black.withOpacity(0.4),
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                        
+                      if (advisorState.errorMessage != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          child: Text(
+                            advisorState.errorMessage!,
+                            style: AppTextStyles.body.copyWith(color: AppColors.error),
+                          ),
                         ),
-                      ),
+                        
+                      if (advisorState.prediction != null)
+                        FabricPredictionResultView(prediction: advisorState.prediction!),
+                        
                       const SizedBox(height: 20),
                     ],
                   ),
@@ -217,20 +221,6 @@ class _FabricAdvisorScreenState extends State<FabricAdvisorScreen> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildResultRow(String label) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 14,
-          color: Color(0xFF2D2D3A),
-          fontWeight: FontWeight.w500,
         ),
       ),
     );
