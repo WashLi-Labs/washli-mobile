@@ -392,6 +392,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                     pickupAddress: pickupAddress,
                                     scheduledPickupTime: '2026-03-22T10:00:00',
                                     preferredProvider: 'PICKME',
+                                    latitude: locState.coordinates?.latitude ?? 0.0,
+                                    longitude: locState.coordinates?.longitude ?? 0.0,
                                   );
 
                                   final confirmed = await ref
