@@ -76,7 +76,7 @@ class _FabricAdvisorScreenState extends ConsumerState<FabricAdvisorScreen> {
                       const SizedBox(height: 10),
                       const Text(
                         'AI Fabric Advisor',
-                        style: AppTypography.heading1,
+                        style: AppTextStyles.heading,
                       ),
                       
                       const SizedBox(height: 24),
@@ -111,9 +111,9 @@ class _FabricAdvisorScreenState extends ConsumerState<FabricAdvisorScreen> {
                                       ),
                                     ),
                                     const SizedBox(height: 16),
-                                    const Text(
+                                    Text(
                                       'Take a photo of item',
-                                      style: AppTypography.body,
+                                      style: AppTextStyles.body,
                                     ),
                                   ],
                                 )
@@ -163,7 +163,7 @@ class _FabricAdvisorScreenState extends ConsumerState<FabricAdvisorScreen> {
                         maxLines: 3,
                         decoration: InputDecoration(
                           hintText: 'Add description (Optional)',
-                          hintStyle: AppTypography.body,
+                          hintStyle: AppTextStyles.body,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -190,9 +190,9 @@ class _FabricAdvisorScreenState extends ConsumerState<FabricAdvisorScreen> {
                       const SizedBox(height: 32),
       
                       // AI Detection Result
-                      const Text(
+                      Text(
                         'AI Detection Result',
-                        style: AppTypography.heading2,
+                        style: AppTextStyles.heading.copyWith(fontSize: 18),
                       ),
                       const SizedBox(height: 16),
                       
@@ -207,7 +207,7 @@ class _FabricAdvisorScreenState extends ConsumerState<FabricAdvisorScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 20),
                           child: Text(
                             advisorState.errorMessage!,
-                            style: AppTypography.body.copyWith(color: AppColors.error),
+                            style: AppTextStyles.body.copyWith(color: AppColors.error),
                           ),
                         ),
                         

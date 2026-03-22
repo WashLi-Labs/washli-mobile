@@ -7,6 +7,7 @@ import 'widgets/progress_map.dart';
 import 'widgets/order_details_sheet.dart';
 import '../../models/order/place_order_response.dart';
 import '../../providers/order_provider.dart';
+import '../../providers/order_placement_provider.dart';
 
 /// Used by the PICKUP flow (backend REST, no Firestore needed).
 /// Used by the SELF-DELIVER flow via legacy [orderId] + Firestore stream.
@@ -25,33 +26,37 @@ class ProgressScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // ── PICKUP path: everything comes from PlaceOrderResponse ──────────
-    if (order != null) {
-      final isConfirmed = order!.status.toUpperCase() == 'CONFIRMED';
+    // ── REST API path (via order object OR orderId starting with 'WO-') ──
+    if (order != null || (orderId != null && orderId!.startsWith('WO-'))) {
+      final effectiveOrderId = orderId ?? order!.orderId;
+      final orderDataAsync = ref.watch(orderStatusPollingProvider(effectiveOrderId));
+
       return Scaffold(
         backgroundColor: Colors.white,
         body: SafeArea(
           bottom: false,
-          child: Column(
-            children: [
-              ProgressHeader(orderId: order!.orderId),
-              StatusTimeline(
-                status: order!.status,
-                isPickup: order!.pickupMode == 'PARTNER',
-              ),
-              if (isConfirmed) const TimeEstimation(),
-              Expanded(
-                child: Stack(
-                  children: [
-                    ProgressMap(
-                      status: order!.status,
-                      isPickup: order!.pickupMode == 'PARTNER',
+          child: orderDataAsync.when(
+            data: (orderData) {
+              final isConfirmed = orderData.status.toUpperCase() == 'CONFIRMED' || 
+                                orderData.status.toUpperCase() == 'PICKED_UP';
+              return Column(
+                children: [
+                  ProgressHeader(orderId: orderData.orderId),
+                  StatusTimeline(order: orderData),
+                  if (isConfirmed) TimeEstimation(order: orderData),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        ProgressMap(order: orderData),
+                        OrderDetailsSheet(order: orderData),
+                      ],
                     ),
-                    OrderDetailsSheet(order: order!),
-                  ],
-                ),
-              ),
-            ],
+                  ),
+                ],
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, _) => Center(child: Text('Error: $err')),
           ),
         ),
       );
@@ -69,24 +74,23 @@ class ProgressScreen extends ConsumerWidget {
               return const Center(child: Text('Order not found'));
             }
             final status = firestoreOrder.status;
-            final isConfirmed = status.toUpperCase() == 'CONFIRMED';
+            final isConfirmed = status.toUpperCase() == 'CONFIRMED' || 
+                              status.toUpperCase() == 'PICKED_UP';
             return Column(
               children: [
                 ProgressHeader(orderId: firestoreOrder.id),
                 StatusTimeline(
-                  status: status,
-                  isPickup: firestoreOrder.isPickup ?? true,
+                  manualStatus: status,
+                  manualIsPickup: firestoreOrder.isPickup ?? true,
                 ),
-                if (isConfirmed) const TimeEstimation(),
+                if (isConfirmed) TimeEstimation(order: null),
                 Expanded(
                   child: Stack(
                     children: [
                       ProgressMap(
-                        status: status,
-                        isPickup: firestoreOrder.isPickup ?? true,
+                        manualStatus: status,
+                        manualIsPickup: firestoreOrder.isPickup ?? true,
                       ),
-                      // Self-deliver still uses old Firestore-backed sheet
-                      // (separate widget handles OrderModel)
                       _LegacyOrderDetailsSheet(order: firestoreOrder),
                     ],
                   ),

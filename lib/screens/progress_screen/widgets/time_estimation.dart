@@ -1,27 +1,84 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../../../models/order/place_order_response.dart';
+import '../../../providers/order_placement_provider.dart';
 
-class TimeEstimation extends StatelessWidget {
-  const TimeEstimation({super.key});
+class TimeEstimation extends ConsumerWidget {
+  final PlaceOrderResponse? order;
+
+  const TimeEstimation({
+    super.key,
+    this.order,
+  });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final now = DateTime.now();
+    
+    // Default fallback
+    var estimate = now.add(const Duration(minutes: 15));
+    var latest = now.add(const Duration(minutes: 30));
+    String? durationLabel;
+
+    if (order != null) {
+      final customerLocation = LatLng(order!.latitude ?? 6.8860, order!.longitude ?? 79.8655);
+      final pickupDelivery = order!.deliveries.where((d) => d.tripType == 'PICKUP').firstOrNull;
+      
+      if (pickupDelivery?.latitude != null && pickupDelivery?.longitude != null) {
+        final driverLocation = LatLng(pickupDelivery!.latitude!, pickupDelivery!.longitude!);
+        final routeAsync = ref.watch(directionProvider(RouteRequest(driverLocation, customerLocation)));
+        
+        if (routeAsync.hasValue) {
+          final durationValue = routeAsync.value!.durationValue;
+          durationLabel = routeAsync.value!.durationText;
+          estimate = now.add(Duration(seconds: durationValue));
+          latest = estimate.add(const Duration(minutes: 15));
+        }
+      }
+    }
+
+    final format = DateFormat('h:mm a');
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Estimated arrival time',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Estimated arrival time',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+              if (durationLabel != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0062FF).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    durationLabel,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0062FF),
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 4),
-          const Text(
-            '10:27 PM',
-            style: TextStyle(
+          Text(
+            format.format(estimate),
+            style: const TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.w800,
               color: Color(0xFF2D2D3A),
@@ -30,16 +87,18 @@ class TimeEstimation extends StatelessWidget {
           ),
           const SizedBox(height: 2),
           Text(
-            'Latest arrival by 10.48 PM',
+            'Latest arrival by ${format.format(latest)}',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[600],
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
-            'The Delivery Partner will arrive shortly.',
-            style: TextStyle(
+          Text(
+            durationLabel != null 
+              ? 'The Delivery Partner is approximately $durationLabel away.'
+              : 'The Delivery Partner will arrive shortly.',
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: Colors.black54,

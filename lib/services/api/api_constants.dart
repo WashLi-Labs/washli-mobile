@@ -7,3 +7,4 @@ String get kBaseUrl {
   return 'http://localhost:8080';
 }
 const String kOrderPath = '/order';
+const String kGoogleMapsApiKey = 'AIzaSyAxZ31DcQSS6Bl-zT_eV-E39M_m-XQpXF4';

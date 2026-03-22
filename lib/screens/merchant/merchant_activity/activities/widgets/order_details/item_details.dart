@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../../../../models/order/place_order_response.dart';
 
 class ItemDetails extends StatelessWidget {
-  const ItemDetails({super.key});
+  final PlaceOrderResponse? order;
+  const ItemDetails({super.key, this.order});
 
   @override
   Widget build(BuildContext context) {
@@ -23,9 +25,9 @@ class ItemDetails extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Order ID - ORD1523 - RS.3500.00',
-            style: TextStyle(
+          Text(
+            'Order ID - ${order?.orderId ?? ''} - RS.${order?.grandTotal.toStringAsFixed(2) ?? '0.00'}',
+            style: const TextStyle(
               fontSize: 12,
               color: Colors.grey,
             ),
@@ -41,11 +43,14 @@ class ItemDetails extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          _buildDetailRow('Type', 'T shirt'),
-          const Divider(),
-          _buildDetailRow('Quantity', '5'),
-          const Divider(),
-          _buildDetailRow('Services', 'Wash and dry-cleaning'),
+          if (order?.items != null)
+            ...order!.items.map((item) => Column(
+              children: [
+                _buildDetailRow(item.itemName, 'Quantity: ${item.quantity}'), // Omit washType
+                const Divider(),
+              ],
+            )).toList(),
+          _buildDetailRow('Grand Total', 'RS.${order?.grandTotal.toStringAsFixed(2) ?? '0.00'}'),
         ],
       ),
     );
@@ -57,23 +62,23 @@ class ItemDetails extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
           Expanded(
             child: Text(
-              value,
-              textAlign: TextAlign.right,
+              label,
               style: const TextStyle(
                 fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF2D2D3A),
+                color: Colors.grey,
+                fontWeight: FontWeight.w500,
               ),
+            ),
+          ),
+          Text(
+            value,
+            textAlign: TextAlign.right,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF2D2D3A),
             ),
           ),
         ],

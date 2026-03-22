@@ -1,32 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
-class AppTypography {
-  static const TextStyle heading1 = TextStyle(
-    fontSize: 24,
+class AppTextStyles {
+  static const String fontFamily = 'Poppins';
+
+  static TextStyle get heading => GoogleFonts.poppins(
+    fontSize: 20,
     fontWeight: FontWeight.bold,
-    color: AppColors.primaryText,
+    color: AppColors.textPrimary,
   );
 
-  static const TextStyle heading2 = TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.bold,
-    color: AppColors.primaryText,
-  );
-
-  static const TextStyle label = TextStyle(
+  static TextStyle get body => GoogleFonts.poppins(
     fontSize: 14,
-    color: AppColors.primaryText,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.normal,
+    color: AppColors.textSecondary,
+    height: 1.5,
   );
 
-  static const TextStyle body = TextStyle(
-    fontSize: 14,
-    color: AppColors.secondaryText,
-  );
-
-  static const TextStyle buttonText = TextStyle(
+  static TextStyle get button => GoogleFonts.poppins(
     fontSize: 16,
     fontWeight: FontWeight.w600,
+    color: AppColors.primary,
+  );
+
+  static TextStyle get caption => GoogleFonts.poppins(
+    fontSize: 12,
+    fontWeight: FontWeight.normal,
+    color: AppColors.textSecondary,
   );
 }

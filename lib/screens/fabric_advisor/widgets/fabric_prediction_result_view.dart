@@ -77,7 +77,7 @@ water temperature: ${prediction.waterTemperature ?? 'N/A'}
               ),
               child: Text(
                 'Copy AI Suggestions',
-                style: AppTypography.buttonText.copyWith(
+                style: AppTextStyles.button.copyWith(
                   color: AppColors.white,
                 ),
               ),
@@ -98,13 +98,13 @@ water temperature: ${prediction.waterTemperature ?? 'N/A'}
             width: 120, // fixed width for label alignment
             child: Text(
               label,
-              style: AppTypography.label,
+              style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: AppTypography.body,
+              style: AppTextStyles.body,
             ),
           ),
         ],
@@ -121,7 +121,7 @@ water temperature: ${prediction.waterTemperature ?? 'N/A'}
         children: [
           Text(
             label,
-            style: AppTypography.label,
+            style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 4),
           ...values.map((v) => Padding(
@@ -134,7 +134,7 @@ water temperature: ${prediction.waterTemperature ?? 'N/A'}
                 Expanded(
                   child: Text(
                     v,
-                    style: AppTypography.body,
+                    style: AppTextStyles.body,
                   ),
                 ),
               ],

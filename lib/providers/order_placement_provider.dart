@@ -1,3 +1,5 @@
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../services/api/direction_service.dart';
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/order/place_order_request.dart';
@@ -41,3 +43,60 @@ final orderPlacementProvider =
     AsyncNotifierProvider<OrderPlacementNotifier, PlaceOrderResponse?>(
   OrderPlacementNotifier.new,
 );
+
+final orderDetailsProvider = FutureProvider.family<PlaceOrderResponse, String>((ref, orderId) async {
+  final service = ref.read(orderApiServiceProvider);
+  return service.getOrderById(orderId);
+});
+
+final orderStatusPollingProvider = StreamProvider.family<PlaceOrderResponse, String>((ref, orderId) async* {
+  final service = ref.read(orderApiServiceProvider);
+  
+  // Initial fetch
+  try {
+    final initial = await service.getOrderById(orderId);
+    yield initial;
+  } catch (e) {
+    // Optionally log error
+  }
+
+  // Polling loop
+  while (true) {
+    await Future.delayed(const Duration(seconds: 20));
+    try {
+      final response = await service.getOrderById(orderId);
+      yield response;
+      
+      // Stop polling if order is in a terminal state
+      if (['DELIVERED', 'CANCELLED', 'REFUNDED'].contains(response.status.toUpperCase())) {
+        break;
+      }
+    } catch (e) {
+      // Continue polling even on error, maybe with exponential backoff if needed
+      // for now, just keep trying every 20s
+    }
+  }
+});
+
+final directionServiceProvider = Provider((ref) => DirectionService());
+
+final directionProvider = FutureProvider.family<RouteResponse, RouteRequest>((ref, request) async {
+  final service = ref.read(directionServiceProvider);
+  return service.getRoute(request.origin, request.destination);
+});
+
+class RouteRequest {
+  final LatLng origin;
+  final LatLng destination;
+  RouteRequest(this.origin, this.destination);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RouteRequest &&
+          other.origin == origin &&
+          other.destination == destination);
+
+  @override
+  int get hashCode => origin.hashCode ^ destination.hashCode;
+}

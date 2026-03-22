@@ -10,7 +10,10 @@ import '../orders/orders.dart';
 import '../add_promotion/promotion.dart';
 import '../dashboard/dashboard.dart';
 import '../../account/account_screen.dart';
-import '../../../providers/merchant_provider.dart';
+import '../../../providers/merchant/merchant_profile_provider.dart';
+import '../../../providers/merchant/merchant_order_provider.dart';
+import '../../../utils/alerts/error_alerts/location_enable_popup.dart';
+import 'package:geolocator/geolocator.dart';
 
 class MerchantHomeScreen extends ConsumerStatefulWidget {
   const MerchantHomeScreen({super.key});
@@ -30,7 +33,21 @@ class _MerchantHomeScreenState extends ConsumerState<MerchantHomeScreen> {
       if (ref.read(merchantProvider).merchant == null) {
         ref.read(merchantProvider.notifier).loadMerchantProfile();
       }
+      _refreshOrders();
+      _checkLocationStatus();
     });
+  }
+
+  Future<void> _checkLocationStatus() async {
+    // Check if location services are enabled
+    bool isLocationEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!isLocationEnabled && mounted) {
+      LocationEnablePopup.show(context);
+    }
+  }
+
+  void _refreshOrders() {
+    ref.invalidate(merchantAllActiveOrdersProvider);
   }
 
   void _onItemTapped(int index) {
@@ -38,31 +55,45 @@ class _MerchantHomeScreenState extends ConsumerState<MerchantHomeScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const OrdersScreen()),
-      ).then((_) => setState(() => _selectedIndex = 0));
+      ).then((_) {
+        _refreshOrders();
+        setState(() => _selectedIndex = 0);
+      });
       return;
     }
     if (index == 2) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const ActivitiesScreen()),
-      ).then((_) => setState(() => _selectedIndex = 0));
+      ).then((_) {
+        _refreshOrders();
+        setState(() => _selectedIndex = 0);
+      });
       return;
     }
     if (index == 3) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const DashboardScreen()),
-      ).then((_) => setState(() => _selectedIndex = 0));
+      ).then((_) {
+        _refreshOrders();
+        setState(() => _selectedIndex = 0);
+      });
       return;
     }
     if (index == 4) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => AccountScreen(role: 'Merchant')),
-      ).then((_) => setState(() => _selectedIndex = 0));
+        MaterialPageRoute(builder: (context) => const AccountScreen()),
+      ).then((_) {
+        _refreshOrders();
+        setState(() => _selectedIndex = 0);
+      });
       return;
     }
-    setState(() => _selectedIndex = index);
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   @override
@@ -81,79 +112,108 @@ class _MerchantHomeScreenState extends ConsumerState<MerchantHomeScreen> {
       }
     });
 
+    final statsAsync = ref.watch(merchantStatsProvider);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: profileState.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Stack(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header
-                      MerchantHomeHeader(merchantName: merchantName),
+          : RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(merchantAllActiveOrdersProvider);
+              },
+              child: SingleChildScrollView(
+                child: Stack(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header
+                        MerchantHomeHeader(merchantName: merchantName),
 
-                      // Spacing for Action Card intersection
-                      const SizedBox(height: 60),
+                        // Spacing for Action Card intersection
+                        const SizedBox(height: 60),
 
-                      // Orders Section
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Orders',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF2D2D3A),
+                        // Orders Section
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Orders',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF2D2D3A),
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 12),
-                            GridView.count(
-                              padding: EdgeInsets.zero,
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
-                              childAspectRatio: 1.45,
-                              children: [
-                                OrderStatsCard(
-                                  title: 'Pending Orders',
-                                  count: '5',
-                                  subtitle: 'Awaiting confirmation',
-                                  dotColor: Colors.orange,
-                                  onTap: () => _onItemTapped(1),
-                                ),
-                                OrderStatsCard(
-                                  title: 'In Progress',
-                                  count: '2',
-                                  subtitle: 'Being washing and Drying',
-                                  dotColor: Colors.blue,
-                                  onTap: () => _onItemTapped(1),
-                                ),
-                                OrderStatsCard(
-                                  title: 'Completed',
-                                  count: '4',
-                                  subtitle: 'Delivered Successfully',
-                                  dotColor: Colors.green,
-                                  onTap: () => _onItemTapped(1),
-                                ),
-                                OrderStatsCard(
-                                  title: 'Canceled',
-                                  count: '2',
-                                  subtitle: 'Marked as canceled',
-                                  dotColor: Colors.red,
-                                  onTap: () => _onItemTapped(1),
-                                ),
-                              ],
-                            ),
-                          ],
+                              const SizedBox(height: 12),
+                              GridView.count(
+                                padding: EdgeInsets.zero,
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 16,
+                                mainAxisSpacing: 16,
+                                childAspectRatio: 1.45,
+                                children: [
+                                  OrderStatsCard(
+                                    title: 'Pending Orders',
+                                    count: statsAsync.maybeWhen(
+                                      data: (stats) => stats['pending']?.toString() ?? '0',
+                                      orElse: () => '0',
+                                    ),
+                                    subtitle: 'Awaiting confirmation',
+                                    dotColor: Colors.orange,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => const ActivitiesScreen(initialIndex: 0)),
+                                      ).then((_) => _refreshOrders());
+                                    },
+                                  ),
+                                  OrderStatsCard(
+                                    title: 'In Progress',
+                                    count: statsAsync.maybeWhen(
+                                      data: (stats) => stats['inprogress']?.toString() ?? '0',
+                                      orElse: () => '0',
+                                    ),
+                                    subtitle: 'Being washing and Drying',
+                                    dotColor: Colors.blue,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => const ActivitiesScreen(initialIndex: 1)),
+                                      ).then((_) => _refreshOrders());
+                                    },
+                                  ),
+                                  OrderStatsCard(
+                                    title: 'Completed',
+                                    count: statsAsync.maybeWhen(
+                                      data: (stats) => stats['completed']?.toString() ?? '0',
+                                      orElse: () => '0',
+                                    ),
+                                    subtitle: 'Successfully delivered',
+                                    dotColor: Colors.green,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => const ActivitiesScreen(initialIndex: 2)),
+                                      ).then((_) => _refreshOrders());
+                                    },
+                                  ),
+                                  const OrderStatsCard(
+                                    title: 'Revenue',
+                                    count: 'LKR 0',
+                                    subtitle: 'Total earnings',
+                                    dotColor: Colors.purple,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
 
                       const SizedBox(height: 12),
 
@@ -183,6 +243,7 @@ class _MerchantHomeScreenState extends ConsumerState<MerchantHomeScreen> {
                 ],
               ),
             ),
+          ),
       extendBody: true,
       bottomNavigationBar: MerchantNavBar(
         selectedIndex: _selectedIndex,

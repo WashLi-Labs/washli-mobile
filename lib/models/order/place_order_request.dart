@@ -4,6 +4,8 @@ class PlaceOrderRequest {
   final String pickupAddress;
   final String scheduledPickupTime;
   final String preferredProvider;
+  final double latitude;
+  final double longitude;
 
   const PlaceOrderRequest({
     required this.merchantId,
@@ -11,6 +13,8 @@ class PlaceOrderRequest {
     required this.pickupAddress,
     required this.scheduledPickupTime,
     required this.preferredProvider,
+    required this.latitude,
+    required this.longitude,
   });
 
   Map<String, dynamic> toJson() {
@@ -20,6 +24,8 @@ class PlaceOrderRequest {
       'pickupAddress': pickupAddress,
       'scheduledPickupTime': scheduledPickupTime,
       'preferredProvider': preferredProvider,
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 }
