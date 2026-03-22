@@ -9,7 +9,7 @@ import 'widgets/sales_summery/complete_orders.dart';
 import 'widgets/sales_summery/earnings.dart';
 import 'widgets/sales_summery/customer_review.dart';
 import '../../account/account_screen.dart';
-import '../../../providers/merchant_provider.dart';
+import '../../../providers/merchant/merchant_profile_provider.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});

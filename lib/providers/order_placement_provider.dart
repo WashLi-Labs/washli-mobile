@@ -41,3 +41,8 @@ final orderPlacementProvider =
     AsyncNotifierProvider<OrderPlacementNotifier, PlaceOrderResponse?>(
   OrderPlacementNotifier.new,
 );
+
+final orderDetailsProvider = FutureProvider.family<PlaceOrderResponse, String>((ref, orderId) async {
+  final service = ref.read(orderApiServiceProvider);
+  return service.getOrderById(orderId);
+});

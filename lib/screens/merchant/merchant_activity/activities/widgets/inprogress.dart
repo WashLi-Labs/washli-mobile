@@ -1,19 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'order_details/order_popup.dart';
-import 'package:washli_mobile/providers/order_provider.dart';
+import '../../../../../providers/merchant/merchant_order_provider.dart';
 import 'package:washli_mobile/screens/merchant/merchant_activity/activities/widgets/empty_state_widget.dart';
 
 class InProgressActivities extends ConsumerWidget {
   final String role;
   const InProgressActivities({super.key, this.role = "Merchant"});
 
+  String _getTimeAgo(String createdAt) {
+    try {
+      final dateTime = DateTime.parse(createdAt);
+      final difference = DateTime.now().difference(dateTime);
+      if (difference.inMinutes < 60) return '${difference.inMinutes} mins ago';
+      if (difference.inHours < 24) return '${difference.inHours} hours ago';
+      return DateFormat('MMM dd').format(dateTime);
+    } catch (_) {
+      return 'Recently';
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final orderState = ref.watch(orderProvider);
-    final inProgressOrders = orderState.activeOrders.where((o) => o.status == 'In Progress').toList();
-
-    if (inProgressOrders.isEmpty) {
+    if (role != "Merchant") {
       return const EmptyStateWidget(
         icon: Icons.sync_outlined,
         title: 'No in-progress activities',
@@ -21,87 +31,106 @@ class InProgressActivities extends ConsumerWidget {
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      itemCount: inProgressOrders.length,
-      itemBuilder: (context, index) {
-        final order = inProgressOrders[index];
-        return GestureDetector(
-          onTap: () => OrderPopup.show(
-            context,
-            orderId: order.id,
-            showActions: false, // Never show actions for In Progress
-            role: role,
+    final inProgressOrdersAsync = ref.watch(merchantOrdersProvider('CONFIRMED'));
+
+    return inProgressOrdersAsync.when(
+      data: (orders) {
+        if (orders.isEmpty) {
+          return const EmptyStateWidget(
+            icon: Icons.sync_outlined,
+            title: 'No in-progress activities',
+            subtitle: 'Orders currently being processed will appear here.',
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () async => ref.invalidate(merchantOrdersProvider('CONFIRMED')),
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            itemCount: orders.length,
+            itemBuilder: (context, index) {
+              final order = orders[index];
+              final itemsDesc = order.items
+                  .map((i) => '${i.itemName} x ${i.quantity}')
+                  .join(', ');
+
+              return GestureDetector(
+                onTap: () => OrderPopup.show(
+                  context,
+                  order: order,
+                  showActions: false,
+                  role: role,
+                ),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              order.orderId,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF2D2D3A),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _getTimeAgo(order.createdAt),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              itemsDesc,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        height: 32,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Text(
+                          'In Progress',
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            height: 1.0,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
-          child: _buildActivityCard(order),
         );
       },
-    );
-  }
-
-  Widget _buildActivityCard(OrderModel order) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  order.orderId,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2D2D3A),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  order.timeAgo,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  order.orderDescription,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            height: 32,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Text(
-              'In Progress',
-              style: TextStyle(
-                color: Colors.blue,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                height: 1.0,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ],
-      ),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, _) => Center(child: Text('Error: $err')),
     );
   }
 }

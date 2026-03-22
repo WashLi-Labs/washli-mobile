@@ -23,7 +23,7 @@ import '../merchant/merchant_home/merchant_home.dart';
 import '../../services/firebase/database_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../providers/user_provider.dart';
-import '../../../providers/merchant_provider.dart';
+import '../../../providers/merchant/merchant_profile_provider.dart';
 
 class AccountScreen extends ConsumerStatefulWidget {
   final String role;

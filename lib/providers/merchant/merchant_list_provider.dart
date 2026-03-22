@@ -2,9 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
-import '../models/merchant/merchant_profile_model.dart';
-import '../services/firebase/merchant_firebase_service.dart';
-import '../get_location/location_service.dart';
+import '../../models/merchant/merchant_profile_model.dart';
+import '../../services/firebase/merchant_firebase_service.dart';
+import '../../get_location/location_service.dart';
 
 /// Fetches all merchants (unordered) — used when position is unavailable.
 final allMerchantsProvider =

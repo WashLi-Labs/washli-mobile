@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/merchant/merchant_profile_model.dart';
-import '../../../providers/merchants_list_provider.dart';
+import '../../../providers/merchant/merchant_list_provider.dart';
 import '../../../services/firebase/merchant_firebase_service.dart';
 import '../../explore/explore_screen.dart';
 import '../../explore/shop/shop_details_screen.dart';
@@ -62,7 +62,7 @@ class NearbyLaundryCard extends ConsumerWidget {
                 ),
               ),
             ),
-            data: (items) {
+            data: (List<MerchantWithDistance> items) {
               if (items.isEmpty) {
                 return const Padding(
                   padding: EdgeInsets.symmetric(vertical: 16),
@@ -76,7 +76,7 @@ class NearbyLaundryCard extends ConsumerWidget {
               final preview = items.take(4).toList();
               return Column(
                 children: preview
-                    .map((item) => _LaundryRow(item: item))
+                    .map<Widget>((item) => _LaundryRow(item: item))
                     .toList(),
               );
             },

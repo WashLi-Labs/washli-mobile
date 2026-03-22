@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import '../../../../../../models/order/place_order_response.dart';
 
 class CustomerDetail extends StatelessWidget {
   final String role;
-  const CustomerDetail({super.key, this.role = "Merchant"});
+  final PlaceOrderResponse? order;
+
+  const CustomerDetail({
+    super.key, 
+    this.role = "Merchant",
+    this.order,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,18 +24,18 @@ class CustomerDetail extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '#ORD-1523',
-            style: TextStyle(
+          Text(
+            '#${order?.orderId ?? 'N/A'}',
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Color(0xFF2D2D3A),
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Order ID - ORD1523 - RS.3500.00',
-            style: TextStyle(
+          Text(
+            'Order ID - ${order?.orderId ?? ''} - RS.${order?.grandTotal.toStringAsFixed(2) ?? '0.00'}',
+            style: const TextStyle(
               fontSize: 12,
               color: Colors.grey,
             ),
@@ -44,14 +51,14 @@ class CustomerDetail extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          _buildDetailRow('Name', isCustomer ? 'Fresh Wash Laundry' : 'Amal Silva'),
+          _buildDetailRow('Name', isCustomer ? (order?.merchantName ?? 'Merchant') : (order?.customerName ?? 'Customer')),
           const Divider(),
-          _buildDetailRow('Mobile Number', '+9471 6545 334'),
-          const Divider(),
-          _buildDetailRow('Address', 'No 69, Main Road, Nugegoda'),
+          // Mobile number not explicitly in PlaceOrderResponse, showing placeholder or omitting
+          _buildDetailRow('Address', 
+            isCustomer ? (order?.merchantAddress ?? 'N/A') : (order?.pickupAddress ?? 'N/A')),
           if (isCustomer) ...[
             const Divider(),
-            _buildDetailRow('Price', 'LKR.3500.00'),
+            _buildDetailRow('Price', 'LKR.${order?.grandTotal.toStringAsFixed(2) ?? '0.00'}'),
           ],
         ],
       ),
