@@ -162,7 +162,7 @@ class _AddCardScreenState extends State<AddCardScreen> {
                   controller: _nickNameController,
                   hintText: "Enter Nick Name (Optional)",
                   inputFormatters: [
-                    LengthLimitingTextInputFormatter(20),
+                    LengthLimitingTextInputFormatter(10),
                   ],
                 ),
                 const SizedBox(height: 40),
