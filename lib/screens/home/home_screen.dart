@@ -13,6 +13,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; 
 import '../../../providers/user_provider.dart'; 
 import '../../../providers/active_order_provider.dart'; // Import activeOrderProvider
+import '../../utils/alerts/error_alerts/location_enable_popup.dart';
+import 'package:geolocator/geolocator.dart';
 
 class HomeScreen extends ConsumerStatefulWidget { 
  final String userName; 
@@ -34,7 +36,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
  void initState() { 
  super.initState(); 
  _loadUserName(); 
+ _checkLocationStatus();
  } 
+
+  Future<void> _checkLocationStatus() async {
+    // Check if location services are enabled
+    bool isLocationEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!isLocationEnabled && mounted) {
+      LocationEnablePopup.show(context);
+    }
+  }
 
  Future<void> _loadUserName() async { 
  final prefs = await SharedPreferences.getInstance(); 

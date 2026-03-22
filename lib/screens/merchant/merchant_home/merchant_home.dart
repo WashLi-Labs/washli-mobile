@@ -12,6 +12,8 @@ import '../dashboard/dashboard.dart';
 import '../../account/account_screen.dart';
 import '../../../providers/merchant/merchant_profile_provider.dart';
 import '../../../providers/merchant/merchant_order_provider.dart';
+import '../../../utils/alerts/error_alerts/location_enable_popup.dart';
+import 'package:geolocator/geolocator.dart';
 
 class MerchantHomeScreen extends ConsumerStatefulWidget {
   const MerchantHomeScreen({super.key});
@@ -32,7 +34,16 @@ class _MerchantHomeScreenState extends ConsumerState<MerchantHomeScreen> {
         ref.read(merchantProvider.notifier).loadMerchantProfile();
       }
       _refreshOrders();
+      _checkLocationStatus();
     });
+  }
+
+  Future<void> _checkLocationStatus() async {
+    // Check if location services are enabled
+    bool isLocationEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!isLocationEnabled && mounted) {
+      LocationEnablePopup.show(context);
+    }
   }
 
   void _refreshOrders() {
