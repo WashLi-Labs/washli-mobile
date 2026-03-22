@@ -16,11 +16,13 @@ import 'widgets/payment_method_selector.dart';
 import 'widgets/clear_cart_popup.dart';
 import '../progress_screen/progress_screen.dart';
 import '../../providers/payment_provider.dart';
+import '../explore/explore_screen.dart';
 import '../../providers/order_provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../../providers/order_placement_provider.dart';
+import '../../models/order/place_order_request.dart';
 import '../../models/order/order_model.dart';
 import '../../services/firebase/order_service.dart';
-import '../explore/explore_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CartScreen extends ConsumerStatefulWidget {
   final String merchantId;
@@ -376,12 +378,49 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                 );
                                 return;
                               }
-                              
+
+                              // ── PICKUP MODE → backend REST API ──────────────
+                              if (_isPickup) {
+                                try {
+                                  final pickupAddress = locState.subAddress.isEmpty
+                                      ? locState.address
+                                      : '${locState.address}, ${locState.subAddress}';
+
+                                  final request = PlaceOrderRequest(
+                                    merchantId: widget.merchantId,
+                                    pickupMode: 'PARTNER',
+                                    pickupAddress: pickupAddress,
+                                    scheduledPickupTime: '2026-03-22T10:00:00',
+                                    preferredProvider: 'PICKME',
+                                  );
+
+                                  final confirmed = await ref
+                                      .read(orderPlacementProvider.notifier)
+                                      .placeOrder(request);
+
+                                  ref.read(cartProvider.notifier).reset();
+
+                                  if (!mounted) return;
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => ProgressScreen(order: confirmed),
+                                    ),
+                                  );
+                                } catch (e) {
+                                  if (!mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Failed to place order: $e')),
+                                  );
+                                }
+                                return;
+                              }
+
+                              // ── SELF-DELIVER MODE → existing Firestore flow ──
                               try {
                                 final userId = FirebaseAuth.instance.currentUser?.uid ?? 'anonymous';
-                                final deliveryFee = _isPickup ? 150.00 : 0.00;
+                                final deliveryFee = 0.00;
                                 
-                                // Mapping to existing model
                                 final List<CartItem> modelItems = cart.items.map((i) => CartItem(
                                   title: i.itemName,
                                   price: i.unitPrice,
@@ -410,7 +449,6 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                 
                                 final orderId = await ref.read(orderService).createOrder(order);
                                 
-                                // After DB creation reset memory
                                 ref.read(cartProvider.notifier).reset();
                                 
                                 if (!mounted) return;
@@ -419,7 +457,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => ProgressScreen(
-                                      orderId: orderId, 
+                                      orderId: orderId,
                                       isPickup: _isPickup,
                                     ),
                                   ),

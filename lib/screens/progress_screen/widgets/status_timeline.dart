@@ -1,20 +1,34 @@
 import 'package:flutter/material.dart';
 
 class StatusTimeline extends StatelessWidget {
-  final int currentStageIndex;
+  final String status;
   final bool isPickup;
 
   const StatusTimeline({
-    super.key, 
-    required this.currentStageIndex,
+    super.key,
+    required this.status,
     this.isPickup = true,
   });
 
+  /// Maps the backend status string to a stage index.
+  /// Nothing is green until status == CONFIRMED.
+  int _stageIndex() {
+    switch (status.toUpperCase()) {
+      case 'CONFIRMED': return 0;
+      case 'PICKED_UP': return 1;
+      case 'HANDED_OVER': return 2;
+      case 'READY': return 3;
+      case 'DELIVERED': return 4;
+      default: return -1; // PLACED / anything else → all grey
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final stages = isPickup 
+    final stages = isPickup
         ? ['Accepted', 'Picked-up', 'Handed-over', 'Ready', 'Delivered']
         : ['Accepted', 'Handed-over', 'Ready', 'Delivered'];
+    final currentStageIndex = _stageIndex();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
@@ -32,16 +46,14 @@ class StatusTimeline extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    // Left Line
                     Expanded(
                       child: Container(
                         height: 2,
-                        color: isFirst 
-                            ? Colors.transparent 
-                            : (isCompleted ? const Color(0xFF2ECA7F) : Colors.grey[300]),
+                        color: isFirst
+                            ? Colors.transparent
+                            : (isLineCompleted ? const Color(0xFF2ECA7F) : Colors.grey[300]),
                       ),
                     ),
-                    // Circle Node
                     Container(
                       width: 28,
                       height: 28,
@@ -57,12 +69,11 @@ class StatusTimeline extends StatelessWidget {
                           ? const Icon(Icons.check, size: 16, color: Colors.white)
                           : const SizedBox(),
                     ),
-                    // Right Line
                     Expanded(
                       child: Container(
                         height: 2,
-                        color: isLast 
-                            ? Colors.transparent 
+                        color: isLast
+                            ? Colors.transparent
                             : (isLineCompleted ? const Color(0xFF2ECA7F) : Colors.grey[300]),
                       ),
                     ),
