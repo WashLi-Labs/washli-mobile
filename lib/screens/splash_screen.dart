@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'Auth/role.dart';
 import 'home/home_screen.dart';
+import 'merchant/merchant_home/merchant_home.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -15,15 +17,27 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 3), () {
-      final user = FirebaseAuth.instance.currentUser;
+    _handleNavigation();
+  }
 
+  Future<void> _handleNavigation() async {
+    final prefs = await SharedPreferences.getInstance();
+    final role = prefs.getString('role');
+    final user = FirebaseAuth.instance.currentUser;
+
+    Timer(const Duration(seconds: 3), () {
       if (mounted) {
         if (user != null) {
-          // If already logged in, go straight to HomeScreen
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-          );
+          // Redirect based on role
+          if (role == "Merchant") {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const MerchantHomeScreen()),
+            );
+          } else {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+            );
+          }
         } else {
           // Otherwise, go to Login
           Navigator.of(context).pushReplacement(

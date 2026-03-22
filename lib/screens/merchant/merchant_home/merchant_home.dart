@@ -31,7 +31,12 @@ class _MerchantHomeScreenState extends ConsumerState<MerchantHomeScreen> {
       if (ref.read(merchantProvider).merchant == null) {
         ref.read(merchantProvider.notifier).loadMerchantProfile();
       }
+      _refreshOrders();
     });
+  }
+
+  void _refreshOrders() {
+    ref.invalidate(merchantAllActiveOrdersProvider);
   }
 
   void _onItemTapped(int index) {
@@ -39,31 +44,45 @@ class _MerchantHomeScreenState extends ConsumerState<MerchantHomeScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const OrdersScreen()),
-      ).then((_) => setState(() => _selectedIndex = 0));
+      ).then((_) {
+        _refreshOrders();
+        setState(() => _selectedIndex = 0);
+      });
       return;
     }
     if (index == 2) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const ActivitiesScreen()),
-      ).then((_) => setState(() => _selectedIndex = 0));
+      ).then((_) {
+        _refreshOrders();
+        setState(() => _selectedIndex = 0);
+      });
       return;
     }
     if (index == 3) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const DashboardScreen()),
-      ).then((_) => setState(() => _selectedIndex = 0));
+      ).then((_) {
+        _refreshOrders();
+        setState(() => _selectedIndex = 0);
+      });
       return;
     }
     if (index == 4) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => AccountScreen(role: 'Merchant')),
-      ).then((_) => setState(() => _selectedIndex = 0));
+        MaterialPageRoute(builder: (context) => const AccountScreen()),
+      ).then((_) {
+        _refreshOrders();
+        setState(() => _selectedIndex = 0);
+      });
       return;
     }
-    setState(() => _selectedIndex = index);
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   @override
@@ -82,9 +101,7 @@ class _MerchantHomeScreenState extends ConsumerState<MerchantHomeScreen> {
       }
     });
 
-    final pendingOrdersAsync = ref.watch(merchantOrdersProvider('PLACED'));
-    final inProgressOrdersAsync = ref.watch(merchantOrdersProvider('CONFIRMED'));
-    final completedOrdersAsync = ref.watch(merchantOrdersProvider('COMPLETE'));
+    final statsAsync = ref.watch(merchantStatsProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -92,9 +109,7 @@ class _MerchantHomeScreenState extends ConsumerState<MerchantHomeScreen> {
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
               onRefresh: () async {
-                ref.invalidate(merchantOrdersProvider('PLACED'));
-                ref.invalidate(merchantOrdersProvider('CONFIRMED'));
-                ref.invalidate(merchantOrdersProvider('COMPLETE'));
+                ref.invalidate(merchantAllActiveOrdersProvider);
               },
               child: SingleChildScrollView(
                 child: Stack(
@@ -134,40 +149,54 @@ class _MerchantHomeScreenState extends ConsumerState<MerchantHomeScreen> {
                                 children: [
                                   OrderStatsCard(
                                     title: 'Pending Orders',
-                                    count: pendingOrdersAsync.maybeWhen(
-                                      data: (orders) => orders.length.toString(),
+                                    count: statsAsync.maybeWhen(
+                                      data: (stats) => stats['pending']?.toString() ?? '0',
                                       orElse: () => '0',
                                     ),
                                     subtitle: 'Awaiting confirmation',
                                     dotColor: Colors.orange,
-                                    onTap: () => _onItemTapped(1),
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => const ActivitiesScreen(initialIndex: 0)),
+                                      ).then((_) => _refreshOrders());
+                                    },
                                   ),
                                   OrderStatsCard(
                                     title: 'In Progress',
-                                    count: inProgressOrdersAsync.maybeWhen(
-                                      data: (orders) => orders.length.toString(),
+                                    count: statsAsync.maybeWhen(
+                                      data: (stats) => stats['inprogress']?.toString() ?? '0',
                                       orElse: () => '0',
                                     ),
                                     subtitle: 'Being washing and Drying',
                                     dotColor: Colors.blue,
-                                    onTap: () => _onItemTapped(1),
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => const ActivitiesScreen(initialIndex: 1)),
+                                      ).then((_) => _refreshOrders());
+                                    },
                                   ),
                                   OrderStatsCard(
                                     title: 'Completed',
-                                    count: completedOrdersAsync.maybeWhen(
-                                      data: (orders) => orders.length.toString(),
+                                    count: statsAsync.maybeWhen(
+                                      data: (stats) => stats['completed']?.toString() ?? '0',
                                       orElse: () => '0',
                                     ),
-                                    subtitle: 'Delivered Successfully',
+                                    subtitle: 'Successfully delivered',
                                     dotColor: Colors.green,
-                                    onTap: () => _onItemTapped(1),
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => const ActivitiesScreen(initialIndex: 2)),
+                                      ).then((_) => _refreshOrders());
+                                    },
                                   ),
-                                  OrderStatsCard(
-                                    title: 'Canceled',
-                                    count: '0',
-                                    subtitle: 'Marked as canceled',
-                                    dotColor: Colors.red,
-                                    onTap: () => _onItemTapped(1),
+                                  const OrderStatsCard(
+                                    title: 'Revenue',
+                                    count: 'LKR 0',
+                                    subtitle: 'Total earnings',
+                                    dotColor: Colors.purple,
                                   ),
                                 ],
                               ),

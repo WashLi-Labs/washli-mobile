@@ -31,7 +31,7 @@ class CompletedActivities extends ConsumerWidget {
       );
     }
 
-    final completedOrdersAsync = ref.watch(merchantOrdersProvider('COMPLETE'));
+    final completedOrdersAsync = ref.watch(merchantCompletedOrdersProvider);
 
     return completedOrdersAsync.when(
       data: (orders) {
@@ -44,7 +44,7 @@ class CompletedActivities extends ConsumerWidget {
         }
 
         return RefreshIndicator(
-          onRefresh: () async => ref.invalidate(merchantOrdersProvider('COMPLETE')),
+          onRefresh: () async => ref.invalidate(merchantAllActiveOrdersProvider),
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             itemCount: orders.length,
@@ -130,7 +130,11 @@ class CompletedActivities extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, _) => Center(child: Text('Error: $err')),
+      error: (err, _) => const EmptyStateWidget(
+        icon: Icons.error_outline,
+        title: 'Connection Error',
+        subtitle: 'Unable to load orders. Please check your connection.',
+      ),
     );
   }
 }

@@ -63,7 +63,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, child) {
-        final pendingOrdersAsync = ref.watch(merchantOrdersProvider('PLACED'));
+        final pendingOrdersAsync = ref.watch(merchantPendingOrdersProvider);
 
         return Scaffold(
           backgroundColor: Colors.white,
@@ -94,7 +94,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 const SizedBox(height: 16),
                 Expanded(
                   child: RefreshIndicator(
-                    onRefresh: () async => ref.invalidate(merchantOrdersProvider('PLACED')),
+                    onRefresh: () async => ref.invalidate(merchantAllActiveOrdersProvider),
                     child: pendingOrdersAsync.when(
                       data: (orders) {
                         if (orders.isEmpty) {

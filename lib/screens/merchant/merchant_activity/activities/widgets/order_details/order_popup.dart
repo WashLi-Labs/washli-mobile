@@ -30,18 +30,99 @@ class OrderPopup extends ConsumerWidget {
     );
   }
 
+  Future<void> _handleCancel(BuildContext context, WidgetRef ref) async {
+    if (order?.orderId == null) return;
+    
+    final reasonController = TextEditingController();
+    
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel Order'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Please provide a reason for cancellation:',
+              style: TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: reasonController,
+              decoration: const InputDecoration(
+                hintText: 'e.g., Merchant is currently overbooked',
+                border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF007BFF)),
+                ),
+              ),
+              maxLines: 3,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (reasonController.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter a reason')),
+                );
+                return;
+              }
+              Navigator.pop(context, reasonController.text.trim());
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Confirm Cancel'),
+          ),
+        ],
+      ),
+    );
+    
+    if (reason != null) {
+      try {
+        final service = ref.read(merchantApiServiceProvider);
+        await service.cancelOrder(order!.orderId, reason);
+        
+        // Refresh provider to reflect the change
+        ref.invalidate(merchantAllActiveOrdersProvider);
+        
+        if (context.mounted) {
+          Navigator.pop(context); // Close the popup sheet
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Order cancelled successfully')),
+          );
+        }
+      } catch (e) {
+        debugPrint('Error cancelling order: $e');
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to cancel order: $e')),
+          );
+        }
+      }
+    }
+  }
+
   Future<void> _handleStatusUpdate(WidgetRef ref, String status) async {
     if (order?.orderId == null) return;
     
     try {
       final service = ref.read(merchantApiServiceProvider);
-      await service.updateOrderStatus(order!.orderId, status);
       
-      // Refresh providers to reflect the change
-      ref.invalidate(merchantOrdersProvider('PLACED'));
-      ref.invalidate(merchantOrdersProvider('CONFIRMED'));
-      ref.invalidate(merchantOrdersProvider('CANCELLED'));
-      ref.invalidate(merchantOrdersProvider('COMPLETE'));
+      if (status == 'CONFIRMED') {
+        await service.confirmOrder(order!.orderId);
+      }
+      
+      // Refresh provider to reflect the change
+      ref.invalidate(merchantAllActiveOrdersProvider);
     } catch (e) {
       debugPrint('Error updating order status: $e');
     }
@@ -100,10 +181,7 @@ class OrderPopup extends ConsumerWidget {
                     Row(
                       children: [
                         OrderCancelButton(
-                          onTap: () async {
-                            await _handleStatusUpdate(ref, 'CANCELLED');
-                            if (context.mounted) Navigator.pop(context);
-                          },
+                          onTap: () => _handleCancel(context, ref),
                         ),
                         const SizedBox(width: 16),
                         OrderAcceptButton(

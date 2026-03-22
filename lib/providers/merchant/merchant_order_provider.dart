@@ -4,21 +4,76 @@ import '../../models/order/place_order_response.dart';
 
 final merchantApiServiceProvider = Provider((ref) => MerchantApiService());
 
-final merchantOrdersProvider = FutureProvider.family<List<PlaceOrderResponse>, String>((ref, status) async {
+// Optimized provider that fetches all relevant statuses in parallel
+final merchantAllActiveOrdersProvider = FutureProvider<List<PlaceOrderResponse>>((ref) async {
   final apiService = ref.watch(merchantApiServiceProvider);
-  return apiService.getMerchantOrders(status);
+  
+  // Statuses to fetch
+  final statuses = [
+    'PLACED',
+    'CONFIRMED',
+    'PICKED_UP',
+    'AT_LAUNDRY',
+    'WASHING',
+    'READY_FOR_RETURN',
+    'CANCELLED',
+  ];
+
+  // Fetch all statuses in parallel with individual error handling
+  final results = await Future.wait(
+    statuses.map((status) async {
+      try {
+        return await apiService.getMerchantOrders(status);
+      } catch (e) {
+        // Log individual status fetch failures but don't break the whole list
+        print('Error fetching orders for status $status: $e');
+        return <PlaceOrderResponse>[];
+      }
+    }),
+  );
+  
+  // Flatten results into a single list
+  return results.expand((orders) => orders).toList();
 });
 
-// Helper provider for pending orders (status PLACED)
-final merchantPendingOrdersProvider = Provider((ref) {
-  return ref.watch(merchantOrdersProvider('PLACED'));
+// Category-specific providers based on the new mapping
+final merchantPendingOrdersProvider = Provider<AsyncValue<List<PlaceOrderResponse>>>((ref) {
+  return ref.watch(merchantAllActiveOrdersProvider).whenData(
+    (orders) => orders.where((o) => o.status == 'PLACED').toList()
+  );
 });
 
-// Provider for merchant stats
-final merchantStatsProvider = Provider((ref) {
-  final pending = ref.watch(merchantOrdersProvider('PLACED')).value?.length ?? 0;
-  // Others can be added as needed
-  return {
-    'pending': pending,
-  };
+final merchantInProgressOrdersProvider = Provider<AsyncValue<List<PlaceOrderResponse>>>((ref) {
+  final inProgressStatuses = ['CONFIRMED', 'PICKED_UP', 'AT_LAUNDRY', 'WASHING'];
+  return ref.watch(merchantAllActiveOrdersProvider).whenData(
+    (orders) => orders.where((o) => inProgressStatuses.contains(o.status)).toList()
+  );
+});
+
+final merchantCompletedOrdersProvider = Provider<AsyncValue<List<PlaceOrderResponse>>>((ref) {
+  return ref.watch(merchantAllActiveOrdersProvider).whenData(
+    (orders) => orders.where((o) => o.status == 'READY_FOR_RETURN').toList()
+  );
+});
+
+final merchantCanceledOrdersProvider = Provider<AsyncValue<List<PlaceOrderResponse>>>((ref) {
+  return ref.watch(merchantAllActiveOrdersProvider).whenData(
+    (orders) => orders.where((o) => o.status == 'CANCELLED').toList()
+  );
+});
+
+// Provider for merchant stats used in Home Screen 
+final merchantStatsProvider = Provider<AsyncValue<Map<String, int>>>((ref) {
+  final allOrdersAsync = ref.watch(merchantAllActiveOrdersProvider);
+  
+  return allOrdersAsync.whenData((orders) {
+    final inProgressStatuses = ['CONFIRMED', 'PICKED_UP', 'AT_LAUNDRY', 'WASHING'];
+    
+    return {
+      'pending': orders.where((o) => o.status == 'PLACED').length,
+      'inprogress': orders.where((o) => inProgressStatuses.contains(o.status)).length,
+      'completed': orders.where((o) => o.status == 'READY_FOR_RETURN').length,
+      'canceled': orders.where((o) => o.status == 'CANCELLED').length,
+    };
+  });
 });

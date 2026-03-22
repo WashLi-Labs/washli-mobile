@@ -31,7 +31,7 @@ class InProgressActivities extends ConsumerWidget {
       );
     }
 
-    final inProgressOrdersAsync = ref.watch(merchantOrdersProvider('CONFIRMED'));
+    final inProgressOrdersAsync = ref.watch(merchantInProgressOrdersProvider);
 
     return inProgressOrdersAsync.when(
       data: (orders) {
@@ -44,7 +44,7 @@ class InProgressActivities extends ConsumerWidget {
         }
 
         return RefreshIndicator(
-          onRefresh: () async => ref.invalidate(merchantOrdersProvider('CONFIRMED')),
+          onRefresh: () async => ref.invalidate(merchantAllActiveOrdersProvider),
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             itemCount: orders.length,
@@ -130,7 +130,11 @@ class InProgressActivities extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, _) => Center(child: Text('Error: $err')),
+      error: (err, _) => const EmptyStateWidget(
+        icon: Icons.error_outline,
+        title: 'Connection Error',
+        subtitle: 'Unable to load orders. Please check your connection.',
+      ),
     );
   }
 }

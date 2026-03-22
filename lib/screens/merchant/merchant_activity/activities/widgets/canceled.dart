@@ -31,7 +31,7 @@ class CanceledActivities extends ConsumerWidget {
       );
     }
 
-    final canceledOrdersAsync = ref.watch(merchantOrdersProvider('CANCELLED'));
+    final canceledOrdersAsync = ref.watch(merchantCanceledOrdersProvider);
 
     return canceledOrdersAsync.when(
       data: (orders) {
@@ -44,7 +44,7 @@ class CanceledActivities extends ConsumerWidget {
         }
 
         return RefreshIndicator(
-          onRefresh: () async => ref.invalidate(merchantOrdersProvider('CANCELLED')),
+          onRefresh: () async => ref.invalidate(merchantAllActiveOrdersProvider),
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             itemCount: orders.length,
@@ -130,7 +130,11 @@ class CanceledActivities extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, _) => Center(child: Text('Error: $err')),
+      error: (err, _) => const EmptyStateWidget(
+        icon: Icons.error_outline,
+        title: 'Connection Error',
+        subtitle: 'Unable to load orders. Please check your connection.',
+      ),
     );
   }
 }
