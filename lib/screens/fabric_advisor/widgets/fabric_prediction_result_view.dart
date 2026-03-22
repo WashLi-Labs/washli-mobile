@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../models/fabric_advisor/fabric_prediction_model.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_typography.dart';
@@ -52,19 +53,32 @@ class FabricPredictionResultView extends StatelessWidget {
             width: double.infinity,
             height: 50,
             child: ElevatedButton(
-              onPressed: null, // Disabled state visual
+              onPressed: () {
+                final textToCopy = '''
+fabric name: ${prediction.fabric ?? 'N/A'}
+fabric type: ${prediction.fabric ?? 'N/A'}
+fabric cycle: ${prediction.washCycle ?? 'N/A'}
+water temperature: ${prediction.waterTemperature ?? 'N/A'}
+'''.trim();
+                Clipboard.setData(ClipboardData(text: textToCopy)).then((_) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('AI suggestions copied to clipboard')),
+                    );
+                  }
+                });
+              },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.disabledBackground,
-                disabledBackgroundColor: AppColors.disabledBackground,
+                backgroundColor: AppColors.primaryBlue,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
                 elevation: 0,
               ),
               child: Text(
-                'Use AI Suggestions',
+                'Copy AI Suggestions',
                 style: AppTypography.buttonText.copyWith(
-                  color: Colors.black.withOpacity(0.4),
+                  color: AppColors.white,
                 ),
               ),
             ),
