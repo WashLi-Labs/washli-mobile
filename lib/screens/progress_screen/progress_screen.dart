@@ -28,9 +28,8 @@ class ProgressScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // ── REST API path (via order object OR orderId starting with 'WO-') ──
     if (order != null || (orderId != null && orderId!.startsWith('WO-'))) {
-      final orderDataAsync = order != null 
-          ? AsyncData(order!) 
-          : ref.watch(orderDetailsProvider(orderId!));
+      final effectiveOrderId = orderId ?? order!.orderId;
+      final orderDataAsync = ref.watch(orderStatusPollingProvider(effectiveOrderId));
 
       return Scaffold(
         backgroundColor: Colors.white,
@@ -38,22 +37,17 @@ class ProgressScreen extends ConsumerWidget {
           bottom: false,
           child: orderDataAsync.when(
             data: (orderData) {
-              final isConfirmed = orderData.status.toUpperCase() == 'CONFIRMED';
+              final isConfirmed = orderData.status.toUpperCase() == 'CONFIRMED' || 
+                                orderData.status.toUpperCase() == 'PICKED_UP';
               return Column(
                 children: [
                   ProgressHeader(orderId: orderData.orderId),
-                  StatusTimeline(
-                    status: orderData.status,
-                    isPickup: orderData.pickupMode == 'PARTNER',
-                  ),
-                  if (isConfirmed) const TimeEstimation(),
+                  StatusTimeline(order: orderData),
+                  if (isConfirmed) TimeEstimation(order: orderData),
                   Expanded(
                     child: Stack(
                       children: [
-                        ProgressMap(
-                          status: orderData.status,
-                          isPickup: orderData.pickupMode == 'PARTNER',
-                        ),
+                        ProgressMap(order: orderData),
                         OrderDetailsSheet(order: orderData),
                       ],
                     ),
@@ -80,21 +74,22 @@ class ProgressScreen extends ConsumerWidget {
               return const Center(child: Text('Order not found'));
             }
             final status = firestoreOrder.status;
-            final isConfirmed = status.toUpperCase() == 'CONFIRMED';
+            final isConfirmed = status.toUpperCase() == 'CONFIRMED' || 
+                              status.toUpperCase() == 'PICKED_UP';
             return Column(
               children: [
                 ProgressHeader(orderId: firestoreOrder.id),
                 StatusTimeline(
-                  status: status,
-                  isPickup: firestoreOrder.isPickup ?? true,
+                  manualStatus: status,
+                  manualIsPickup: firestoreOrder.isPickup ?? true,
                 ),
-                if (isConfirmed) const TimeEstimation(),
+                if (isConfirmed) TimeEstimation(order: null),
                 Expanded(
                   child: Stack(
                     children: [
                       ProgressMap(
-                        status: status,
-                        isPickup: firestoreOrder.isPickup ?? true,
+                        manualStatus: status,
+                        manualIsPickup: firestoreOrder.isPickup ?? true,
                       ),
                       _LegacyOrderDetailsSheet(order: firestoreOrder),
                     ],

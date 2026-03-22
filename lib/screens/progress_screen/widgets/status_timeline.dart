@@ -1,19 +1,62 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../models/order/place_order_response.dart';
 
-class StatusTimeline extends StatelessWidget {
-  final String status;
-  final bool isPickup;
+class StatusTimeline extends ConsumerStatefulWidget {
+  final PlaceOrderResponse? order;
+  final String? manualStatus;
+  final bool? manualIsPickup;
 
   const StatusTimeline({
     super.key,
-    required this.status,
-    this.isPickup = true,
-  });
+    this.order,
+    this.manualStatus,
+    this.manualIsPickup,
+  }) : assert(order != null || (manualStatus != null && manualIsPickup != null));
+
+  @override
+  ConsumerState<StatusTimeline> createState() => _StatusTimelineState();
+}
+
+class _StatusTimelineState extends ConsumerState<StatusTimeline> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    );
+
+    _updateAnimation();
+  }
+
+  @override
+  void didUpdateWidget(covariant StatusTimeline oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _updateAnimation();
+  }
+
+  void _updateAnimation() {
+    final status = (widget.order?.status ?? widget.manualStatus ?? '').toUpperCase();
+    if (status == 'CONFIRMED') {
+      _animationController.repeat(reverse: true);
+    } else {
+      _animationController.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   /// Maps the backend status string to a stage index.
-  /// Nothing is green until status == CONFIRMED.
   int _stageIndex() {
-    switch (status.toUpperCase()) {
+    final status = (widget.order?.status ?? widget.manualStatus ?? '').toUpperCase();
+    switch (status) {
       case 'CONFIRMED': return 0;
       case 'PICKED_UP': return 1;
       case 'HANDED_OVER': return 2;
@@ -25,10 +68,12 @@ class StatusTimeline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isPickup = widget.order?.pickupMode == 'PARTNER' || (widget.manualIsPickup ?? true);
     final stages = isPickup
         ? ['Accepted', 'Picked-up', 'Handed-over', 'Ready', 'Delivered']
         : ['Accepted', 'Handed-over', 'Ready', 'Delivered'];
     final currentStageIndex = _stageIndex();
+    final status = (widget.order?.status ?? widget.manualStatus ?? '').toUpperCase();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
@@ -40,6 +85,9 @@ class StatusTimeline extends StatelessWidget {
           final isFirst = index == 0;
           final isLast = index == stages.length - 1;
 
+          // Special animation for the line between Accepted (0) and Picked-up (1)
+          final isAnimatingLine = status == 'CONFIRMED' && index == 1;
+
           return Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -47,11 +95,32 @@ class StatusTimeline extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Container(
-                        height: 2,
-                        color: isFirst
-                            ? Colors.transparent
-                            : (isLineCompleted ? const Color(0xFF2ECA7F) : Colors.grey[300]),
+                      child: Stack(
+                        children: [
+                          Container(
+                            height: 2,
+                            color: isFirst
+                                ? Colors.transparent
+                                : (isLineCompleted ? const Color(0xFF2ECA7F) : Colors.grey[300]),
+                          ),
+                          if (isAnimatingLine)
+                            AnimatedBuilder(
+                              animation: _animationController,
+                              builder: (context, child) {
+                                return FractionallySizedBox(
+                                  widthFactor: 1.0,
+                                  child: Align(
+                                    alignment: Alignment(_animationController.value * 2 - 1, 0),
+                                    child: Container(
+                                      width: 8,
+                                      height: 2,
+                                      color: const Color(0xFF2ECA7F),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                        ],
                       ),
                     ),
                     Container(

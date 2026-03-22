@@ -30,7 +30,7 @@ class ActiveOrderCard extends StatelessWidget {
 
     return Container(
       width: MediaQuery.of(context).size.width * 0.9,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28), // Increased padding
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 28), // Reduced horizontal padding to lengthen lines
       decoration: BoxDecoration(
         color: const Color(0xFF01113C), // Deeper Dark Navy
         borderRadius: BorderRadius.circular(28),
@@ -138,8 +138,8 @@ class ActiveOrderCard extends StatelessWidget {
                           ),
                         ),
                         Container(
-                          width: 10,
-                          height: 10,
+                          width: 8,
+                          height: 8,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: isCompleted
