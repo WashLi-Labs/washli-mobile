@@ -80,7 +80,7 @@ class _HomeHeaderState extends State<HomeHeader> {
                           'Hello,',
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.9),
-                            fontSize: 32,
+                            fontSize: 24,
                             fontWeight: FontWeight.w300,
                             height: 1.1,
                           ),
@@ -89,7 +89,7 @@ class _HomeHeaderState extends State<HomeHeader> {
                           '${widget.userName}!',
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 36,
+                            fontSize: 28,
                             fontWeight: FontWeight.bold,
                             height: 1.1,
                           ),
