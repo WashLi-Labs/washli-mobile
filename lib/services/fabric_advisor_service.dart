@@ -1,13 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import '../models/fabric_advisor/fabric_prediction_model.dart';
 import 'package:flutter/foundation.dart';
 
 class FabricAdvisorService {
   String get _baseUrl {
     if (!kIsWeb && Platform.isAndroid) {
-      return 'http://10.0.2.2:8000';
+      return 'http://localhost:8000';
     }
     return 'http://localhost:8000';
   }
@@ -23,9 +24,20 @@ class FabricAdvisorService {
       'accept': 'application/json',
     });
 
+    String ext = image.path.split('.').last.toLowerCase();
+    String subType = 'jpeg';
+    if (ext == 'png') {
+      subType = 'png';
+    } else if (ext == 'heic') {
+      subType = 'heic';
+    } else if (ext == 'jpg' || ext == 'jpeg') {
+      subType = 'jpeg';
+    }
+
     request.files.add(await http.MultipartFile.fromPath(
       'image',
       image.path,
+      contentType: MediaType('image', subType),
     ));
 
     if (description != null && description.isNotEmpty) {
