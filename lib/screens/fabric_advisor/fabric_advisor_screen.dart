@@ -74,7 +74,7 @@ class _FabricAdvisorScreenState extends ConsumerState<FabricAdvisorScreen> {
                     children: [
                       // Header Title (Scrolls with content)
                       const SizedBox(height: 10),
-                      const Text(
+                      Text(
                         'AI Fabric Advisor',
                         style: AppTextStyles.heading,
                       ),
