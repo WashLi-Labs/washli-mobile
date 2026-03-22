@@ -11,7 +11,7 @@ import '../account/account_screen.dart';
 import '../cart/cart_screen.dart';
 import '../../get_location/location_service.dart';
 import '../home/home_screen.dart';
-import '../../../providers/merchants_list_provider.dart';
+import '../../../providers/merchant/merchant_list_provider.dart';
 
 class ExploreScreen extends ConsumerStatefulWidget {
   const ExploreScreen({super.key});
