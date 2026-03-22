@@ -23,10 +23,14 @@ class ProgressMap extends ConsumerWidget {
 
     // Show pending illustration until confirmed
     if (!isConfirmed) {
-      return SizedBox.expand(
-        child: Image.asset(
-          'assets/images/progress_pending.png',
-          fit: BoxFit.cover,
+      return Align(
+        alignment: const Alignment(0, -0.9),
+        child: Padding(
+          padding: const EdgeInsets.all(30.0),
+          child: Image.asset(
+            'assets/images/progress_pending1.png',
+            fit: BoxFit.contain,
+          ),
         ),
       );
     }

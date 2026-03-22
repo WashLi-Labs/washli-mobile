@@ -1,8 +1,0 @@
-  error - The getter 'items' isn't defined for the type 'AsyncValue<CartResponse?>' - lib\screens\explore\shop\widgets\service_card.dart:29:28 - undefined_getter
-  error - The getter 'items' isn't defined for the type 'AsyncValue<CartResponse?>' - lib\screens\explore\shop\widgets\service_card.dart:30:45 - undefined_getter
-  error - The method 'updateQuantity' isn't defined for the type 'CartNotifier' - lib\screens\explore\shop\widgets\service_card.dart:67:57 - undefined_method
-  error - The method 'updateQuantity' isn't defined for the type 'CartNotifier' - lib\screens\explore\shop\widgets\service_card.dart:70:57 - undefined_method
-  error - The getter 'items' isn't defined for the type 'AsyncValue<CartResponse?>' - lib\screens\explore\shop\widgets\service_popup.dart:36:26 - undefined_getter
-  error - The getter 'items' isn't defined for the type 'AsyncValue<CartResponse?>' - lib\screens\explore\shop\widgets\service_popup.dart:39:25 - undefined_getter
-  error - The method 'addItem' isn't defined for the type 'CartNotifier' - lib\screens\explore\shop\widgets\service_popup.dart:48:39 - undefined_method
-  error - The method 'removeItem' isn't defined for the type 'CartNotifier' - lib\screens\explore\shop\widgets\service_popup.dart:57:39 - undefined_method
