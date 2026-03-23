@@ -48,4 +48,21 @@ class OrderApiService {
       accept: '*/*',
     );
   }
+
+  /// POST /order/orders/{orderId}/return-mode — set return mode for an order
+  Future<PlaceOrderResponse> setReturnMode({
+    required String orderId,
+    required String returnMode,
+    String? deliveryAddress,
+    String? preferredProvider,
+  }) async {
+    final url = '$kBaseUrl$kOrderPath/orders/$orderId/return-mode';
+    final body = {
+      'returnMode': returnMode,
+      if (deliveryAddress != null) 'deliveryAddress': deliveryAddress,
+      if (preferredProvider != null) 'preferredProvider': preferredProvider,
+    };
+    final response = await _client.post(url, body: body, accept: '*/*');
+    return PlaceOrderResponse.fromJson(response as Map<String, dynamic>);
+  }
 }

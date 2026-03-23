@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../../../services/api/direction_service.dart';
 import '../../../models/order/place_order_response.dart';
 import '../../../providers/order_placement_provider.dart';
 import '../../../providers/merchant/merchant_list_provider.dart';
@@ -26,11 +27,36 @@ class TimeEstimation extends ConsumerWidget {
     if (order != null) {
       final status = order!.status.toUpperCase();
       final isPickedUp = status == 'PICKED_UP';
+      final isReadyForReturn = status == 'READY_FOR_RETURN' || status == 'READY';
+      final isReturning = status == 'WALK_IN_RETURN' || status == 'PARTNER_RETURN';
+      final isOutForDelivery = status == 'OUT_FOR_DELIVERY';
       
       LatLng? origin;
       LatLng? destination;
+      List<LatLng>? waypoints;
 
-      if (isPickedUp) {
+      if (isReadyForReturn || isReturning || isOutForDelivery) {
+        if (order!.returnMode == 'WALK_IN') {
+          // Self-pickup: User to Merchant
+          origin = LatLng(order!.latitude ?? 6.8860, order!.longitude ?? 79.8655);
+          final merchantLocAsync = ref.watch(merchantCoordinatesProvider(order!.merchantName));
+          if (merchantLocAsync.hasValue && merchantLocAsync.value != null) {
+            destination = merchantLocAsync.value!;
+          }
+        } else if (order!.returnMode == 'PARTNER') {
+          // Delivery: Rider -> Merchant -> User
+          final returnDelivery = order!.deliveries.where((d) => d.tripType == 'RETURN').firstOrNull;
+          if (returnDelivery != null && returnDelivery.latitude != null && returnDelivery.longitude != null) {
+            origin = LatLng(returnDelivery.latitude!, returnDelivery.longitude!);
+            destination = LatLng(order!.latitude ?? 6.8860, order!.longitude ?? 79.8655);
+            
+            final merchantLocAsync = ref.watch(merchantCoordinatesProvider(order!.merchantName));
+            if (merchantLocAsync.hasValue && merchantLocAsync.value != null) {
+              waypoints = [merchantLocAsync.value!];
+            }
+          }
+        }
+      } else if (isPickedUp) {
         // From Pickup (Customer) to Merchant
         origin = LatLng(order!.latitude ?? 6.8860, order!.longitude ?? 79.8655);
         final merchantLocAsync = ref.watch(merchantCoordinatesProvider(order!.merchantName));
@@ -47,7 +73,7 @@ class TimeEstimation extends ConsumerWidget {
       }
 
       if (origin != null && destination != null) {
-        final routeAsync = ref.watch(directionProvider(RouteRequest(origin, destination)));
+        final routeAsync = ref.watch(directionProvider(RouteRequest(origin, destination, waypoints: waypoints)));
         
         if (routeAsync.hasValue) {
           final durationValue = routeAsync.value!.durationValue;
@@ -68,8 +94,10 @@ class TimeEstimation extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Estimated arrival time',
+              Text(
+                (order?.status.toUpperCase() == 'READY_FOR_RETURN' && order?.returnMode == 'WALK_IN')
+                  ? 'Estimated time to reach laundry'
+                  : 'Estimated arrival time',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -115,8 +143,12 @@ class TimeEstimation extends ConsumerWidget {
           const SizedBox(height: 12),
           Text(
             durationLabel != null 
-              ? 'The Delivery Partner is approximately $durationLabel away.'
-              : 'The Delivery Partner will arrive shortly.',
+              ? (order?.returnMode == 'WALK_IN' 
+                  ? 'The laundry is approximately $durationLabel away.'
+                  : 'The Delivery Partner is approximately $durationLabel away.')
+              : (order?.returnMode == 'WALK_IN'
+                  ? 'The laundry is a short distance away.'
+                  : 'The Delivery Partner will arrive shortly.'),
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,

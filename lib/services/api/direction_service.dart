@@ -15,10 +15,44 @@ class RouteResponse {
   });
 }
 
+class RouteRequest {
+  final LatLng origin;
+  final LatLng destination;
+  final List<LatLng>? waypoints;
+
+  const RouteRequest(this.origin, this.destination, {this.waypoints});
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! RouteRequest) return false;
+    return origin == other.origin && 
+           destination == other.destination && 
+           _listEquals(waypoints, other.waypoints);
+  }
+
+  @override
+  int get hashCode => Object.hash(origin, destination, Object.hashAll(waypoints ?? []));
+
+  bool _listEquals(List<LatLng>? a, List<LatLng>? b) {
+    if (a == b) return true;
+    if (a == null || b == null || a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+}
+
 class DirectionService {
-  Future<RouteResponse> getRoute(LatLng origin, LatLng destination) async {
-    final url =
+  Future<RouteResponse> getRoute(LatLng origin, LatLng destination, {List<LatLng>? waypoints}) async {
+    String url =
         'https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&key=$kGoogleMapsApiKey';
+
+    if (waypoints != null && waypoints.isNotEmpty) {
+      final waypointsString = waypoints.map((w) => '${w.latitude},${w.longitude}').join('|');
+      url += '&waypoints=$waypointsString';
+    }
 
     try {
       final response = await http.get(Uri.parse(url));
