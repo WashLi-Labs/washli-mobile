@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../models/order/place_order_response.dart';
 import '../../../providers/order_placement_provider.dart';
+import '../../../providers/merchant/merchant_list_provider.dart';
 
 class TimeEstimation extends ConsumerWidget {
   final PlaceOrderResponse? order;
@@ -23,12 +24,30 @@ class TimeEstimation extends ConsumerWidget {
     String? durationLabel;
 
     if (order != null) {
-      final customerLocation = LatLng(order!.latitude ?? 6.8860, order!.longitude ?? 79.8655);
-      final pickupDelivery = order!.deliveries.where((d) => d.tripType == 'PICKUP').firstOrNull;
+      final status = order!.status.toUpperCase();
+      final isPickedUp = status == 'PICKED_UP';
       
-      if (pickupDelivery?.latitude != null && pickupDelivery?.longitude != null) {
-        final driverLocation = LatLng(pickupDelivery!.latitude!, pickupDelivery!.longitude!);
-        final routeAsync = ref.watch(directionProvider(RouteRequest(driverLocation, customerLocation)));
+      LatLng? origin;
+      LatLng? destination;
+
+      if (isPickedUp) {
+        // From Pickup (Customer) to Merchant
+        origin = LatLng(order!.latitude ?? 6.8860, order!.longitude ?? 79.8655);
+        final merchantLocAsync = ref.watch(merchantCoordinatesProvider(order!.merchantName));
+        if (merchantLocAsync.hasValue && merchantLocAsync.value != null) {
+          destination = merchantLocAsync.value!;
+        }
+      } else {
+        // From Driver to Pickup (Customer)
+        final pickupDelivery = order!.deliveries.where((d) => d.tripType == 'PICKUP').firstOrNull;
+        if (pickupDelivery?.latitude != null && pickupDelivery?.longitude != null) {
+          origin = LatLng(pickupDelivery!.latitude!, pickupDelivery!.longitude!);
+          destination = LatLng(order!.latitude ?? 6.8860, order!.longitude ?? 79.8655);
+        }
+      }
+
+      if (origin != null && destination != null) {
+        final routeAsync = ref.watch(directionProvider(RouteRequest(origin, destination)));
         
         if (routeAsync.hasValue) {
           final durationValue = routeAsync.value!.durationValue;

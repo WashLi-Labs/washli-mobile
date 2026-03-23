@@ -34,6 +34,7 @@ class DeliveryResponse {
   final String destinationAddress;
   final double? latitude;
   final double? longitude;
+  final String? jobId;
 
   const DeliveryResponse({
     required this.id,
@@ -45,6 +46,7 @@ class DeliveryResponse {
     required this.destinationAddress,
     this.latitude,
     this.longitude,
+    this.jobId,
   });
 
   factory DeliveryResponse.fromJson(Map<String, dynamic> json) {
@@ -58,6 +60,7 @@ class DeliveryResponse {
       destinationAddress: json['destinationAddress'] as String,
       latitude: json['latitude'] != null ? (json['latitude'] as num).toDouble() : null,
       longitude: json['longitude'] != null ? (json['longitude'] as num).toDouble() : null,
+      jobId: json['jobId'] as String?,
     );
   }
 }
