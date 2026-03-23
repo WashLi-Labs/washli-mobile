@@ -8,10 +8,10 @@ final activeOrderProvider = FutureProvider<PlaceOrderResponse?>((ref) async {
   final service = OrderApiService();
   final orders = await service.getOrders();
 
-  // Filter out completed / cancelled
+  // Filter out completed / delivered / cancelled
   final active = orders.where((o) {
     final s = o.status.toUpperCase();
-    return s != 'COMPLETE' && s != 'COMPLETED' && s != 'CANCELLED';
+    return s != 'COMPLETE' && s != 'COMPLETED' && s != 'CANCELLED' && s != 'DELIVERED';
   }).toList();
 
   if (active.isEmpty) return null;

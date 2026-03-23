@@ -8,22 +8,34 @@ class ActiveOrderCard extends StatelessWidget {
 
   const ActiveOrderCard({super.key, required this.order});
 
-  int _currentStage() {
-    switch (order.status.toUpperCase()) {
-      case 'CONFIRMED': return 0;
-      case 'PICKED_UP': return 1;
-      case 'AT_LAUNDRY': return 2;
-      case 'HANDED_OVER': return 2;
-      case 'READY': return 3;
-      case 'DELIVERED': return 4;
-      default: return -1; // PLACED / anything else → all grey
+  int _currentStage(bool isPickup) {
+    final status = order.status.toUpperCase();
+    switch (status) {
+      case 'CONFIRMED':
+        return 0;
+      case 'PICKED_UP':
+        return isPickup ? 1 : 0;
+      case 'AT_LAUNDRY':
+      case 'HANDED_OVER':
+      case 'WASHING':
+        return isPickup ? 2 : 1;
+      case 'READY':
+      case 'READY_FOR_RETURN':
+      case 'WALK_IN_RETURN':
+      case 'PARTNER_RETURN':
+      case 'OUT_FOR_DELIVERY':
+        return isPickup ? 3 : 2;
+      case 'DELIVERED':
+        return isPickup ? 4 : 3;
+      default:
+        return -1;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final isPickup = order.pickupMode == 'PARTNER';
-    final currentStage = _currentStage();
+    final currentStage = _currentStage(isPickup);
     final stages = isPickup
         ? ['Accepted', 'Picked-up', 'Handed-over', 'Ready', 'Delivered']
         : ['Accepted', 'Handed-over', 'Ready', 'Delivered'];
@@ -126,7 +138,8 @@ class ActiveOrderCard extends StatelessWidget {
               final status = order.status.toUpperCase();
 
               // Only show halfway for the segment starting FROM the current active node
-              final isHalfwayLineAfter = index == currentStage && (status == 'PICKED_UP' || status == 'AT_LAUNDRY');
+              final isHalfwayLineAfter = index == currentStage && 
+                (status == 'PICKED_UP' || status == 'AT_LAUNDRY' || status == 'READY_FOR_RETURN');
 
               return Expanded(
                 child: Column(

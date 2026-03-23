@@ -4,12 +4,13 @@ import 'customer_detail.dart';
 import 'item_details.dart';
 import '../../../../orders/widgets/order_accept_btn.dart';
 import '../../../../orders/widgets/order_cancel_btn.dart';
+import '../order_complete_btn.dart';
 import '../../../../../../services/api/merchant_api_service.dart';
 import '../../../../../../providers/merchant/merchant_order_provider.dart';
 import '../../../../../../providers/merchant/merchant_profile_provider.dart';
 import '../../../../../../models/order/place_order_response.dart';
 
-class OrderPopup extends ConsumerWidget {
+class OrderPopup extends ConsumerStatefulWidget {
   final bool showActions;
   final PlaceOrderResponse? order;
   final String role;
@@ -30,8 +31,15 @@ class OrderPopup extends ConsumerWidget {
     );
   }
 
-  Future<void> _handleCancel(BuildContext context, WidgetRef ref) async {
-    if (order?.orderId == null) return;
+  @override
+  ConsumerState<OrderPopup> createState() => _OrderPopupState();
+}
+
+class _OrderPopupState extends ConsumerState<OrderPopup> {
+  bool _isLoading = false;
+
+  Future<void> _handleCancel(BuildContext context) async {
+    if (widget.order?.orderId == null) return;
     
     final reasonController = TextEditingController();
     
@@ -89,7 +97,7 @@ class OrderPopup extends ConsumerWidget {
     if (reason != null) {
       try {
         final service = ref.read(merchantApiServiceProvider);
-        await service.cancelOrder(order!.orderId, reason);
+        await service.cancelOrder(widget.order!.orderId, reason);
         
         // Refresh provider to reflect the change
         ref.invalidate(merchantAllActiveOrdersProvider);
@@ -111,14 +119,14 @@ class OrderPopup extends ConsumerWidget {
     }
   }
 
-  Future<void> _handleStatusUpdate(WidgetRef ref, String status) async {
-    if (order?.orderId == null) return;
+  Future<void> _handleStatusUpdate(String status) async {
+    if (widget.order?.orderId == null) return;
     
     try {
       final service = ref.read(merchantApiServiceProvider);
       
       if (status == 'CONFIRMED') {
-        await service.confirmOrder(order!.orderId);
+        await service.confirmOrder(widget.order!.orderId);
       }
       
       // Refresh provider to reflect the change
@@ -128,8 +136,46 @@ class OrderPopup extends ConsumerWidget {
     }
   }
 
+  Future<void> _handleCompleteOrder(BuildContext context) async {
+    if (widget.order?.orderId == null) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final service = ref.read(merchantApiServiceProvider);
+      
+      // 1. Set status to WASHING
+      await service.updateOrderStatus(widget.order!.orderId, 'WASHING');
+      
+      // 2. Set status to READY_FOR_RETURN rapidly
+      await service.updateOrderStatus(widget.order!.orderId, 'READY_FOR_RETURN');
+
+      // Refresh providers
+      ref.invalidate(merchantAllActiveOrdersProvider);
+      ref.invalidate(merchantInProgressOrdersProvider);
+
+      if (context.mounted) {
+        Navigator.pop(context); // Close the popup
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Order completed successfully')),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error completing order: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to complete order: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.9,
       decoration: const BoxDecoration(
@@ -177,16 +223,16 @@ class OrderPopup extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 children: [
-                  if (showActions && order != null) ...[
+                  if (widget.showActions && widget.order != null) ...[
                     Row(
                       children: [
                         OrderCancelButton(
-                          onTap: () => _handleCancel(context, ref),
+                          onTap: () => _handleCancel(context),
                         ),
                         const SizedBox(width: 16),
                         OrderAcceptButton(
                           onTap: () async {
-                            await _handleStatusUpdate(ref, 'CONFIRMED');
+                            await _handleStatusUpdate('CONFIRMED');
                             if (context.mounted) Navigator.pop(context);
                           },
                         ),
@@ -194,14 +240,24 @@ class OrderPopup extends ConsumerWidget {
                     ),
                     const SizedBox(height: 24),
                   ],
-                  CustomerDetail(role: role, order: order),
+                  CustomerDetail(role: widget.role, order: widget.order),
                   const SizedBox(height: 16),
-                  ItemDetails(order: order),
+                  ItemDetails(order: widget.order),
                   const SizedBox(height: 40),
                 ],
               ),
             ),
           ),
+          if (widget.order != null && widget.order!.status.toUpperCase() == 'AT_LAUNDRY') ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
+              child: _isLoading 
+                ? const Center(child: CircularProgressIndicator()) 
+                : OrderCompleteButton(
+                    onTap: () => _handleCompleteOrder(context),
+                  ),
+            ),
+          ],
         ],
       ),
     );

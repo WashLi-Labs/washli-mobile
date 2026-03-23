@@ -27,4 +27,12 @@ class MerchantApiService {
       accept: '*/*',
     );
   }
+
+  Future<void> updateOrderStatus(String orderId, String status) async {
+    await _apiClient.post(
+      '$kBaseUrl$kOrderPath/merchant/orders/$orderId/status',
+      body: {'status': status},
+      accept: '*/*',
+    );
+  }
 }

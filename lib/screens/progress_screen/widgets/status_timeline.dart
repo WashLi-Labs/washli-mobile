@@ -40,7 +40,9 @@ class _StatusTimelineState extends ConsumerState<StatusTimeline> with SingleTick
 
   void _updateAnimation() {
     final status = (widget.order?.status ?? widget.manualStatus ?? '').toUpperCase();
-    if (status == 'CONFIRMED' || status == 'PICKED_UP' || status == 'AT_LAUNDRY') {
+    if (status == 'CONFIRMED' || status == 'PICKED_UP' || status == 'AT_LAUNDRY' || 
+        status == 'READY_FOR_RETURN' || status == 'OUT_FOR_DELIVERY' ||
+        status == 'WALK_IN_RETURN' || status == 'PARTNER_RETURN') {
       _animationController.repeat(reverse: true);
     } else {
       _animationController.stop();
@@ -61,7 +63,11 @@ class _StatusTimelineState extends ConsumerState<StatusTimeline> with SingleTick
       case 'PICKED_UP': return 1;
       case 'AT_LAUNDRY': return 2;
       case 'HANDED_OVER': return 2; // Legacy or alias
-      case 'READY': return 3;
+      case 'READY_FOR_RETURN': return 3;
+      case 'READY': return 3; // Alias
+      case 'WALK_IN_RETURN': return 3;
+      case 'PARTNER_RETURN': return 3;
+      case 'OUT_FOR_DELIVERY': return 3; // Stays at Ready stage till delivered
       case 'DELIVERED': return 4;
       default: return -1; // PLACED / anything else → all grey
     }
@@ -93,7 +99,9 @@ class _StatusTimelineState extends ConsumerState<StatusTimeline> with SingleTick
           // Special animation for the current active segment
           final isAnimatingLineBefore = (status == 'CONFIRMED' && index == 1) || 
                                         (status == 'PICKED_UP' && index == 2) ||
-                                        (status == 'AT_LAUNDRY' && index == 3);
+                                        (status == 'AT_LAUNDRY' && index == 3) ||
+                                        ((status == 'READY_FOR_RETURN' || status == 'OUT_FOR_DELIVERY' || 
+                                          status == 'WALK_IN_RETURN' || status == 'PARTNER_RETURN') && index == 4);
 
           return Expanded(
             child: Column(
