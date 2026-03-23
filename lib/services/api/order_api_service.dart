@@ -29,4 +29,23 @@ class OrderApiService {
     final response = await _client.get(url, accept: '*/*');
     return PlaceOrderResponse.fromJson(response as Map<String, dynamic>);
   }
+
+  /// POST /order/webhooks/partner/{provider}/status — trigger a status update (TEMP for testing)
+  Future<void> triggerStatusWebhook({
+    required String provider,
+    required String jobId,
+    required String eventType,
+  }) async {
+    final url = '$kBaseUrl$kOrderPath/webhooks/partner/${provider.toLowerCase()}/status';
+    final body = {
+      'jobId': jobId,
+      'eventType': eventType,
+    };
+    await _client.post(
+      url,
+      body: body,
+      headers: {'X-PickMe-Signature': 'sha256=skip'},
+      accept: '*/*',
+    );
+  }
 }

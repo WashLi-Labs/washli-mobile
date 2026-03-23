@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../models/merchant/merchant_profile_model.dart';
 import '../../services/firebase/merchant_firebase_service.dart';
@@ -58,4 +59,20 @@ final nearbyMerchantsProvider =
   final all = await service.fetchAllMerchants();
   debugPrint('[MerchantsListProvider] Fallback: ${all.length} merchants total.');
   return all.map((m) => MerchantWithDistance(merchant: m)).toList();
+});
+
+/// TEMP: Helper to find merchant location by name for order tracking
+final merchantCoordinatesProvider = FutureProvider.family<LatLng?, String>((ref, merchantName) async {
+  final merchants = await ref.watch(allMerchantsProvider.future);
+  try {
+    final m = merchants.firstWhere(
+      (m) => m.outletName.trim().toLowerCase() == merchantName.trim().toLowerCase(),
+    );
+    if (m.location != null) {
+      return LatLng(m.location!.lat, m.location!.lng);
+    }
+  } catch (_) {
+    // If not found, return null
+  }
+  return null;
 });
