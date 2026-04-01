@@ -10,6 +10,7 @@ import '../search/search_screen.dart';
 import '../explore/explore_screen.dart';
 import '../payment/payment_screen.dart';
 import 'edit_profile/edit_profile_screen.dart';
+import 'privacy_policy/privacy_policy_screen.dart';
 import '../cart/cart_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
@@ -275,7 +276,14 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                             AccountMenuItem(
                               iconPath: "assets/icons/privacy_blue.svg",
                               title: "Privacy Policy",
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const PrivacyPolicyScreen(),
+                                  ),
+                                );
+                              },
                             ),
                              AccountMenuItem(
                               iconPath: "assets/icons/help_blue.svg",
