@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../widgets/buttons/back_button.dart';
+import 'topics/order_delivery_issues_screen.dart';
 
 class HelpSupportScreen extends StatelessWidget {
   const HelpSupportScreen({super.key});
@@ -51,7 +52,17 @@ class HelpSupportScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      _buildTopicItem('Order & Delivery Issues'),
+                      _buildTopicItem(
+                        'Order & Delivery Issues',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const OrderDeliveryIssuesScreen(),
+                            ),
+                          );
+                        },
+                      ),
                       const Divider(height: 1, thickness: 1, color: Color(0xFFF3F3F3)),
                       _buildTopicItem('Laundry & Quality Concerns'),
                       const Divider(height: 1, thickness: 1, color: Color(0xFFF3F3F3)),
@@ -72,7 +83,7 @@ class HelpSupportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTopicItem(String title) {
+  Widget _buildTopicItem(String title, {VoidCallback? onTap}) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 0),
       leading: const Icon(
@@ -93,9 +104,7 @@ class HelpSupportScreen extends StatelessWidget {
         size: 16,
         color: Colors.grey,
       ),
-      onTap: () {
-        // Navigate internally when sub-pages are implemented
-      },
+      onTap: onTap,
     );
   }
 }
