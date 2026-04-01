@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../widgets/buttons/back_button.dart';
 import 'topics/order_delivery_issues_screen.dart';
 import 'topics/laundry_quality_concerns_screen.dart';
+import 'topics/payments_credits_screen.dart';
 
 class HelpSupportScreen extends StatelessWidget {
   const HelpSupportScreen({super.key});
@@ -77,7 +78,17 @@ class HelpSupportScreen extends StatelessWidget {
                         },
                       ),
                       const Divider(height: 1, thickness: 1, color: Color(0xFFF3F3F3)),
-                      _buildTopicItem('Payments & WashLi Credits'),
+                      _buildTopicItem(
+                        'Payments & WashLi Credits',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const PaymentsCreditsScreen(),
+                            ),
+                          );
+                        },
+                      ),
                       const Divider(height: 1, thickness: 1, color: Color(0xFFF3F3F3)),
                       _buildTopicItem('Account & Profile'),
                       const Divider(height: 1, thickness: 1, color: Color(0xFFF3F3F3)),
