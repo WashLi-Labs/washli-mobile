@@ -73,29 +73,34 @@ class _HomeHeaderState extends State<HomeHeader> {
                 // Greeting and Washing Machine
                 Row(
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Hello,',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.9),
-                            fontSize: 32,
-                            fontWeight: FontWeight.w300,
-                            height: 1.1,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Hello,',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.9),
+                              fontSize: 32,
+                              fontWeight: FontWeight.w300,
+                              height: 1.1,
+                            ),
                           ),
-                        ),
-                        Text(
-                          '${widget.userName}!',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 36,
-                            fontWeight: FontWeight.bold,
-                            height: 1.1,
+                          Text(
+                            '${widget.userName}!',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 36,
+                              fontWeight: FontWeight.bold,
+                              height: 1.1,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 90), // Offset right padding to prevent text from being drawn completely behind the stacked UI image.
                   ],
                 ),
               ],
