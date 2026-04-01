@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../../widgets/buttons/back_button.dart';
+import 'topics/order_delivery_issues_screen.dart';
+import 'topics/laundry_quality_concerns_screen.dart';
+import 'topics/payments_credits_screen.dart';
+import 'topics/account_profile_issues_screen.dart';
+import 'topics/app_technical_support_screen.dart';
 
 class HelpSupportScreen extends StatelessWidget {
   const HelpSupportScreen({super.key});
@@ -51,15 +56,65 @@ class HelpSupportScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      _buildTopicItem('Order & Delivery Issues'),
+                      _buildTopicItem(
+                        'Order & Delivery Issues',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const OrderDeliveryIssuesScreen(),
+                            ),
+                          );
+                        },
+                      ),
                       const Divider(height: 1, thickness: 1, color: Color(0xFFF3F3F3)),
-                      _buildTopicItem('Laundry & Quality Concerns'),
+                      _buildTopicItem(
+                        'Laundry & Quality Concerns',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LaundryQualityConcernsScreen(),
+                            ),
+                          );
+                        },
+                      ),
                       const Divider(height: 1, thickness: 1, color: Color(0xFFF3F3F3)),
-                      _buildTopicItem('Payments & WashLi Credits'),
+                      _buildTopicItem(
+                        'Payments & WashLi Credits',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const PaymentsCreditsScreen(),
+                            ),
+                          );
+                        },
+                      ),
                       const Divider(height: 1, thickness: 1, color: Color(0xFFF3F3F3)),
-                      _buildTopicItem('Account & Profile'),
+                      _buildTopicItem(
+                        'Account & Profile',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AccountProfileIssuesScreen(),
+                            ),
+                          );
+                        },
+                      ),
                       const Divider(height: 1, thickness: 1, color: Color(0xFFF3F3F3)),
-                      _buildTopicItem('App Technical Support'),
+                      _buildTopicItem(
+                        'App Technical Support',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AppTechnicalSupportScreen(),
+                            ),
+                          );
+                        },
+                      ),
                       const Divider(height: 1, thickness: 1, color: Color(0xFFF3F3F3)),
                     ],
                   ),
@@ -72,7 +127,7 @@ class HelpSupportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTopicItem(String title) {
+  Widget _buildTopicItem(String title, {VoidCallback? onTap}) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 0),
       leading: const Icon(
@@ -93,9 +148,7 @@ class HelpSupportScreen extends StatelessWidget {
         size: 16,
         color: Colors.grey,
       ),
-      onTap: () {
-        // Navigate internally when sub-pages are implemented
-      },
+      onTap: onTap,
     );
   }
 }
