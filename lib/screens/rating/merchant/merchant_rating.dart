@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../widgets/buttons/skip_btn.dart';
 import '../../../widgets/buttons/rate_button.dart';
 import '../../home/home_screen.dart';
+import '../../explore/explore_screen.dart';
 
 import '../../../widgets/input_fields/rating_feedback.dart';
 
@@ -38,9 +39,9 @@ class _MerchantRatingScreenState extends State<MerchantRatingScreen> {
     super.dispose();
   }
 
-  void _navigateToHome() {
+  void _navigateToExplore() {
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
+      MaterialPageRoute(builder: (context) => const ExploreScreen()),
       (route) => false,
     );
   }
@@ -58,7 +59,7 @@ class _MerchantRatingScreenState extends State<MerchantRatingScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  SkipBtn(onTap: _navigateToHome),
+                  SkipBtn(onTap: _navigateToExplore),
                 ],
               ),
             ),
@@ -150,7 +151,7 @@ class _MerchantRatingScreenState extends State<MerchantRatingScreen> {
             // Rate Button at bottom
             Padding(
               padding: const EdgeInsets.all(24.0),
-              child: RateButton(onTap: _navigateToHome),
+              child: RateButton(onTap: _navigateToExplore),
             ),
           ],
         ),

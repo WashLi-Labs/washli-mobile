@@ -40,7 +40,9 @@ class _StatusTimelineState extends ConsumerState<StatusTimeline> with SingleTick
 
   void _updateAnimation() {
     final status = (widget.order?.status ?? widget.manualStatus ?? '').toUpperCase();
-    if (status == 'CONFIRMED') {
+    if (status == 'CONFIRMED' || status == 'PICKED_UP' || status == 'AT_LAUNDRY' || 
+        status == 'READY_FOR_RETURN' || status == 'OUT_FOR_DELIVERY' ||
+        status == 'WALK_IN_RETURN' || status == 'PARTNER_RETURN') {
       _animationController.repeat(reverse: true);
     } else {
       _animationController.stop();
@@ -59,8 +61,13 @@ class _StatusTimelineState extends ConsumerState<StatusTimeline> with SingleTick
     switch (status) {
       case 'CONFIRMED': return 0;
       case 'PICKED_UP': return 1;
-      case 'HANDED_OVER': return 2;
-      case 'READY': return 3;
+      case 'AT_LAUNDRY': return 2;
+      case 'HANDED_OVER': return 2; // Legacy or alias
+      case 'READY_FOR_RETURN': return 3;
+      case 'READY': return 3; // Alias
+      case 'WALK_IN_RETURN': return 3;
+      case 'PARTNER_RETURN': return 3;
+      case 'OUT_FOR_DELIVERY': return 3; // Stays at Ready stage till delivered
       case 'DELIVERED': return 4;
       default: return -1; // PLACED / anything else → all grey
     }
@@ -81,12 +88,20 @@ class _StatusTimelineState extends ConsumerState<StatusTimeline> with SingleTick
         crossAxisAlignment: CrossAxisAlignment.start,
         children: List.generate(stages.length, (index) {
           final isCompleted = index <= currentStageIndex;
-          final isLineCompleted = index < currentStageIndex;
           final isFirst = index == 0;
           final isLast = index == stages.length - 1;
 
-          // Special animation for the line between Accepted (0) and Picked-up (1)
-          final isAnimatingLine = status == 'CONFIRMED' && index == 1;
+          // Segment between (index-1) and index
+          final isLineBeforeCompleted = index <= currentStageIndex;
+          // Segment between index and (index+1) 
+          final isLineAfterCompleted = index < currentStageIndex;
+
+          // Special animation for the current active segment
+          final isAnimatingLineBefore = (status == 'CONFIRMED' && index == 1) || 
+                                        (status == 'PICKED_UP' && index == 2) ||
+                                        (status == 'AT_LAUNDRY' && index == 3) ||
+                                        ((status == 'READY_FOR_RETURN' || status == 'OUT_FOR_DELIVERY' || 
+                                          status == 'WALK_IN_RETURN' || status == 'PARTNER_RETURN') && index == 4);
 
           return Expanded(
             child: Column(
@@ -101,9 +116,9 @@ class _StatusTimelineState extends ConsumerState<StatusTimeline> with SingleTick
                             height: 2,
                             color: isFirst
                                 ? Colors.transparent
-                                : (isLineCompleted ? const Color(0xFF2ECA7F) : Colors.grey[300]),
+                                : (isLineBeforeCompleted ? const Color(0xFF2ECA7F) : Colors.grey[300]),
                           ),
-                          if (isAnimatingLine)
+                          if (isAnimatingLineBefore)
                             AnimatedBuilder(
                               animation: _animationController,
                               builder: (context, child) {
@@ -143,7 +158,7 @@ class _StatusTimelineState extends ConsumerState<StatusTimeline> with SingleTick
                         height: 2,
                         color: isLast
                             ? Colors.transparent
-                            : (isLineCompleted ? const Color(0xFF2ECA7F) : Colors.grey[300]),
+                            : (isLineAfterCompleted ? const Color(0xFF2ECA7F) : Colors.grey[300]),
                       ),
                     ),
                   ],

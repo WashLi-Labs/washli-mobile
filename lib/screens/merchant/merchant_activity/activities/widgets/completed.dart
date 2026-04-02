@@ -21,6 +21,17 @@ class CompletedActivities extends ConsumerWidget {
     }
   }
 
+  String _getStatusLabel(String status) {
+    switch (status.toUpperCase()) {
+      case 'READY_FOR_RETURN': return 'Ready';
+      case 'WALK_IN_RETURN': return 'Self-pickup';
+      case 'PARTNER_RETURN': return 'Delivery';
+      case 'OUT_FOR_DELIVERY': return 'Out for Delivery';
+      case 'DELIVERED': return 'Delivered';
+      default: return 'Completed';
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (role != "Merchant") {
@@ -110,9 +121,9 @@ class CompletedActivities extends ConsumerWidget {
                           color: Colors.green.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: const Text(
-                          'Completed',
-                          style: TextStyle(
+                        child: Text(
+                          _getStatusLabel(order.status),
+                          style: const TextStyle(
                             color: Colors.green,
                             fontSize: 12,
                             fontWeight: FontWeight.bold,

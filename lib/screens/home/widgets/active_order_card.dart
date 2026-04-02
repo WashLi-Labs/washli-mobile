@@ -8,21 +8,34 @@ class ActiveOrderCard extends StatelessWidget {
 
   const ActiveOrderCard({super.key, required this.order});
 
-  int _currentStage() {
-    switch (order.status.toUpperCase()) {
-      case 'CONFIRMED': return 0;
-      case 'PICKED_UP': return 1;
-      case 'HANDED_OVER': return 2;
-      case 'READY': return 3;
-      case 'DELIVERED': return 4;
-      default: return -1; // PLACED / anything else → all grey
+  int _currentStage(bool isPickup) {
+    final status = order.status.toUpperCase();
+    switch (status) {
+      case 'CONFIRMED':
+        return 0;
+      case 'PICKED_UP':
+        return isPickup ? 1 : 0;
+      case 'AT_LAUNDRY':
+      case 'HANDED_OVER':
+      case 'WASHING':
+        return isPickup ? 2 : 1;
+      case 'READY':
+      case 'READY_FOR_RETURN':
+      case 'WALK_IN_RETURN':
+      case 'PARTNER_RETURN':
+      case 'OUT_FOR_DELIVERY':
+        return isPickup ? 3 : 2;
+      case 'DELIVERED':
+        return isPickup ? 4 : 3;
+      default:
+        return -1;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final isPickup = order.pickupMode == 'PARTNER';
-    final currentStage = _currentStage();
+    final currentStage = _currentStage(isPickup);
     final stages = isPickup
         ? ['Accepted', 'Picked-up', 'Handed-over', 'Ready', 'Delivered']
         : ['Accepted', 'Handed-over', 'Ready', 'Delivered'];
@@ -118,9 +131,15 @@ class ActiveOrderCard extends StatelessWidget {
             children: List.generate(stages.length, (index) {
               final isCompleted = index <= currentStage;
               final isWorking = index == currentStage;
-              final isLineCompleted = index < currentStage;
+              final isLineBeforeCompleted = index <= currentStage;
+              final isLineAfterCompleted = index < currentStage;
               final isFirst = index == 0;
               final isLast = index == stages.length - 1;
+              final status = order.status.toUpperCase();
+
+              // Only show halfway for the segment starting FROM the current active node
+              final isHalfwayLineAfter = index == currentStage && 
+                (status == 'PICKED_UP' || status == 'AT_LAUNDRY' || status == 'READY_FOR_RETURN');
 
               return Expanded(
                 child: Column(
@@ -129,10 +148,10 @@ class ActiveOrderCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Container(
-                            height: 3, // Slightly thicker line
+                            height: 3,
                             color: isFirst
                                 ? Colors.transparent
-                                : (isLineCompleted
+                                : (isLineBeforeCompleted
                                     ? const Color(0xFF0741E2)
                                     : const Color(0xFFCCD9FC)),
                           ),
@@ -158,13 +177,25 @@ class ActiveOrderCard extends StatelessWidget {
                           ),
                         ),
                         Expanded(
-                          child: Container(
-                            height: 3,
-                            color: isLast
-                                ? Colors.transparent
-                                : (isLineCompleted
-                                    ? const Color(0xFF0741E2)
-                                    : const Color(0xFFCCD9FC)),
+                          child: Stack(
+                            children: [
+                              Container(
+                                height: 3,
+                                color: isLast
+                                    ? Colors.transparent
+                                    : (isLineAfterCompleted
+                                        ? const Color(0xFF0741E2)
+                                        : const Color(0xFFCCD9FC)),
+                              ),
+                              if (isHalfwayLineAfter)
+                                FractionallySizedBox(
+                                  widthFactor: 0.5,
+                                  child: Container(
+                                    height: 3,
+                                    color: const Color(0xFF0741E2),
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
                       ],

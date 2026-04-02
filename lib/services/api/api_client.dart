@@ -40,9 +40,12 @@ class ApiClient {
     }
   }
 
-  Future<dynamic> post(String url, {Map<String, dynamic>? body, String accept = 'application/json'}) async {
+  Future<dynamic> post(String url, {Map<String, dynamic>? body, String accept = 'application/json', Map<String, String>? headers}) async {
     try {
-      var headers = await _getHeaders(accept: accept);
+      var requestHeaders = await _getHeaders(accept: accept);
+      if (headers != null) {
+        requestHeaders.addAll(headers);
+      }
       final bodyStr = body != null ? jsonEncode(body) : null;
       print('==============================');
       print('=> OUTGOING REQUEST [POST] $url');
@@ -50,16 +53,16 @@ class ApiClient {
       print('==============================');
       var response = await http.post(
         Uri.parse(url),
-        headers: headers,
+        headers: requestHeaders,
         body: bodyStr,
       ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 401) {
         final newToken = await TokenManager.refreshToken();
-        headers['Authorization'] = 'Bearer $newToken';
+        requestHeaders['Authorization'] = 'Bearer $newToken';
         response = await http.post(
           Uri.parse(url),
-          headers: headers,
+          headers: requestHeaders,
           body: bodyStr,
         ).timeout(const Duration(seconds: 10));
       }

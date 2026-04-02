@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../models/order/place_order_response.dart';
+import '../../../../providers/order_placement_provider.dart';
 
-class OrderDetailsSheet extends StatelessWidget {
+class OrderDetailsSheet extends ConsumerWidget {
   final PlaceOrderResponse order;
 
   const OrderDetailsSheet({super.key, required this.order});
@@ -17,7 +19,7 @@ class OrderDetailsSheet extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return DraggableScrollableSheet(
       initialChildSize: 0.35,
       minChildSize: 0.35,
@@ -85,22 +87,101 @@ class OrderDetailsSheet extends StatelessWidget {
                     // Action buttons (static UI kept as-is)
                     Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.grey[300]!),
+                        GestureDetector(
+                          onTap: () async {
+                            final status = order.status.toUpperCase();
+                            if (status == 'PICKED_UP') {
+                              // TEMP: Manual transition for testing (Picked-up to At Laundry)
+                              final pickupDelivery = order.deliveries
+                                  .where((d) => d.tripType == 'PICKUP')
+                                  .firstOrNull;
+                              if (pickupDelivery != null && pickupDelivery.jobId != null) {
+                                try {
+                                  await ref
+                                      .read(orderApiServiceProvider)
+                                      .triggerStatusWebhook(
+                                        provider: pickupDelivery.providerName,
+                                        jobId: pickupDelivery.jobId!,
+                                        eventType: 'delivery_completed',
+                                      );
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              'Transitioning to laundry...')),
+                                    );
+                                  }
+                                  ref.invalidate(
+                                      orderStatusPollingProvider(order.orderId));
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          content: Text('Error: ${e.toString()}')),
+                                    );
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.grey[300]!),
+                            ),
+                            child: const Icon(Icons.phone, size: 16, color: Colors.black54),
                           ),
-                          child: const Icon(Icons.phone, size: 16, color: Colors.black54),
                         ),
                         const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.grey[300]!),
+                        GestureDetector(
+                          onTap: () async {
+                            final status = order.status.toUpperCase();
+                            if (status == 'CONFIRMED') {
+                              // TEMP: Manual transition for testing
+                              final pickupDelivery = order.deliveries
+                                  .where((d) => d.tripType == 'PICKUP')
+                                  .firstOrNull;
+                              if (pickupDelivery != null &&
+                                  pickupDelivery.jobId != null) {
+                                try {
+                                  await ref
+                                      .read(orderApiServiceProvider)
+                                      .triggerStatusWebhook(
+                                        provider: pickupDelivery.providerName,
+                                        jobId: pickupDelivery.jobId!,
+                                        eventType: 'parcel_collected',
+                                      );
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content:
+                                              Text('Transitioning status...')),
+                                    );
+                                  }
+                                  ref.invalidate(
+                                      orderStatusPollingProvider(order.orderId));
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          content:
+                                              Text('Error: ${e.toString()}')),
+                                    );
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.grey[300]!),
+                            ),
+                            child: const Icon(Icons.chat_bubble_outline,
+                                size: 16, color: Colors.black54),
                           ),
-                          child: const Icon(Icons.chat_bubble_outline, size: 16, color: Colors.black54),
                         ),
                       ],
                     ),
@@ -109,7 +190,7 @@ class OrderDetailsSheet extends StatelessWidget {
 
                 const SizedBox(height: 24),
 
-                // ── Pickup Address ───────────────────────────────
+                // ── Merchant Address ───────────────────────────────
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

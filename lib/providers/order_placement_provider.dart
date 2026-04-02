@@ -62,7 +62,7 @@ final orderStatusPollingProvider = StreamProvider.family<PlaceOrderResponse, Str
 
   // Polling loop
   while (true) {
-    await Future.delayed(const Duration(seconds: 20));
+    await Future.delayed(const Duration(minutes: 1));
     try {
       final response = await service.getOrderById(orderId);
       yield response;
@@ -82,21 +82,11 @@ final directionServiceProvider = Provider((ref) => DirectionService());
 
 final directionProvider = FutureProvider.family<RouteResponse, RouteRequest>((ref, request) async {
   final service = ref.read(directionServiceProvider);
-  return service.getRoute(request.origin, request.destination);
+  return service.getRoute(
+    request.origin, 
+    request.destination, 
+    waypoints: request.waypoints,
+  );
 });
 
-class RouteRequest {
-  final LatLng origin;
-  final LatLng destination;
-  RouteRequest(this.origin, this.destination);
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is RouteRequest &&
-          other.origin == origin &&
-          other.destination == destination);
-
-  @override
-  int get hashCode => origin.hashCode ^ destination.hashCode;
-}
+// Local RouteRequest removed in favor of the one in direction_service.dart

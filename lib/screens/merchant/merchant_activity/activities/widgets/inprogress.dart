@@ -21,6 +21,16 @@ class InProgressActivities extends ConsumerWidget {
     }
   }
 
+  String _getStatusLabel(String status) {
+    switch (status.toUpperCase()) {
+      case 'CONFIRMED': return 'Confirmed';
+      case 'PICKED_UP': return 'Picked-up';
+      case 'AT_LAUNDRY': return 'At Laundry';
+      case 'WASHING': return 'Washing';
+      default: return 'In Progress';
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (role != "Merchant") {
@@ -110,9 +120,9 @@ class InProgressActivities extends ConsumerWidget {
                           color: Colors.blue.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: const Text(
-                          'In Progress',
-                          style: TextStyle(
+                        child: Text(
+                          _getStatusLabel(order.status),
+                          style: const TextStyle(
                             color: Colors.blue,
                             fontSize: 12,
                             fontWeight: FontWeight.bold,

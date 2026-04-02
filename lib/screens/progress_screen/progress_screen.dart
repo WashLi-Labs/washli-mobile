@@ -11,6 +11,8 @@ import '../../providers/order_placement_provider.dart';
 
 /// Used by the PICKUP flow (backend REST, no Firestore needed).
 /// Used by the SELF-DELIVER flow via legacy [orderId] + Firestore stream.
+import '../rating/merchant/merchant_rating.dart';
+
 class ProgressScreen extends ConsumerWidget {
   final PlaceOrderResponse? order;   // pickup path
   final String? orderId;             // self-deliver / Firestore path
@@ -37,21 +39,60 @@ class ProgressScreen extends ConsumerWidget {
           bottom: false,
           child: orderDataAsync.when(
             data: (orderData) {
-              final isConfirmed = orderData.status.toUpperCase() == 'CONFIRMED' || 
-                                orderData.status.toUpperCase() == 'PICKED_UP';
-              return Column(
+              final status = orderData.status.toUpperCase();
+              final isTracking = status == 'CONFIRMED' || 
+                                status == 'PICKED_UP' ||
+                                status == 'AT_LAUNDRY' ||
+                                status == 'READY_FOR_RETURN' ||
+                                status == 'WALK_IN_RETURN' ||
+                                status == 'PARTNER_RETURN' ||
+                                status == 'OUT_FOR_DELIVERY' ||
+                                status == 'READY';
+
+              final showCompletionButton = status == 'READY_FOR_RETURN' || 
+                                         status == 'WALK_IN_RETURN' ||
+                                         status == 'PARTNER_RETURN' ||
+                                         status == 'OUT_FOR_DELIVERY' || 
+                                         status == 'DELIVERED';
+
+              return Stack(
                 children: [
-                  ProgressHeader(orderId: orderData.orderId),
-                  StatusTimeline(order: orderData),
-                  if (isConfirmed) TimeEstimation(order: orderData),
-                  Expanded(
-                    child: Stack(
-                      children: [
-                        ProgressMap(order: orderData),
-                        OrderDetailsSheet(order: orderData),
-                      ],
-                    ),
+                  Column(
+                    children: [
+                      ProgressHeader(orderId: orderData.orderId),
+                      StatusTimeline(order: orderData),
+                      if (isTracking) TimeEstimation(order: orderData),
+                      Expanded(
+                        child: Stack(
+                          children: [
+                            ProgressMap(order: orderData),
+                            OrderDetailsSheet(order: orderData),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
+                  if (showCompletionButton)
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: 100,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.translucent,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MerchantRatingScreen(
+                                merchantName: orderData.merchantName,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Container(color: Colors.transparent),
+                      ),
+                    ),
                 ],
               );
             },
