@@ -12,6 +12,7 @@ import '../payment/payment_screen.dart';
 import 'edit_profile/edit_profile_screen.dart';
 import 'privacy_policy/privacy_policy_screen.dart';
 import 'help_support/help_support_screen.dart';
+import 'about/about_screen.dart';
 import '../cart/cart_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
@@ -301,7 +302,14 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                              AccountMenuItem(
                               iconPath: "assets/icons/about_blue.svg",
                               title: "About",
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const AboutScreen(),
+                                  ),
+                                );
+                              },
                             ),
               
                             const SizedBox(height: 30),
