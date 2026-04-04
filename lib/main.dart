@@ -7,12 +7,16 @@ import 'package:washli_mobile/theme/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core/migrations/startup_identity_migration.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Run Identity Migration for Test Accounts
+  await StartupIdentityMigration.run();
   
   // Disable App Verification for testing (Forces use of fictional phone numbers)
   await FirebaseAuth.instance.setSettings(appVerificationDisabledForTesting: true);
