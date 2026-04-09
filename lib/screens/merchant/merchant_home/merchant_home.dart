@@ -96,7 +96,7 @@ class _MerchantHomeScreenState extends ConsumerState<MerchantHomeScreen> {
     });
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
     final profileState = ref.watch(merchantProvider);
     final merchantName =
