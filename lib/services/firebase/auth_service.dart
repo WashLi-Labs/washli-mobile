@@ -53,7 +53,7 @@ class AuthService {
     );
   }
 
-  /// Verifies the OTP and signs in the user.
+  /// Verifies the OTP entered by the user and signs them in.
   Future<void> verifyOTP({
     required String verificationId,
     required String smsCode,
@@ -61,12 +61,15 @@ class AuthService {
     required Function(String error) onError,
   }) async {
     try {
+      // Create credential from verification ID and SMS code
       PhoneAuthCredential credential = PhoneAuthProvider.credential(
         verificationId: verificationId,
         smsCode: smsCode,
       );
 
+      // Sign in user with OTP credential
       UserCredential userCredential = await _auth.signInWithCredential(credential);
+      // Retrieve Firebase JWT token
       String? token = await userCredential.user?.getIdToken();
       
       debugPrint("--- FIREBASE JWT TOKEN ---");
@@ -81,7 +84,7 @@ class AuthService {
     }
   }
 
-  /// Logs out the current user.
+  /// Logs out the currently authenticated user.
   Future<void> signOut() async {
     await _auth.signOut();
   }
@@ -103,15 +106,17 @@ class AuthService {
       final formats = [phoneNumber, localPhone, noLeadPhone];
       debugPrint("Checking existence for $role: $formats");
 
-      // Define databases and queries to check
+      /// Define which databases and collections to check
       List<FirebaseFirestore> databases;
       List<Map<String, String>> queries = [];
 
       if (role == "Merchant") {
+        // Merchant search logic
         databases = [_merchantDb, _db, FirebaseFirestore.instance];
         queries.add({'collection': 'merchants', 'field': 'ownerPhone'});
         queries.add({'collection': 'merchant-onboarding', 'field': 'ownerPhone'});
       } else {
+        // Regular user search logic
         databases = [_db, FirebaseFirestore.instance, _merchantDb];
         queries.add({'collection': 'users', 'field': 'mobileNumber'});
         queries.add({'collection': 'washliauth', 'field': 'phone'});
@@ -149,6 +154,7 @@ class AuthService {
 
       // Wait for all queries to complete
       final results = await Future.wait(tasks);
+      /// If any query returned true → user exists
       final exists = results.any((element) => element == true);
 
       debugPrint("Check finished in ${stopwatch.elapsedMilliseconds}ms. Found: $exists");
