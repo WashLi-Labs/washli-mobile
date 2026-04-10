@@ -3,6 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+/// AuthService handles:
+/// - Phone authentication (OTP send & verify)
+/// - Firestore user existence checks
+/// - Token refresh with custom claims
+/// - Logout functionality
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instanceFor(
@@ -14,7 +19,7 @@ class AuthService {
     databaseId: 'merchant-onboarding',
   );
 
-  /// Sends an OTP to the provided phone number.
+  /// Sends an OTP to the provided phone number. Context is used to show the error message
   Future<void> sendOTP({
     required BuildContext context,
     required String phoneNumber,
@@ -22,10 +27,12 @@ class AuthService {
   }) async {
     await _auth.verifyPhoneNumber(
       phoneNumber: phoneNumber,
+       /// Automatically verifies SMS on supported Android devices
       verificationCompleted: (PhoneAuthCredential credential) async {
         // Auto-retrieval of SMS code (usually works on Android)
         try {
           UserCredential userCredential = await _auth.signInWithCredential(credential);
+          // Retrieve Firebase JWT token
           String? token = await userCredential.user?.getIdToken();
           debugPrint("--- FIREBASE JWT TOKEN ---");
           debugPrint(token);
